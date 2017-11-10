@@ -18,16 +18,19 @@ MainContentComponent::MainContentComponent()
 	_lstBox->setModel(this);
 	addAndMakeVisible(_lstBox);
 
+	HashMap <String, TCompType*>& hm = TCompType::getCompTypeList();
 
-
-	TCompType * compType = TCompType::getCompTypeList()["shaderEdt"];
-	if (compType)
+	for (HashMap<String, TCompType*>::Iterator i(hm); i.next();)
 	{
-		_curSubComp = nullptr;
-		_curSubComp = compType->createComponent();
-		addAndMakeVisible(_curSubComp);
-
+		if (i.getValue()->_index == curSubCompIndex)
+		{
+			_curSubComp = nullptr;
+			_curSubComp = i.getValue()->createComponent();
+			addAndMakeVisible(_curSubComp);
+			break;
+		}
 	}
+
 	resized();
 }
 

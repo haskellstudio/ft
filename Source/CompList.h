@@ -16,7 +16,7 @@ class TCompType
 {
 public:
 	virtual Component* createComponent() = 0;
-	TCompType(const String &n) : name(n)
+	TCompType(const String &n, int index) : name(n) , _index(index)
 	{
 		getCompTypeList().set(n, (TCompType*)this);
 
@@ -30,7 +30,7 @@ public:
 		return list;
 	}
 	String name;
-	int index;
+	int _index;
 };
 
 
@@ -39,7 +39,7 @@ template <class TComponent>
 class ComponentList : TCompType
 {
 public:
-	ComponentList(const  String & n) : TCompType(n)
+	ComponentList(const  String & n, int index) : TCompType(n, index)
 	{
 	}
 

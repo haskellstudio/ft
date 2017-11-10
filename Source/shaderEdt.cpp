@@ -80,7 +80,7 @@ void shaderEdt::resized()
 
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
-static ComponentList<shaderEdt> td((const String)("shaderEdt"));
+static ComponentList<shaderEdt> td((const String)("shaderEdt"), 0);
 //[/MiscUserCode]
 
 

@@ -80,7 +80,7 @@ void midi::resized()
 
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
-static ComponentList<midi> td((const String)("midi"));
+static ComponentList<midi> td((const String)("midi"), 1);
 //[/MiscUserCode]
 
 
