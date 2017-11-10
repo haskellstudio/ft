@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="tdN1ra" name="ft" displaySplashScreen="0" reportAppUsage="0"
+              splashScreenColour="Dark" projectType="guiapp" version="1.0.0"
+              bundleIdentifier="com.yourcompany.ft" includeBinaryInAppConfig="1"
+              jucerVersion="5.0.1">
+  <MAINGROUP id="Cyewot" name="ft">
+    <GROUP id="{BD5485AD-6B1E-43BE-0E99-E70CC9D1D4F4}" name="Source">
+      <GROUP id="{5ADEB8FD-A07C-1A05-C6EB-F313F1A95E05}" name="mainComp">
+        <GROUP id="{EFD49AB4-D413-3BC0-8BC7-6A74502B36ED}" name="subComp">
+          <FILE id="ZeHIDu" name="shaderEdt.h" compile="0" resource="0" file="Source/shaderEdt.h"/>
+          <FILE id="XaozlC" name="shaderEdt.cpp" compile="1" resource="0" file="Source/shaderEdt.cpp"/>
+          <FILE id="j3idHP" name="midi.h" compile="0" resource="0" file="Source/midi.h"/>
+          <FILE id="O2TSSw" name="midi.cpp" compile="1" resource="0" file="Source/midi.cpp"/>
+        </GROUP>
+        <FILE id="PgY1vr" name="MainComponent.cpp" compile="1" resource="0"
+              file="Source/MainComponent.cpp"/>
+        <FILE id="m5bmDi" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+      </GROUP>
+      <GROUP id="{0C259F8E-4B0E-8A6A-6696-F723FEC497F4}" name="common">
+        <FILE id="FgDwcv" name="CompList.h" compile="0" resource="0" file="Source/CompList.h"/>
+      </GROUP>
+      <FILE id="uM5Fxb" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+    </GROUP>
+  </MAINGROUP>
+  <EXPORTFORMATS>
+    <XCODE_MAC targetFolder="Builds/MacOSX">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="ft"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="ft"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_core" path="~/JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="~/JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="~/JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="~/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="~/JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="~/JUCE/modules"/>
+        <MODULEPATH id="juce_cryptography" path="~/JUCE/modules"/>
+        <MODULEPATH id="juce_video" path="~/JUCE/modules"/>
+        <MODULEPATH id="juce_opengl" path="~/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="~/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="~/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="~/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="~/JUCE/modules"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+    <VS2015 targetFolder="Builds/VisualStudio2015">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
+                       isDebug="1" optimisation="1" targetName="ft"/>
+        <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
+                       isDebug="0" optimisation="3" targetName="ft"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_core" path="E:\juceStudy\ft\JUCE\modules"/>
+        <MODULEPATH id="juce_events" path="E:\juceStudy\ft\JUCE\modules"/>
+        <MODULEPATH id="juce_graphics" path="E:\juceStudy\ft\JUCE\modules"/>
+        <MODULEPATH id="juce_data_structures" path="E:\juceStudy\ft\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_basics" path="E:\juceStudy\ft\JUCE\modules"/>
+        <MODULEPATH id="juce_gui_extra" path="E:\juceStudy\ft\JUCE\modules"/>
+        <MODULEPATH id="juce_cryptography" path="E:\juceStudy\ft\JUCE\modules"/>
+        <MODULEPATH id="juce_video" path="E:\juceStudy\ft\JUCE\modules"/>
+        <MODULEPATH id="juce_opengl" path="E:\juceStudy\ft\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_basics" path="E:\juceStudy\ft\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_devices" path="E:\juceStudy\ft\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_formats" path="E:\juceStudy\ft\JUCE\modules"/>
+        <MODULEPATH id="juce_audio_processors" path="E:\juceStudy\ft\JUCE\modules"/>
+      </MODULEPATHS>
+    </VS2015>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_video" showAllCode="1" useLocalCopy="0"/>
+  </MODULES>
+  <JUCEOPTIONS/>
+</JUCERPROJECT>
