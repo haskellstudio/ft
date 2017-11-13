@@ -12,21 +12,23 @@
 
 
 
+
 class TCompType
 {
 public:
 	virtual Component* createComponent() = 0;
 	TCompType(const String &n, int index) : name(n) , _index(index)
 	{
-		getCompTypeList().set(n, (TCompType*)this);
+		getCompTypeList().set(index, (TCompType*)this);
+		//getCompTypeList().set(n, (TCompType*)this);
 
 	}
 
 
-	static HashMap <String, TCompType*>& getCompTypeList()
+	static HashMap <int, TCompType*>& getCompTypeList()
 	{
-		static HashMap <String, TCompType*> list;
-		//static Array<TCompType*> list;
+		static HashMap <int, TCompType*> list;
+	
 		return list;
 	}
 	String name;

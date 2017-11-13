@@ -18,17 +18,13 @@ MainContentComponent::MainContentComponent()
 	_lstBox->setModel(this);
 	addAndMakeVisible(_lstBox);
 
-	HashMap <String, TCompType*>& hm = TCompType::getCompTypeList();
-
-	for (HashMap<String, TCompType*>::Iterator i(hm); i.next();)
+	HashMap <int, TCompType*>& hm = TCompType::getCompTypeList();
+	if (hm.contains(curSubCompIndex))
 	{
-		if (i.getValue()->_index == curSubCompIndex)
-		{
-			_curSubComp = nullptr;
-			_curSubComp = i.getValue()->createComponent();
-			addAndMakeVisible(_curSubComp);
-			break;
-		}
+		TCompType * ct = hm[curSubCompIndex];
+		_curSubComp = nullptr;
+		_curSubComp = ct->createComponent();
+		addAndMakeVisible(_curSubComp);
 	}
 
 	resized();

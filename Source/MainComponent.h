@@ -44,22 +44,32 @@ public:
 		if (rowIsSelected)
 			g.fillAll(Colours::deepskyblue);
 
-		HashMap <String, TCompType*>& hm = TCompType::getCompTypeList();
+		HashMap <int, TCompType*>& hm = TCompType::getCompTypeList();
 
 		
-		for (HashMap<String, TCompType*>::Iterator i(hm); i.next();)
+		if (hm.contains(rowNumber))
 		{
-			if (i.getValue()->_index == rowNumber)
-			{
-				AttributedString a;
-				a.setJustification(Justification::centredLeft);
+			TCompType * ct = hm[rowNumber];
+			AttributedString a;
+			a.setJustification(Justification::centredLeft);
 
-				a.append(i.getKey(), Font(20.0f), Colours::white);
+			a.append(ct->name, Font(20.0f), Colours::white);
 
-				a.draw(g, Rectangle<int>(width + 10, height).reduced(6, 0).toFloat());
-				break;
-			}
+			a.draw(g, Rectangle<int>(width + 10, height).reduced(6, 0).toFloat());
 		}
+		//for (HashMap<int, TCompType*>::Iterator i(hm); i.next();)
+		//{
+		//	if (i.getValue()->_index == rowNumber)
+		//	{
+		//		AttributedString a;
+		//		a.setJustification(Justification::centredLeft);
+
+		//		a.append(i.getKey(), Font(20.0f), Colours::white);
+
+		//		a.draw(g, Rectangle<int>(width + 10, height).reduced(6, 0).toFloat());
+		//		break;
+		//	}
+		//}
 
 	}
 
@@ -72,20 +82,15 @@ public:
 			return;
 		}
 		curSubCompIndex = lastRowSelected;
-		HashMap <String, TCompType*>& hm = TCompType::getCompTypeList();
-
-	
-		for (HashMap<String, TCompType*>::Iterator i(hm); i.next();)
+		HashMap <int, TCompType*>& hm = TCompType::getCompTypeList();
+		if (hm.contains(lastRowSelected))
 		{
-			if (lastRowSelected == i.getValue()->_index)
-			{
-				_curSubComp = nullptr;
-				_curSubComp = i.getValue()->createComponent();
-				addAndMakeVisible(_curSubComp);
-				resized();
-				break;
-			}
-			
+			TCompType * ct = hm[lastRowSelected];
+			_curSubComp = nullptr;
+			_curSubComp = ct->createComponent();
+			addAndMakeVisible(_curSubComp);
+			resized();
+
 		}
 	}
 /////////////////////////////
