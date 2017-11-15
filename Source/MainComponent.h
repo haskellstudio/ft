@@ -45,16 +45,12 @@ public:
 			g.fillAll(Colours::deepskyblue);
 
 		HashMap <int, TCompType*>& hm = TCompType::getCompTypeList();
-
-		
 		if (hm.contains(rowNumber))
 		{
 			TCompType * ct = hm[rowNumber];
 			AttributedString a;
 			a.setJustification(Justification::centredLeft);
-
 			a.append(ct->name, Font(20.0f), Colours::white);
-
 			a.draw(g, Rectangle<int>(width + 10, height).reduced(6, 0).toFloat());
 		}
 		//for (HashMap<int, TCompType*>::Iterator i(hm); i.next();)

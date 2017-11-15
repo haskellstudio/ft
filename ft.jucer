@@ -6,8 +6,15 @@
               jucerVersion="5.0.1">
   <MAINGROUP id="Cyewot" name="ft">
     <GROUP id="{BD5485AD-6B1E-43BE-0E99-E70CC9D1D4F4}" name="Source">
+      <GROUP id="{FE9D7752-2DE3-F65D-CFF7-F2ADCE972F06}" name="shaderemu">
+        <FILE id="OjTYtl" name="glsl.cpp" compile="1" resource="0" file="Source/glsl.cpp"/>
+        <FILE id="HXMqhL" name="shaderEmu.cpp" compile="1" resource="0" file="Source/shaderEmu.cpp"/>
+        <FILE id="v1AEbt" name="shaderEmu.h" compile="0" resource="0" file="Source/shaderEmu.h"/>
+      </GROUP>
       <GROUP id="{5ADEB8FD-A07C-1A05-C6EB-F313F1A95E05}" name="mainComp">
         <GROUP id="{EFD49AB4-D413-3BC0-8BC7-6A74502B36ED}" name="subComp">
+          <FILE id="s7F2Kx" name="pixelEmu.cpp" compile="1" resource="0" file="Source/pixelEmu.cpp"/>
+          <FILE id="Bb7Bau" name="pixelEmu.h" compile="0" resource="0" file="Source/pixelEmu.h"/>
           <FILE id="ZeHIDu" name="shaderEdt.h" compile="0" resource="0" file="Source/shaderEdt.h"/>
           <FILE id="XaozlC" name="shaderEdt.cpp" compile="1" resource="0" file="Source/shaderEdt.cpp"/>
           <FILE id="j3idHP" name="midi.h" compile="0" resource="0" file="Source/midi.h"/>
@@ -45,7 +52,7 @@
         <MODULEPATH id="juce_audio_processors" path="~/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
-    <VS2015 targetFolder="Builds/VisualStudio2015">
+    <VS2015 targetFolder="Builds/VisualStudio2015" extraCompilerFlags="/I&quot;./../../glm&quot;">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        isDebug="1" optimisation="1" targetName="ft"/>

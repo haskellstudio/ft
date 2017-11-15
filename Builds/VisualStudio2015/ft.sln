@@ -10,6 +10,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{84B9E8
 		..\..\Source\Main.cpp = ..\..\Source\Main.cpp
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shaderemu", "shaderemu", "{2219A9E5-5EEB-99DB-45A2-7614EE877899}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\Source\glsl.cpp = ..\..\Source\glsl.cpp
+		..\..\Source\shaderEmu.cpp = ..\..\Source\shaderEmu.cpp
+		..\..\Source\shaderEmu.h = ..\..\Source\shaderEmu.h
+	EndProjectSection
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mainComp", "mainComp", "{69BBAFD5-570D-F40A-DCF2-4B66D9DB21E9}"
 	ProjectSection(SolutionItems) = preProject
 		..\..\Source\MainComponent.cpp = ..\..\Source\MainComponent.cpp
@@ -18,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mainComp", "mainComp", "{69
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "subComp", "subComp", "{DA820DE5-68A2-1AE2-A963-C073DC3A25D3}"
 	ProjectSection(SolutionItems) = preProject
+		..\..\Source\pixelEmu.cpp = ..\..\Source\pixelEmu.cpp
+		..\..\Source\pixelEmu.h = ..\..\Source\pixelEmu.h
 		..\..\Source\shaderEdt.h = ..\..\Source\shaderEdt.h
 		..\..\Source\shaderEdt.cpp = ..\..\Source\shaderEdt.cpp
 		..\..\Source\midi.h = ..\..\Source\midi.h
@@ -1687,6 +1696,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{2219A9E5-5EEB-99DB-45A2-7614EE877899} = {84B9E8DB-1C3A-B9BE-D590-BB3E7BE0B113}
 		{DA820DE5-68A2-1AE2-A963-C073DC3A25D3} = {69BBAFD5-570D-F40A-DCF2-4B66D9DB21E9}
 		{69BBAFD5-570D-F40A-DCF2-4B66D9DB21E9} = {84B9E8DB-1C3A-B9BE-D590-BB3E7BE0B113}
 		{491B2497-723E-C486-F52E-02AA1567DC12} = {84B9E8DB-1C3A-B9BE-D590-BB3E7BE0B113}

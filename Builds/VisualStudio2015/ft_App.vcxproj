@@ -78,6 +78,7 @@
       <WarningLevel>Level4</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/I&quot;./../../glm&quot; %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -117,6 +118,7 @@
       <WarningLevel>Level4</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/I&quot;./../../glm&quot; %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -138,6 +140,9 @@
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\glsl.cpp"/>
+    <ClCompile Include="..\..\Source\shaderEmu.cpp"/>
+    <ClCompile Include="..\..\Source\pixelEmu.cpp"/>
     <ClCompile Include="..\..\Source\shaderEdt.cpp"/>
     <ClCompile Include="..\..\Source\midi.cpp"/>
     <ClCompile Include="..\..\Source\MainComponent.cpp"/>
