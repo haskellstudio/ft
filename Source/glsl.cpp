@@ -17,7 +17,7 @@ extern vec2 iResolution ;
 
 
 
-#define S(a, b, t) smoothstep(a,b,t)
+#define S(a, b, t) smoothstep(a,b,t)     // smoothstep is similar but not equal to remap01
 #define sat(x) clamp(x, 0.f, 1.f)
 
 
@@ -58,28 +58,19 @@ vec4 Head(vec2 uv)
 
 
 	col.a = S(.5f, .49f, d);
-	/*
-	if(d >.5)
-	col.a = 0;
-	else if(d < 0.45 )
-	col.a = 1;
-	else // 0.45d<0.5
-	col.a = 0.5;   // smooth step
-	*/
+
 
 	float edgeShade = remap01(0.35f, .5f, d);
-
+	  
+	
 	edgeShade *= edgeShade;
 
 	col.rgb = col.rgb * (1.f - edgeShade*.5f);
 	
+	float res;
+	           //if=0 use col.rgb if =1 use .6 .3 .1  (0 < res < 1)
+	col.rgb = mix((vec3)col.rgb, vec3(.6f, .3f, .1f), res = S(.47f, .48f, d));
 
-	col.rgb = mix((vec3)col.rgb, vec3(.6f, .3f, .1f), S(.47f, .48f, d));
-
-	//float ss =S(.47f, .48f, d);
-	//col.r = mix(col.r, .6f, ss);
-	//col.g = mix(col.g, .3f, ss);
-	//col.b = mix(col.b, .1f, ss);
 	return col;
 }
 
