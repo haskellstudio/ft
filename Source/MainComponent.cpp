@@ -24,7 +24,8 @@ MainContentComponent::MainContentComponent()
 		TCompType * ct = hm[curSubCompIndex];
 		_curSubComp = nullptr;
 		_curSubComp = ct->createComponent();
-		addAndMakeVisible(_curSubComp);
+		//_curSubComp->setFocusContainer(true);
+		addAndMakeVisible(_curSubComp);	
 	}
 
 	resized();

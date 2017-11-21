@@ -164,9 +164,32 @@ vec4 smiley(vec2 uv)
 void mainImage(vec2 gl_FragCoord)
 {
 	vec2 uv = gl_FragCoord.xy() / iResolution.xy();
-	uv -= 0.5;
+	uv = uv - vec2(0.5f);
 	uv.y = -uv.y;
 	uv.x *= iResolution.x / iResolution.y;
-	fragColor = smiley(uv);
+
+
+
+//	vec3 color = vec3(0.0f);
+
+
+//	float r = length(pos)*2.0f;
+	float a = atan(uv.y, uv.x);
+
+//	float f = cos(a*1.f);
+	// f = abs(cos(a*3.));
+	// f = abs(cos(a*2.5))*.5+.3;
+	// f = abs(cos(a*12.)*sin(a*3.))*.8+.1;
+	// f = smoothstep(-.5,1., cos(a*10.))*0.2+0.5;
+
+//	color = vec3(1. - smoothstep(f, f + 0.02f, r));
+
+//	fragColor = vec4(color, 1.0f);
+	fragColor = vec4(a, .0f, .0f, 1.0f);
+
+	//fragColor = vec4(1.f, 0.f,0.f,1.f);
+
+	//uv.x *= iResolution.x / iResolution.y;
+	//fragColor = smiley(uv);
 
 }

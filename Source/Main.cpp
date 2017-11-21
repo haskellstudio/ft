@@ -97,6 +97,12 @@ private:
     ScopedPointer<MainWindow> mainWindow;
 };
 
+
+void msg(juce::String s)
+{
+	AlertWindow::showMessageBox(AlertWindow::AlertIconType::InfoIcon, "msg", s, "ok");
+}
+
 //==============================================================================
 // This macro generates the main() routine that launches the app.
 START_JUCE_APPLICATION (ftApplication)

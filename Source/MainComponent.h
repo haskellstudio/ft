@@ -85,6 +85,8 @@ public:
 			_curSubComp = nullptr;
 			_curSubComp = ct->createComponent();
 			addAndMakeVisible(_curSubComp);
+		//	_curSubComp->setFocusContainer(true);
+			_curSubComp->grabKeyboardFocus();
 			resized();
 
 		}

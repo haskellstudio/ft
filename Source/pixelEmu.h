@@ -21,6 +21,8 @@
 
 //[Headers]     -- You can add your own extra header files here --
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "glm\glm.hpp"
+using namespace glm; 
 //[/Headers]
 
 
@@ -42,15 +44,23 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
+
+
     //[/UserMethods]
 
     void paint (Graphics& g) override;
     void resized() override;
+    bool keyPressed (const KeyPress& key) override;
 
 
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
+	ScopedPointer<TextEditor> edtShowBin;
+	Image _canvas;
+
+
+	juce::Array<juce::Array<vec4>> _charCanvas;
     //[/UserVariables]
 
     //==============================================================================

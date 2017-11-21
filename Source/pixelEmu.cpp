@@ -24,17 +24,19 @@
 
 
 //[MiscUserDefs] You can add your own user definitions and misc code here...
-
-#include "glm\glm.hpp"
+#include <sstream>
 #include "CompList.h"
 #include "shaderEmu.h"
-using namespace glm;
+#include "util.h"
+
+extern void msg(juce::String s);
 //[/MiscUserDefs]
 
 //==============================================================================
 pixelEmu::pixelEmu ()
 {
     //[Constructor_pre] You can add your own custom stuff here..
+	setWantsKeyboardFocus(true);
     //[/Constructor_pre]
 
 
@@ -45,6 +47,14 @@ pixelEmu::pixelEmu ()
 
 
     //[Constructor] You can add your own custom stuff here..
+	edtShowBin = new TextEditor("showBin");
+	edtShowBin->setWantsKeyboardFocus(false);
+	edtShowBin->setReadOnly(true);
+
+	edtShowBin->setMultiLine(true, false);
+	edtShowBin->setScrollbarsShown(true);
+	addAndMakeVisible(edtShowBin);
+	edtShowBin->setVisible(false);
     //[/Constructor]
 }
 
@@ -56,11 +66,11 @@ pixelEmu::~pixelEmu()
 
 
     //[Destructor]. You can add your own custom destruction code here..
+	edtShowBin = nullptr;
     //[/Destructor]
 }
 
 //==============================================================================
-
 void pixelEmu::paint (Graphics& g)
 {
     //[UserPrePaint] Add your own custom painting code here..
@@ -73,17 +83,23 @@ void pixelEmu::paint (Graphics& g)
 	const vec2 iResolution(getWidth(), getHeight());
 
 	Image canvas(Image::ARGB, getWidth(), getHeight(), true);
-	
+
+	_charCanvas.clear();
+
 	for (int y = 0; y < getHeight(); y++)
 	{
+		juce::Array<vec4> oneRow;
 		for (int x = 0; x < getWidth(); x++)
 		{
-			vec2 gl_FragCoord(x, y);
+			vec2 gl_FragCoord(x,  y);
 			vec4 p = getRGBA(iResolution, gl_FragCoord);
-		
+			oneRow.add(p);
 			canvas.setPixelAt(x, y, juce::Colour::fromFloatRGBA(p.r, p.g, p.b, p.a));
 		}
+		_charCanvas.add(oneRow);
 	}
+	_canvas = canvas;
+
 	g.setTiledImageFill(canvas, 0, 0, 1.0);
 	g.fillAll();
     //[/UserPaint]
@@ -95,7 +111,80 @@ void pixelEmu::resized()
     //[/UserPreResize]
 
     //[UserResized] Add your own custom resize handling here..
+	auto r = getLocalBounds();
+	FlexBox masterbox;
+	masterbox.flexDirection = FlexBox::Direction::column;// column;// : FlexBox::Direction::row;
+	masterbox.alignItems = FlexBox::AlignItems::stretch;
+	masterbox.alignContent = FlexBox::AlignContent::stretch;
+	masterbox.flexWrap = juce::FlexBox::Wrap::wrap;
+	masterbox.justifyContent = FlexBox::JustifyContent::center;
+
+
+
+	int num = getNumChildComponents();
+	for (auto i = 0; i < num; i++)
+	{
+		auto c = getChildComponent(i);
+		if (c)
+		{
+			masterbox.items.add(FlexItem(1, 1).withFlex(1).withMargin(10));
+			auto& flexitem = masterbox.items.getReference(masterbox.items.size() - 1);
+			flexitem.associatedComponent = c;
+		}
+	}
+	//Rectangle<float> r = getLocalBounds().toFloat();
+	//r.reduce(10.0f, 10.0f);
+	masterbox.performLayout(r);
+
     //[/UserResized]
+}
+
+bool pixelEmu::keyPressed (const KeyPress& key)
+{
+    //[UserCode_keyPressed] -- Add your code here...
+	if (key == 'S')
+	{
+		//juce::String s;
+		CMemoryStream ms;
+		//std::stringstream s;
+		//s <<  std::hex ;
+		for (int y = 0; y < getHeight(); y++)
+		{
+			for (int x = 0; x < getWidth(); x++)
+			{
+				juce::Colour c=	_canvas.getPixelAt(x, y);
+				
+				ms.writeRGB(_charCanvas[y][x].r, _charCanvas[y][x].g, _charCanvas[y][x].b, true);
+				//s << std::hex << (int)c.getRed() << (int)c.getGreen() << (int)c.getBlue();
+				//g.append(std::string(c.getRed()));
+			}
+			//edtShowBin->insertTextAtCaret(s.str());
+			//s << "\r\n";
+			//s.clear();
+			ms.writeBreak();
+		//	if (y > 115)
+			//	break;
+		}
+		ms.wirteZero();
+
+		SystemClipboard::copyTextToClipboard(juce::String((char*)ms.GetMemory()));
+		msg("copyed data to clip board");
+
+
+	//	edtShowBin->setVisible(!edtShowBin->isVisible());
+	//	edtShowBin->setText((char*)ms.GetMemory());
+		
+
+	}
+	else if (key == KeyPress::F1Key)
+	{
+		repaint();
+	}
+			
+		//if (key == KeyPress::F1Key)
+		//	msg("F1Key");
+    return false;  // Return true if your handler uses this key event, or false to allow it to be passed-on.
+    //[/UserCode_keyPressed]
 }
 
 
@@ -118,6 +207,9 @@ BEGIN_JUCER_METADATA
                  parentClasses="public Component" constructorParams="" variableInitialisers=""
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
                  fixedSize="0" initialWidth="600" initialHeight="400">
+  <METHODS>
+    <METHOD name="keyPressed (const KeyPress&amp; key)"/>
+  </METHODS>
   <BACKGROUND backgroundColour="ffffffff"/>
 </JUCER_COMPONENT>
 
