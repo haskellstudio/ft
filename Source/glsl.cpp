@@ -233,19 +233,32 @@ void paint() {
 	set_source_rgb(vec3(1.0, 1.0, 1.));
 	clear();
 	
+	bool in_circle = false;
+
+
+
+	ellipse(0.0, 0.0, 0.3, 0.5);
+	
+	set_line_width(0.01);
+	set_source_rgba(0., 1., 0., 1.);
+	//stroke_preserve();   if use this , part of che ellipse and circle are the same color!!!!
+	//fill();
+	stroke();
+
+	
+	circle(0.3 + 0.3*(sin(1.2)*0.5 + 0.5), 0.0, 0.2);
+	set_line_width(0.01);
+	set_source_rgba(0., 0., 1., 1.);
+	stroke();
+
+
 	set_source_rgba(1., 0.0, 0.0, 1.);
 	set_line_width(0.01);
-
 	move_to(-0.2, 0.0);
 	line_to(0.2, 0.0);
 	line_to(0.2, -.2);
 	close_path();
 	stroke();
-
-
-
-
-
 }
 
 // implementation
