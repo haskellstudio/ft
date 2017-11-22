@@ -229,23 +229,22 @@ void shield_shape() {
 
 void paint() {
 
-
-	float t = 1.2;
-
-	// clear screen with a subtle gradient
+// traingle !
+	set_source_rgb(vec3(1.0, 1.0, 1.));
+	clear();
+	
+	set_source_rgba(1., 0.0, 0.0, 1.);
+	set_line_width(0.01);
 
 	move_to(-0.2, 0.0);
 	line_to(0.2, 0.0);
-
-	set_source_rgba(0.5, 0.0, 0.0, 0.5);
-	set_line_width(0.02);
-	set_blur(0.05);
-	stroke_preserve();
-	set_blur(0.0);
-
-	set_source_rgb(vec3(1.0));
-	set_line_width(0.02);
+	line_to(0.2, -.2);
+	close_path();
 	stroke();
+
+
+
+
 
 }
 
@@ -831,9 +830,9 @@ void graph(vec2 p, float f_x, vec2 df_x) {
 
 void mainImage(vec2 gl_FragCoord)
 {
+	gl_FragCoord.y = iResolution.y - gl_FragCoord.y;
 	vec2 uv = gl_FragCoord.xy() / iResolution.xy();
-//	uv = uv - vec2(0.5f);
-	uv.y = -uv.y;
+	uv = uv - vec2(0.5f);
 	uv.x *= iResolution.x / iResolution.y;
 
 
