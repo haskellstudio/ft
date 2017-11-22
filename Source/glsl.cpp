@@ -230,9 +230,10 @@ void shield_shape() {
 void paint() {
 
 // traingle !
+	
 	set_source_rgb(vec3(1.0, 1.0, 1.));
 	clear();
-	
+	/*
 	bool in_circle = false;
 
 
@@ -250,14 +251,14 @@ void paint() {
 	set_line_width(0.01);
 	set_source_rgba(0., 0., 1., 1.);
 	stroke();
-
+	*/
 
 	set_source_rgba(1., 0.0, 0.0, 1.);
 	set_line_width(0.01);
-	move_to(-0.2, 0.0);
+	move_to(-1., 0.0);
 	line_to(0.2, 0.0);
-	line_to(0.2, -.2);
-	close_path();
+//	line_to(0.2, -.2);
+	//close_path();
 	stroke();
 }
 
@@ -321,19 +322,21 @@ void init(vec2 fragCoord) {
 	query_position = (m*2.0f - 1.0f)*aspect;
 
 	_stack = Context{
-		vec4(position, query_position),
-		vec2(DEFAULT_SHAPE_V),
-		vec2(DEFAULT_CLIP_V),
-		vec2(1.0),
-		1.0,
-		false,
-		vec2(0.0, 1.0),
-		vec4(vec3(0.0), 1.0),
-		vec2(0.0),
-		vec2(0.0),
-		Replace,
-		false
+		vec4(position, query_position),  //position
+		vec2(DEFAULT_SHAPE_V),//shape
+		vec2(DEFAULT_CLIP_V),//clip
+		vec2(1.0),//scale
+		1.0,//line_width
+		false,//premultiply
+		vec2(0.0, 1.0),//blur
+		vec4(vec3(0.0), 1.0),//source
+		vec2(0.0),//start_pt
+		vec2(0.0),//last_pt
+		Replace,//source_blend
+		false// has_clip
 	};
+
+
 }
 
 vec3 _color = vec3(1.0);
@@ -429,6 +432,10 @@ void translate(vec2 p) {
 void translate(float x, float y) { translate(vec2(x, y)); }
 
 void clear() {
+	//if (_color.r != 1 || _color.g != 1 || _color.b != 1 )
+	//{
+	//	_color = mix(_color, (vec3)_stack.source.rgb, _stack.source.a);  // this is why we need clear color !
+	//}
 	_color = mix(_color, (vec3)_stack.source.rgb, _stack.source.a);
 }
 
