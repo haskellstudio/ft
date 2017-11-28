@@ -227,40 +227,6 @@ void shield_shape() {
 	curve_to(0.2, -0.05, 0.2, 0.2);
 }
 
-void paint() {
-
-// traingle !
-	
-	set_source_rgb(vec3(1.0, 1.0, 1.));
-	clear();
-	/*
-	bool in_circle = false;
-
-
-
-	ellipse(0.0, 0.0, 0.3, 0.5);
-	
-	set_line_width(0.01);
-	set_source_rgba(0., 1., 0., 1.);
-	//stroke_preserve();   if use this , part of che ellipse and circle are the same color!!!!
-	//fill();
-	stroke();
-
-	
-	circle(0.3 + 0.3*(sin(1.2)*0.5 + 0.5), 0.0, 0.2);
-	set_line_width(0.01);
-	set_source_rgba(0., 0., 1., 1.);
-	stroke();
-	*/
-
-	set_source_rgba(1., 0.0, 0.0, 1.);
-	set_line_width(0.01);
-	move_to(-1., 0.0);
-	line_to(0.2, 0.0);
-//	line_to(0.2, -.2);
-	//close_path();
-	stroke();
-}
 
 // implementation
 //////////////////////////////////////////////////////////
@@ -761,6 +727,31 @@ void line_to(vec2 p) {
 	_stack.last_pt = p;
 }
 
+
+// stroke only
+void line_to_(vec2 p) {
+	_stack.position = vec4(-2.f, 2.f, 0.f, 2.f);
+	p = vec2(-1.f, 1.f);
+	_stack.last_pt = vec2(-2.f, 0.f);
+
+	float xxx = atan2(-1.f, 0.f);
+
+	vec4 pa = _stack.position - _stack.last_pt.xyxy;
+	vec2 ba = p - _stack.last_pt;
+	vec2 pb = dot2(pa, ba);
+	float bb = dot(ba, ba);
+	vec2 h = clamp(dot2(pa, ba) / dot(ba, ba), 0.0f, 1.0f);
+	vec2 ss = pa.xz*ba.y - pa.yw*ba.x;
+	vec2 s = sign((vec2)ss);
+	vec2 d = length2(pa - ba.xyxy*h.xxyy);
+	add_field(d);
+	add_clip(d * s);
+	_stack.last_pt = p;
+}
+
+
+
+
 void line_to(float x, float y) { line_to(vec2(x, y)); }
 
 void close_path() {
@@ -840,10 +831,73 @@ void graph(vec2 p, float f_x, vec2 df_x) {
 
 
 
+void paint() {
+
+	// traingle !
+
+	set_source_rgb(vec3(1.0, 1.0, 1.));
+	clear();
+
+
+
+	//example 1 ellipse 
+	/*
+	ellipse(0.0, 0.0, 0.3, 0.5);
+	set_line_width(0.01);
+	set_source_rgba(0., 1., 0., 1.);
+	//stroke_preserve();   if use this , part of che ellipse and circle are the same color!!!!
+	//fill();
+	stroke();
+	*/
+
+
+
+	//example 2 circle 
+	/*
+	circle(0.3 + 0.3*(sin(1.2)*0.5 + 0.5), 0.0, 0.2);
+	set_line_width(0.01);
+	set_source_rgba(0., 0., 1., 1.);
+	stroke();
+	*/
+
+
+
+	//example 3 line 
+	/*
+	set_source_rgba(1., 0.0, 0.0, 1.);
+	set_line_width(0.01);
+	move_to(-1., 0.0);
+	line_to(0.2, 0.0);
+	//	line_to(0.2, -.2);
+	//close_path();
+	stroke();
+	*/
+
+
+
+	//example 4 curve
+
+//	translate(-1.0f, 0.4f);
+	scale(0.5f);
+//	rotate(radians(30.0f));
+	move_to(0.5f, 0.0f);
+	for (int i = 1; i < 6; ++i) {
+		float a0 = radians((float(i) - 0.5f) * 360.0f / 5.0f);
+		float a1 = radians(float(i) * 360.0f / 5.0f);
+		curve_to(
+			cos(a0)*0.5f, sin(a0)*0.5f,
+			cos(a1)*0.5f, sin(a1)*0.5f);
+	}
+	set_line_width_px(0.1f);
+	bool tri_active = in_stroke();
+	set_source_rgba(hsl(tri_active ? 0.1f : 0.5f, 1.0f, 0.5f, 0.5f));
+	fill_preserve();
 
 
 
 
+
+}
 
 
 
