@@ -37,6 +37,7 @@ float  getTime()
 	//int j = ::GetTickCount() % 100;
 	//float i = float(j) / 100;
 	return 1.;
+	
 }
 #define iTime getTime()
 
@@ -419,8 +420,8 @@ void add_clip(vec2 d) {
 }
 
 void add_field(vec2 d) {
-	d = d / _stack.scale;  //2.0f;//
-	_stack.shape = min(_stack.shape, d);
+	d = d / _stack.scale;
+		_stack.shape = min(_stack.shape, d);
 }
 
 void add_field(float c) {
@@ -718,31 +719,11 @@ void move_to(float x, float y) { move_to(vec2(x, y)); }
 void line_to(vec2 p) {
 	vec4 pa = _stack.position - _stack.last_pt.xyxy;
 	vec2 ba = p - _stack.last_pt;
-	vec2 a_dot_b = dot2(pa, ba);
-	vec2 xx = vec2(2.f, 2.f);
-	float xxdxx = dot(xx, xx);
-
-
-	float  b_dot_b = dot(ba, ba);
-	b_dot_b = sqrtf(b_dot_b);   // why there is not sqrt ? 
-	vec2 touying = dot2(pa, ba) / b_dot_b;
-	//vec2 touying = dot2(pa, ba) / dot(ba, ba);
-	vec2 h = clamp(touying, 0.0f, 1.0f);
+	vec2 h = clamp(dot2(pa, ba) / dot(ba, ba), 0.0f, 1.0f);
 	vec2 s = sign(pa.xz*ba.y - pa.yw*ba.x);
 	vec2 d = length2(pa - ba.xyxy*h.xxyy);
-	
-	if (d.x < 0.005)
-	{
-		vec2 d = length2(pa - ba.xyxy*h.xxyy);
-		add_field(d);
-		add_clip(d * s);
-	}
-	else
-	{
-		//add_field(d);
-		//add_clip(d * s);
-	}
-	
+	add_field(d);
+	add_clip(d * s);
 	_stack.last_pt = p;
 }
 
@@ -882,16 +863,15 @@ void paint() {
 
 
 	//example 3 line 
-	/*	*/
-	scale(0.5f);
+	/**/
 	set_source_rgba(1., 0.0, 0.0, 1.);
 	set_line_width(0.01);
-	move_to(1.f, 1.0f);
-	line_to(0.0, 0.0);
-	//line_to(0.2, -.2);
+	move_to(-1., 0.0);
+	line_to(0.2, 0.0);
+	//	line_to(0.2, -.2);
 	//close_path();
 	stroke();
-
+	
 
 
 
