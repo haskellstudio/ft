@@ -359,15 +359,15 @@ void identity_matrix() {
 
 void set_matrix(mat3 mtx) {
 	mtx = mat2x3_invert(mtx);
-	_stack.position.xy = (mtx * vec3(position, 1.0)).xy;
-	_stack.position.zw = (mtx * vec3(query_position, 1.0)).xy;
+	_stack.position.xy = (vec2)(mtx * vec3(position, 1.0)).xy;
+	_stack.position.zw = (vec2)(mtx * vec3(query_position, 1.0)).xy;
 	_stack.scale = vec2(glm::length((vec2)mtx[0].xy), glm::length((vec2)mtx[1].xy));
 }
 
 void transform(mat3 mtx) {
 	mtx = mat2x3_invert(mtx);
-	_stack.position.xy = (mtx * vec3(_stack.position.xy, 1.0)).xy;
-	_stack.position.zw = (mtx * vec3(_stack.position.zw, 1.0)).xy;
+	_stack.position.xy = (vec2)(mtx * vec3(_stack.position.xy, 1.0)).xy;
+	_stack.position.zw = (vec2)(mtx * vec3(_stack.position.zw, 1.0)).xy;
 	_stack.scale *= vec2(length((vec2)mtx[0].xy), length((vec2)mtx[1].xy));
 }
 
@@ -866,6 +866,7 @@ void paint() {
 	/**/
 	set_source_rgba(1., 0.0, 0.0, 1.);
 	set_line_width(0.01);
+	scale(.5f);
 	move_to(-1., 0.0);
 	line_to(0.2, 0.0);
 	//	line_to(0.2, -.2);
