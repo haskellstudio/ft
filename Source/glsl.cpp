@@ -402,7 +402,10 @@ void clear() {
 	//{
 	//	_color = mix(_color, (vec3)_stack.source.rgb, _stack.source.a);  // this is why we need clear color !
 	//}
-	_color = mix(_color, (vec3)_stack.source.rgb, _stack.source.a);
+	float x = mix(_color, (vec3)_stack.source.rgb, _stack.source.a).x;
+
+	vec3 c = (vec3)mix(_color, (vec3)_stack.source.rgb, _stack.source.a);
+	_color = c;
 }
 
 void blit(  vec4 & dest) {
@@ -426,6 +429,7 @@ void add_field(vec2 d) {
 
 void add_field(float c) {
 	_stack.shape.x = min(_stack.shape.x, c);
+
 }
 
 void new_path() {
@@ -464,7 +468,12 @@ void set_blur(float b) {
 void write_color(vec4 rgba, float w) {
 	float src_a = w * rgba.a;
 	float dst_a = _stack.premultiply ? w : src_a;
+	
 	_color = _color * (1.0f - src_a) + rgba.rgb * dst_a;
+	if (_isnan(_color.x))
+	{
+		_isnan(1);
+	}
 }
 
 void premultiply_alpha(bool enable) {
@@ -480,17 +489,29 @@ float uniform_scale_for_aa() {
 }
 
 float calc_aa_blur(float w) {
+	
 	vec2 blur = _stack.blur;
 	w -= blur.x;
 	float wa = clamp(-w*AA*uniform_scale_for_aa(), 0.0f, 1.0f);
 	float wb = clamp(-w / blur.x + blur.y, 0.0f, 1.0f);
-	return wa * wb;
+	float r = wa * wb;
+	if (_isnan(r))
+	{
+		_isnan(1);
+	}
+	if (r != .0)
+	{
+		_isnan(1);
+	}
+	return r;
+	return w;
 }
 
 void fill_preserve() {
-	write_color(_stack.source, calc_aa_blur(_stack.shape.x));
+
+	//write_color(_stack.source, calc_aa_blur(_stack.shape.x  ));
 	if (_stack.has_clip) {
-		write_color(_stack.source, calc_aa_blur(_stack.clip.x));
+			write_color(_stack.source, calc_aa_blur(_stack.clip.x));
 	}
 }
 
@@ -514,10 +535,24 @@ float get_gradient_eps() {
 vec2 stroke_shape() {
 	return abs(_stack.shape) - _stack.line_width / _stack.scale;
 }
-
+/*
+float w = stroke_shape().x;
+write_color(_stack.source, calc_aa_blur(w));
+*/
 void stroke_preserve() {
 	float w = stroke_shape().x;
-	write_color(_stack.source, calc_aa_blur(w));
+
+	if (w > -0.01 && w < -.005)   //  width 0.01
+	{
+		calc_aa_blur(_stack.shape.x);
+		
+	}
+
+
+	float calb = calc_aa_blur(w);
+
+	
+	write_color(_stack.source, calb);
 }
 
 void stroke() {
@@ -730,20 +765,25 @@ void line_to(vec2 p) {
 
 // stroke only
 void line_to_(vec2 p) {
-	_stack.position = vec4(-2.f, 2.f, 0.f, 2.f);
-	p = vec2(-1.f, 1.f);
-	_stack.last_pt = vec2(-2.f, 0.f);
+	_stack.position = vec4(.3f, .3f, 0.f, 2.f);
+	//p = vec2(.5f, .5f);
+	//_stack.last_pt = vec2(-2.f, 0.f);
 
-	float xxx = atan2(-1.f, 0.f);
-
+	//float xxx = atan2(-1.f, 0.f);
+	
 	vec4 pa = _stack.position - _stack.last_pt.xyxy;
 	vec2 ba = p - _stack.last_pt;
 	vec2 pb = dot2(pa, ba);
 	float bb = dot(ba, ba);
-	vec2 h = clamp(dot2(pa, ba) / dot(ba, ba), 0.0f, 1.0f);
+	//vec2 h = clamp(dot2(pa, ba) / dot(ba, ba), 0.0f, 1.0f);
+		vec2 h = dot2(pa, ba) / dot(ba, ba);
 	vec2 ss = pa.xz*ba.y - pa.yw*ba.x;
 	vec2 s = sign((vec2)ss);
-	vec2 d = length2(pa - ba.xyxy*h.xxyy);
+
+	vec4 projectionVector = ba.xyxy*h.xxyy;
+	vec4 subPlayervector_Projectionvector = pa - projectionVector;
+	vec2 d = length2(subPlayervector_Projectionvector);
+	//vec2 d = length2(pa - h.xxyy);
 	add_field(d);
 	add_clip(d * s);
 	_stack.last_pt = p;
@@ -863,37 +903,87 @@ void paint() {
 
 
 	//example 3 line 
-	/**/
+	/*	
 	set_source_rgba(1., 0.0, 0.0, 1.);
 	set_line_width(0.01);
-	scale(.5f);
-	move_to(-1., 0.0);
-	line_to(0.2, 0.0);
-	//	line_to(0.2, -.2);
-	//close_path();
-	stroke();
+
+	set_blur(0.001);
+	//scale(.5f);
+	move_to(.0f, .0f);
+	line_to(.0f, .1f);
+	line_to(0.1f, .0f);
+	close_path();
+	if (_stack.position.y < -.2f)
+	{
+		
+		fill_preserve();
+	}
+	else
+	{
+		fill_preserve();
+		//stroke_preserve();
+		
+	}
+
+	*/
 	
 
 
 
 	//example 4 curve
-	/*
-//	translate(-1.0f, 0.4f);
-	scale(0.5f);
-//	rotate(radians(30.0f));
+
+	/**/
+	set_source_rgba(1., 0.0, 0.0, 1.);
+	set_line_width(0.01);
+	set_blur(0.0001);
 	move_to(0.5f, 0.0f);
-	for (int i = 1; i < 6; ++i) {
-		float a0 = radians((float(i) - 0.5f) * 360.0f / 5.0f);
-		float a1 = radians(float(i) * 360.0f / 5.0f);
-		curve_to(
-			cos(a0)*0.5f, sin(a0)*0.5f,
-			cos(a1)*0.5f, sin(a1)*0.5f);
-	}
-	set_line_width_px(0.1f);
-	bool tri_active = in_stroke();
-	set_source_rgba(hsl(tri_active ? 0.1f : 0.5f, 1.0f, 0.5f, 0.5f));
+
+	curve_to(0.5f, 0.5f, -0.5f, 0.f);
+	close_path();
+	//stroke();
 	fill_preserve();
-	*/
+	
+
+
+	float liushidu = 0.6283185306;  // 36 du
+	//translate(-1.0f, 0.4f);
+	//scale(0.5f);
+//	rotate(radians(30.0f));	
+	//stroke();
+	//for (int i = 1; i < 6; ++i) {
+	//	float a0 = liushidu*((float)i*2.f -1);//
+	//	//a0 = radians((float(i) - 0.5f) * 72.f);
+	//	float a1 = liushidu*((float)i* 2.f ) ;//
+	//	//a1 = radians(float(i) * 72.f);
+	//	//curve_to(
+	//	//	cos(a0)*0.5f, sin(a0)*0.5f,
+	//	//	cos(a1)*0.5f, sin(a1)*0.5f);
+	//	float ax, ay, xx, xy;
+	//	ax = cos(a0);
+	//	ay = sin(a0);
+	//	xx = cos(a1);
+	//	xy = sin(a1);
+	//	curve_to(
+	//		ax, ay,
+	//		xx, xy);
+	//}
+
+	//for (int i = 1; i < 6; ++i) {
+	//	float a0 = radians((float(i) - 0.5f) * 360.0f / 5.0f);
+	//	a0 = radians((float(i) - 0.5f) * 72.f);
+	//	float a1 = radians(float(i) * 360.0f / 5.0f);
+	//	curve_to(
+	//		cos(a0)*0.5f, sin(a0)*0.5f,
+	//		cos(a1)*0.5f, sin(a1)*0.5f);
+	//}
+
+
+	//set_line_width_px(0.1f);
+	//bool tri_active = in_stroke();
+	//set_source_rgba(hsl(tri_active ? 0.1f : 0.5f, 1.0f, 0.5f, 0.5f));
+	//fill_preserve();
+	//stroke();
+	/**/
 
 
 
