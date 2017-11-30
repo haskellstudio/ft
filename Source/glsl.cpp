@@ -903,7 +903,7 @@ void paint() {
 
 
 	//example 3 line 
-	/*	
+	/*	*/
 	set_source_rgba(1., 0.0, 0.0, 1.);
 	set_line_width(0.01);
 
@@ -921,18 +921,18 @@ void paint() {
 	else
 	{
 		fill_preserve();
-		//stroke_preserve();
+		
 		
 	}
 
-	*/
 	
-
+	
+	//stroke_preserve();
 
 
 	//example 4 curve
 
-	/**/
+	/*
 	set_source_rgba(1., 0.0, 0.0, 1.);
 	set_line_width(0.01);
 	set_blur(0.0001);
@@ -942,7 +942,7 @@ void paint() {
 	close_path();
 	//stroke();
 	fill_preserve();
-	
+	*/
 
 
 	float liushidu = 0.6283185306;  // 36 du
@@ -993,9 +993,65 @@ void paint() {
 
 
 
+// Test if point p crosses line (a, b), returns sign of result
+float testCross(vec2 a, vec2 b, vec2 p) {
+	return sign((b.y - a.y) * (p.x - a.x) - (b.x - a.x) * (p.y - a.y));
+}
+
+// Determine which side we're on (using barycentric parameterization)
+float signBezier(vec2 A, vec2 B, vec2 C, vec2 p)
+{
+	vec2 a = C - A, b = B - A, c = p - A;
+	vec2 bary = vec2(c.x*b.y - b.x*c.y, a.x*c.y - c.x*a.y) / (a.x*b.y - b.x*a.y);
+	vec2 d = vec2(bary.y * 0.5f, 0.0f) + 1.0f - bary.x - bary.y;
+	return mix(sign(d.x * d.x - d.y), mix(-1.0f, 1.0f,
+		step(testCross(A, B, p) * testCross(B, C, p), 0.0f)),
+		step((d.x - d.y), 0.0f)) * testCross(A, C, B);
+}
+
+// Solve cubic equation for roots
+vec3 solveCubic(float a, float b, float c)
+{
+	float p = b - a*a / 3.0f, p3 = p*p*p;
+	float q = a * (2.0f*a*a - 9.0f*b) / 27.0f + c;
+	float d = q*q + 4.0f*p3 / 27.0f;
+	float offset = -a / 3.0f;
+	if (d >= 0.0f) {
+		float z = sqrt(d);
+		vec2 x = (vec2(z, -z) - q) / 2.0f;
+		vec2 uv = sign(x)*pow(abs(x), vec2(1.0f / 3.0f));
+		return vec3(offset + uv.x + uv.y);
+	}
+	float v = acos(-sqrt(-27.0f / p3) * q / 2.0f) / 3.0f;
+	float m = cos(v), n = sin(v)*1.732050808f;
+	return vec3(m + m, -n - m, n - m) * sqrt(-p / 3.0f) + offset;
+}
+
+// Find the signed distance from a point to a bezier curve
+float sdBezier(vec2 A, vec2 B, vec2 C, vec2 p)
+{
+	B = mix(B + vec2(1e-4), B, abs(sign(B * 2.0f - A - C)));
+	vec2 a = B - A, b = A - B * 2.0f + C, c = a * 2.0f, d = A - p;
+	vec3 k = vec3(3.*dot(a, b), 2.*dot(a, a) + dot(d, b), dot(d, a)) / dot(b, b);
+	vec3 t = clamp(solveCubic(k.x, k.y, k.z), 0.0f, 1.0f);
+	vec2 pos = A + (c + b*t.x)*t.x;
+	float dis = length(pos - p);
+	pos = A + (c + b*t.y)*t.y;
+	dis = min(dis, length(pos - p));
+	pos = A + (c + b*t.z)*t.z;
+	dis = min(dis, length(pos - p));
+	return dis * signBezier(A, B, C, p);
+}
 void mainImage(vec2 gl_FragCoord)
 {
 	gl_FragCoord.y = iResolution.y - gl_FragCoord.y;
+
+
+
+
+/*	
+
+
 	vec2 uv = gl_FragCoord.xy() / iResolution.xy();
 	uv = uv - vec2(0.5f);
 	uv.x *= iResolution.x / iResolution.y;
@@ -1014,21 +1070,39 @@ void mainImage(vec2 gl_FragCoord)
 
 	blit(fragColor);
 
-
-	//float a = atan(uv.y, uv.x);
-
-	//float f = cos(a*1.f);
+*/
 
 
-	//float r = length(uv)*2.f;
-
-	//vec3 color = vec3(1.f - smoothstep(f, f + 0.02f, r));
-
-	////fragColor = vec4(f, .0f, .0f, 1.0f);
-
-	//fragColor = vec4(color, 1.0f);
-
-	//
+	float aspect = iResolution.x / iResolution.y;
+	vec2 p = (2.0f*gl_FragCoord.xy - iResolution.xy) / iResolution.y;
+	p.x *= aspect;
+	vec2 m = vec3(-.5f, -.5f, .0f);
+	m.x *= aspect;
 
 
+
+	// Define the control points of our curve
+	vec2 A = vec2(0.0f, -0.6f), C = vec2(0.0f, +0.6f), B = (4.0f * m - A - C) / 2.0f; 
+
+
+
+	// Render the control points
+	float d = min(distance(p, A), (min(distance(p, m), distance(p, C))));  //B, m
+	if (d < 0.04f)
+	{
+		fragColor = vec4(1.f, 1.f, 0.f, 1.f /*- smoothstep(0.025f, 0.034f, d)*/); 
+		return; 
+	}
+
+
+
+	// Get the signed distance to bezier curve
+	d = sdBezier(A, B, C, p);
+	if(d>0)
+		fragColor = vec4(fract(d*10.f),0, 0,1.0f);
+	if(d == 0)
+		fragColor = vec4(0.f, 0.f, 1.f, 1.0f);
+	if (d < 0)
+		fragColor = vec4(0.f, 0.f, fract(abs(d)*10.f), 1.0f);
+	return;
 }
