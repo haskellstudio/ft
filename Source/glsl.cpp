@@ -757,7 +757,12 @@ void line_to(vec2 p) {
 	vec2 h = clamp(dot2(pa, ba) / dot(ba, ba), 0.0f, 1.0f);
 	vec2 s = sign(pa.xz*ba.y - pa.yw*ba.x);
 	vec2 d = length2(pa - ba.xyxy*h.xxyy);
-	add_field(d);
+	if (s.x > 0.)
+	{
+		add_field(d);
+	}
+	else
+		add_field(d);
 	add_clip(d * s);
 	_stack.last_pt = p;
 }
@@ -903,7 +908,7 @@ void paint() {
 
 
 	//example 3 line 
-	/*	*/
+	/*	
 	set_source_rgba(1., 0.0, 0.0, 1.);
 	set_line_width(0.01);
 
@@ -921,10 +926,7 @@ void paint() {
 	else
 	{
 		fill_preserve();
-		
-		
-	}
-
+	}*/
 	
 	
 	//stroke_preserve();
@@ -932,20 +934,21 @@ void paint() {
 
 	//example 4 curve
 
-	/*
+	/**/
 	set_source_rgba(1., 0.0, 0.0, 1.);
 	set_line_width(0.01);
 	set_blur(0.0001);
-	move_to(0.5f, 0.0f);
+	move_to(.0f, 0.0f);
 
-	curve_to(0.5f, 0.5f, -0.5f, 0.f);
-	close_path();
+	//curve_to(0.f, 0.5f, -0.5f, 0.f);
+	line_to(.5f, .0f);
+	//close_path();
 	//stroke();
 	fill_preserve();
-	*/
+	
 
 
-	float liushidu = 0.6283185306;  // 36 du
+	//float liushidu = 0.6283185306;  // 36 du
 	//translate(-1.0f, 0.4f);
 	//scale(0.5f);
 //	rotate(radians(30.0f));	
@@ -1048,10 +1051,6 @@ void mainImage(vec2 gl_FragCoord)
 
 
 
-
-/*	
-
-
 	vec2 uv = gl_FragCoord.xy() / iResolution.xy();
 	uv = uv - vec2(0.5f);
 	uv.x *= iResolution.x / iResolution.y;
@@ -1070,9 +1069,9 @@ void mainImage(vec2 gl_FragCoord)
 
 	blit(fragColor);
 
-*/
 
 
+	/*
 	float aspect = iResolution.x / iResolution.y;
 	vec2 p = (2.0f*gl_FragCoord.xy - iResolution.xy) / iResolution.y;
 	p.x *= aspect;
@@ -1090,7 +1089,7 @@ void mainImage(vec2 gl_FragCoord)
 	float d = min(distance(p, A), (min(distance(p, m), distance(p, C))));  //B, m
 	if (d < 0.04f)
 	{
-		fragColor = vec4(1.f, 1.f, 0.f, 1.f /*- smoothstep(0.025f, 0.034f, d)*/); 
+		fragColor = vec4(1.f, 1.f, 0.f, 1.f); 
 		return; 
 	}
 
@@ -1105,4 +1104,5 @@ void mainImage(vec2 gl_FragCoord)
 	if (d < 0)
 		fragColor = vec4(0.f, 0.f, fract(abs(d)*10.f), 1.0f);
 	return;
+	*/
 }
