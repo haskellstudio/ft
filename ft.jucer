@@ -6,6 +6,11 @@
               jucerVersion="5.0.1">
   <MAINGROUP id="Cyewot" name="ft">
     <GROUP id="{BD5485AD-6B1E-43BE-0E99-E70CC9D1D4F4}" name="Source">
+      <GROUP id="{82EE3388-CF70-2E38-81E7-D5ACBF7BCD47}" name="commonShader">
+        <FILE id="uilMuE" name="Attributes.h" compile="0" resource="0" file="Source/Attributes.h"/>
+        <FILE id="MUSxN3" name="shaderPreset.h" compile="0" resource="0" file="Source/shaderPreset.h"/>
+        <FILE id="XYp6iV" name="sprite.h" compile="0" resource="0" file="Source/sprite.h"/>
+      </GROUP>
       <GROUP id="{FE9D7752-2DE3-F65D-CFF7-F2ADCE972F06}" name="shaderemu">
         <FILE id="OjTYtl" name="glsl.cpp" compile="1" resource="0" file="Source/glsl.cpp"/>
         <FILE id="HXMqhL" name="shaderEmu.cpp" compile="1" resource="0" file="Source/shaderEmu.cpp"/>
@@ -13,6 +18,12 @@
       </GROUP>
       <GROUP id="{5ADEB8FD-A07C-1A05-C6EB-F313F1A95E05}" name="mainComp">
         <GROUP id="{EFD49AB4-D413-3BC0-8BC7-6A74502B36ED}" name="subComp">
+          <GROUP id="{F54923B2-D986-8736-2951-206B0FFD05C1}" name="pixel_overlay">
+            <FILE id="ksXPRo" name="overlay.cpp" compile="1" resource="0" file="Source/overlay.cpp"/>
+            <FILE id="tPw1yc" name="overlay.h" compile="0" resource="0" file="Source/overlay.h"/>
+          </GROUP>
+          <FILE id="biEWrP" name="pixel.cpp" compile="1" resource="0" file="Source/pixel.cpp"/>
+          <FILE id="Brxh0Z" name="pixel.h" compile="0" resource="0" file="Source/pixel.h"/>
           <FILE id="s7F2Kx" name="pixelEmu.cpp" compile="1" resource="0" file="Source/pixelEmu.cpp"/>
           <FILE id="Bb7Bau" name="pixelEmu.h" compile="0" resource="0" file="Source/pixelEmu.h"/>
           <FILE id="ZeHIDu" name="shaderEdt.h" compile="0" resource="0" file="Source/shaderEdt.h"/>
