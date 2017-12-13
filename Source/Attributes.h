@@ -141,7 +141,7 @@ struct DynamicTexture
 
 		{
 			Graphics g(image);
-			g.fillAll(Colours::white);
+			g.fillAll(Colours::lightpink);
 
 			//g.setColour(Colours::black);
 			//g.drawRect(10, 10, size/2, size/2, 2);

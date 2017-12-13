@@ -131,7 +131,7 @@ public:
 		if (false == _bInit)
 		{
 			_bInit = true;
-			_sprite.init(0., .0, .5, .5);
+			_sprite.init(-.5, -.5,1., 1.);
 			_dynamicTexture.applyTo(_texture);
 		}
 
@@ -252,14 +252,22 @@ public:
 
 	Matrix3D<float> getProjectionMatrix() const
 	{
-		float w = 1.0f / (0.5f + 0.1f);
+		Matrix3D<float> ortho(1.0f, 0.0f, 0.0f, 0.0f,
+			0.0f, 1.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, -.01f, 0.0f,
+			0.0f, 0.0f, -1.0f, 1.0f
+			
+			
+			);
+		return ortho;
+	/*	float w = 1.0f / (0.5f + 0.1f);
 		float h = w * getLocalBounds().toFloat().getAspectRatio(false);
-		return Matrix3D<float>::fromFrustum(-w, w, -h, h, 4.0f, 30.0f);
+		return Matrix3D<float>::fromFrustum(-w, w, -h, h, 4.0f, 30.0f);*/
 	}
 
 	Matrix3D<float> getViewMatrix() const
 	{
-		Matrix3D<float> viewMatrix(Vector3D<float>(0.0f, 0.0f, -10.0f));
+		Matrix3D<float> viewMatrix;//(Vector3D<float>(0.0f, 0.0f, 0.0f));
 		return  viewMatrix;
 		/*Matrix3D<float> rotationMatrix
 			= viewMatrix.rotated(Vector3D<float>(-0.3f, 5.0f * std::sin(getFrameCounter() * 0.01f), 0.0f));

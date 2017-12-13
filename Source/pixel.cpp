@@ -90,6 +90,9 @@ pixel::~pixel()
 void pixel::paint (Graphics& g)
 {
     //[UserPrePaint] Add your own custom painting code here..
+	//g.setColour(juce::Colours::green);
+	//g.setFont(Font(16.0f));
+	//g.drawText("opengl txt", getLocalBounds(), Justification::centred, true);
 	return;
     //[/UserPrePaint]
 

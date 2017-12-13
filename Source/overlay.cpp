@@ -38,9 +38,8 @@ overlay::overlay ()
     label->setFont (Font (15.00f, Font::plain).withTypefaceStyle ("Regular"));
     label->setJustificationType (Justification::centredLeft);
     label->setEditable (false, false, false);
-    label->setColour (TextEditor::textColourId, Colours::black);
-    label->setColour (TextEditor::backgroundColourId, Colour (0x00000000));
-
+    label->setColour (TextEditor::textColourId, Colours::greenyellow);
+    label->setColour (TextEditor::backgroundColourId, Colours::greenyellow);
 
     //[UserPreSize]
     //[/UserPreSize]
@@ -49,6 +48,7 @@ overlay::overlay ()
 
 
     //[Constructor] You can add your own custom stuff here..
+	//label->setOpaque(false);
     //[/Constructor]
 }
 
@@ -68,10 +68,11 @@ overlay::~overlay()
 void overlay::paint (Graphics& g)
 {
     //[UserPrePaint] Add your own custom painting code here..
+	
 	return;
     //[/UserPrePaint]
 
-    g.fillAll (Colours::white);
+    g.fillAll (Colours::red);
 
     //[UserPaint] Add your own custom painting code here..
     //[/UserPaint]

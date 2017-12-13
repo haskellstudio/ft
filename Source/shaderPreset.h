@@ -55,6 +55,7 @@ struct ShaderData {
 		{
 			gl_Position = projectionMatrix * viewMatrix * vec4(position, 0.0, 1.0);
 			textureCoordOut = textureCoordIn;
+
 			//_uv = getUV();
 			//gl_Position =vec4(position, .0, 1.0);
 		}
