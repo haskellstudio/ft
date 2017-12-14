@@ -61,13 +61,9 @@ pixel::pixel ()
 
 	_openGLContext.setRenderer(this);
 
-	_openGLContext.setContinuousRepainting(true);
+	_openGLContext.setContinuousRepainting(true); // true  fps may be high.
 
 	_openGLContext.attachTo(*this);
-
-	_openGLContext.setContinuousRepainting(true);  // true  fps may be high.
-
-
 
 	resized();
     //[/Constructor]

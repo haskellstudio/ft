@@ -35,11 +35,14 @@ overlay::overlay ()
 
     addAndMakeVisible (label = new Label ("new label",
                                           TRANS("label text")));
-    label->setFont (Font (15.00f, Font::plain).withTypefaceStyle ("Regular"));
+    label->setFont (Font (25.00f, Font::plain).withTypefaceStyle ("Regular"));
     label->setJustificationType (Justification::centredLeft);
     label->setEditable (false, false, false);
+	label->setColour(Label::textColourId, Colours::green);
     label->setColour (TextEditor::textColourId, Colours::greenyellow);
     label->setColour (TextEditor::backgroundColourId, Colours::greenyellow);
+
+
 
     //[UserPreSize]
     //[/UserPreSize]
@@ -83,7 +86,7 @@ void overlay::resized()
     //[UserPreResize] Add your own custom resize code here..
     //[/UserPreResize]
 
-    label->setBounds (160, 136, 150, 24);
+    label->setBounds (getLocalBounds());
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]
 }
