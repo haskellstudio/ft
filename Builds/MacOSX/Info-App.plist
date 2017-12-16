@@ -8,7 +8,7 @@
     <key>CFBundleIconFile</key>
     <string></string>
     <key>CFBundleIdentifier</key>
-    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <string>com.yourcompany.ft</string>
     <key>CFBundleName</key>
     <string>ft</string>
     <key>CFBundleDisplayName</key>
