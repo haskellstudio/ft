@@ -470,9 +470,9 @@ void write_color(vec4 rgba, float w) {
 	float dst_a = _stack.premultiply ? w : src_a;
 	
 	_color = _color * (1.0f - src_a) + rgba.rgb * dst_a;
-	if (_isnan(_color.x))
+//	if (_isnan(_color.x))
 	{
-		_isnan(1);
+//		_isnan(1);
 	}
 }
 
@@ -495,13 +495,13 @@ float calc_aa_blur(float w) {
 	float wa = clamp(-w*AA*uniform_scale_for_aa(), 0.0f, 1.0f);
 	float wb = clamp(-w / blur.x + blur.y, 0.0f, 1.0f);
 	float r = wa * wb;
-	if (_isnan(r))
+	//if (_isnan(r))
 	{
-		_isnan(1);
+	//	_isnan(1);
 	}
 	if (r != .0)
 	{
-		_isnan(1);
+		//_isnan(1);
 	}
 	return r;
 	return w;
