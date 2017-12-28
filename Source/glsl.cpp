@@ -943,8 +943,8 @@ void paint() {
 	//curve_to(0.f, 0.5f, -0.5f, 0.f);
 	line_to(.5f, .0f);
 	//close_path();
-	//stroke();
-	fill_preserve();
+	stroke();
+	//fill_preserve();
 	
 
 

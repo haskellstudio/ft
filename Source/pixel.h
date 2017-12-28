@@ -132,13 +132,20 @@ public:
 		fps.incFrameCount();
 		if (overLay)
 		{
-			overLay->setTxt(juce::String(fps.fps));
+		//	const MessageManagerLock mmLock;
+		//	if (mmLock.lockWasGained())
+			{
+				//	msg(_compileResult);
+				//l->setText(_compileResult, dontSendNotification);
+			//	overLay->setTxt(juce::String(fps.fps));
+			}
+			
 		}
 
 		if (false == _bInit)
 		{
 			_bInit = true;
-			_sprite.init(-.5, -.5,1., 1.);
+			_sprite.init(-1., -1., 2., 2.);
 			_dynamicTexture.applyTo(_texture);
 			_openGLContext.setSwapInterval(0);
 		}
