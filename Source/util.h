@@ -240,3 +240,32 @@ public:
 		Write(&a, 1);
 	}
 };
+
+
+
+class FPS
+{
+public:
+	int fps = 0;
+
+
+	FPS()
+	{
+		lastTime = Time::getMillisecondCounter();
+	}
+	void incFrameCount()
+	{
+		frameCount++;
+		if (Time::getMillisecondCounter() - lastTime > 1000)
+		{
+			fps = frameCount;
+			frameCount = 0;
+			lastTime = Time::getMillisecondCounter();
+		}
+
+	}
+
+private:
+	int lastTime; // ms
+	int frameCount = 0;
+};

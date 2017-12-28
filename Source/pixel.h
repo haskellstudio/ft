@@ -24,6 +24,7 @@
 #include "Attributes.h"
 #include "sprite.h"
 #include "shaderPreset.h"
+#include "util.h"
 extern void msg(juce::String s);
 //[/Headers]
 
@@ -37,6 +38,8 @@ extern void msg(juce::String s);
     Describe your class and how it works here!
                                                                     //[/Comments]
 */
+
+
 class pixel  : public Component,
                private OpenGLRenderer,
                private Timer,
@@ -100,6 +103,7 @@ public:
 				
 				if (mmLock.lockWasGained())
 				{
+				
 				//	msg(_compileResult);
 				//	l->setText(_compileResult, dontSendNotification);
 				}
@@ -119,20 +123,24 @@ public:
 	void renderOpenGL() override
 	{
 
-		if (overLay)
-		{
-			overLay->setTxt(juce::String(juce::Time::getApproximateMillisecondCounter()));
-		}
 
 		bool isActive = OpenGLHelpers::isContextActive();
 		if (!isActive)
 			return;
+		//int i = _openGLContext.getSwapInterval();
+	
+		fps.incFrameCount();
+		if (overLay)
+		{
+			overLay->setTxt(juce::String(fps.fps));
+		}
 
 		if (false == _bInit)
 		{
 			_bInit = true;
 			_sprite.init(-.5, -.5,1., 1.);
 			_dynamicTexture.applyTo(_texture);
+			_openGLContext.setSwapInterval(0);
 		}
 
 		updateShader();
@@ -174,9 +182,6 @@ public:
 		{
 			if (uf->lightPosition)
 			{
-				if (sp.isClicked == 0)
-					uf->lightPosition->set(1.0f, 1.0f, 1.0f, 1.0f);
-				else if (sp.isClicked == 1)
 					uf->lightPosition->set(0.0f, 1.0f, 0.0f, 1.0f);
 
 			}
@@ -321,6 +326,8 @@ private:
 	Sprite _sprite;
 
 	OpenGLTexture _texture;
+
+	FPS fps;
     //[/UserVariables]
 
     //==============================================================================
