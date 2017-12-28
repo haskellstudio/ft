@@ -3,12 +3,14 @@
 <JUCERPROJECT id="tdN1ra" name="ft" displaySplashScreen="0" reportAppUsage="0"
               splashScreenColour="Dark" projectType="guiapp" version="1.0.0"
               bundleIdentifier="com.yourcompany.ft" includeBinaryInAppConfig="1"
-              jucerVersion="5.2.0" cppLanguageStandard="14" companyCopyright="">
+              jucerVersion="5.0.1" cppLanguageStandard="14" companyCopyright="">
   <MAINGROUP id="Cyewot" name="ft">
     <GROUP id="{BD5485AD-6B1E-43BE-0E99-E70CC9D1D4F4}" name="Source">
       <GROUP id="{82EE3388-CF70-2E38-81E7-D5ACBF7BCD47}" name="commonShader">
         <FILE id="uilMuE" name="Attributes.h" compile="0" resource="0" file="Source/Attributes.h"/>
         <FILE id="MUSxN3" name="shaderPreset.h" compile="0" resource="0" file="Source/shaderPreset.h"/>
+        <FILE id="Q7r2ED" name="shaderTemplate.h" compile="0" resource="0"
+              file="Source/shaderTemplate.h"/>
         <FILE id="XYp6iV" name="sprite.h" compile="0" resource="0" file="Source/sprite.h"/>
       </GROUP>
       <GROUP id="{FE9D7752-2DE3-F65D-CFF7-F2ADCE972F06}" name="shaderemu">
