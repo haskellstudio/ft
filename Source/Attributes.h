@@ -97,6 +97,8 @@ struct Uniforms
 		winW = createUniform(openGLContext, shader, "winW");
 		winH = createUniform(openGLContext, shader, "winH");
 
+		arrFloat = createUniform(openGLContext, shader, "arrFloat");
+
 	}
 	bool getStatus()
 	{
@@ -106,7 +108,7 @@ struct Uniforms
 		else
 			return true;
 	}
-	ScopedPointer<OpenGLShaderProgram::Uniform>projectionMatrix, viewMatrix, lightPosition, texture, iGlobalTime;
+	ScopedPointer<OpenGLShaderProgram::Uniform>projectionMatrix, viewMatrix, lightPosition, texture, iGlobalTime, arrFloat;
 	ScopedPointer<OpenGLShaderProgram::Uniform> x, y, w, h, winW, winH;
 
 private:

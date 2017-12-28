@@ -56,7 +56,7 @@ pixel::pixel ()
 	//if (overLay)
 	//	overLay->addMouseListener((MouseListener*)this, false);
 
-	
+
 	_openGLContext.setComponentPaintingEnabled(true);  // if false , the overlay component can not see.
 
 	_openGLContext.setRenderer(this);

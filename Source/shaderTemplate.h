@@ -1,49 +1,76 @@
 /*
   ==============================================================================
 
-    glsl.cpp
-    Created: 15 Nov 2017 5:59:04pm
+    shaderTemplate.h
+    Created: 28 Dec 2017 4:00:48pm
     Author:  secci
 
   ==============================================================================
 */
 
-//#define GLM_SWIZZLE 
-
-#define GLM_FORCE_SWIZZLE
-#include <glm/glm.hpp>
-#define min glm::min
-#define max glm::max
-
-
-using namespace glm;
-extern vec4 fragColor ;
-extern vec2 iResolution ;
+#pragma once
+#define STRINGIFY(A) #A
 
 
 
-#ifdef GLSLSANDBOX
-#ifdef GL_ES
-#endif
-uniform float time;
-uniform vec2 mouse;
-uniform vec2 resolution;
-#define iTime time
-#define iResolution resolution
-#define iMouse mouse
-#endif
-float  getTime()
+juce::String vetexShader =
+STRINGIFY(\
+	#version 120 \n
+	attribute vec2 position;
+attribute vec2 textureCoordIn;
+varying vec2 textureCoordOut;
+varying vec2 _uv;
+uniform mat4 projectionMatrix;
+uniform mat4 viewMatrix;
+uniform float _x;
+uniform float _y;
+uniform float _w;
+uniform float _h;
+
+float getx()
 {
-	//int j = ::GetTickCount() % 100;
-	//float i = float(j) / 100;
-	return 1.;
-	
+	return (position.x - _x) / _w;
 }
-#define iTime getTime()
+float gety()
+{
+	return (position.y - _y) / _h;
 
-vec2 iMouse = vec2(0.5f, 0.5f);
-// interface
-//////////////////////////////////////////////////////////
+}
+vec2 getUV()
+{
+	return vec2(getx(), gety());
+
+}
+void main()
+{
+	_uv = getUV();
+	gl_Position = projectionMatrix * viewMatrix * vec4(position, 0.0, 1.0);
+	textureCoordOut = textureCoordIn;
+
+	//
+	//gl_Position =vec4(position, .0, 1.0);
+}
+);
+  
+ juce::String fragmentShader =
+STRINGIFY(\
+	#version 120 \n
+	uniform vec4 lightPosition;
+varying vec2 textureCoordOut;
+varying vec2 _uv;
+uniform sampler2D Texture_1;
+
+//uniform sampler2D Texture_1;
+vec3 color;
+uniform float iGlobalTime;
+uniform float _x;
+uniform float _y;
+uniform float _w;
+uniform float _h;
+uniform float arrFloat[4];
+uniform float iTime;
+uniform vec2 iResolution;
+uniform vec2 iMouse;
 
 // set color source for stroke / fill / clear
 void set_source_rgba(vec4 c);
@@ -113,7 +140,7 @@ void stroke();
 void new_path();
 
 // source channel for texture font
-#define font_texture_source iChannel1
+\n#define font_texture_source iChannel1\n
 // draw a letter with the given texture coordinate
 void letter(ivec2 l);
 void letter(int lx, int ly);
@@ -165,13 +192,13 @@ void graph(vec2 p, float f_x, vec2 df_x);
 void add_field(float c);
 
 // returns a gradient for 1D graph function f at position x
-#define gradient1D(f,x) (f(x + get_gradient_eps()) - f(x - get_gradient_eps())) / (2.0*get_gradient_eps())
+\n#define gradient1D(f, x) (f(x + get_gradient_eps()) - f(x - get_gradient_eps())) / (2.0*get_gradient_eps())\n
 // returns a gradient for 2D graph function f at position x
-#define gradient2D(f,x) vec2(f(x + vec2(get_gradient_eps(),0.0)) - f(x - vec2(get_gradient_eps(),0.0)),f(x + vec2(0.0,get_gradient_eps())) - f(x - vec2(0.0,get_gradient_eps()))) / (2.0*get_gradient_eps())
+\n#define gradient2D(f, x) vec2(f(x + vec2(get_gradient_eps(), 0.0)) - f(x - vec2(get_gradient_eps(), 0.0)), f(x + vec2(0.0, get_gradient_eps())) - f(x - vec2(0.0, get_gradient_eps()))) / (2.0*get_gradient_eps())\n
 // draws a 1D graph at the current position
-#define graph1D(f) { vec2 pp = get_origin(); graph(pp, f(pp.x), gradient1D(f,pp.x)); }
+\n#define graph1D(f) { vec2 pp = get_origin(); graph(pp, f(pp.x), gradient1D(f, pp.x)); }\n
 // draws a 2D graph at the current position
-#define graph2D(f) { vec2 pp = get_origin(); graph(pp, f(pp), gradient2D(f,pp)); }
+\n#define graph2D(f) { vec2 pp = get_origin(); graph(pp, f(pp), gradient2D(f, pp)); }\n
 
 // represents the current drawing context
 // you usually don't need to change anything here
@@ -194,7 +221,7 @@ struct Context {
 // save current stroke width, starting
 // point and blend mode from active context.
 Context _save();
-#define save(name) Context name = _save();
+\n#define save(name) Context name = _save();\n
 // restore stroke width, starting point
 // and blend mode to a context previously returned by save()
 void restore(Context ctx);
@@ -218,7 +245,6 @@ float myf2(vec2 x) {
 	float a = atan(x.y, x.x);
 	return r - 1.0 + 0.5 * sin(3.0*a + 2.0*r*r);
 }
-
 void shield_shape() {
 	move_to(0.2, 0.2);
 	line_to(0.0, 0.3);
@@ -227,10 +253,9 @@ void shield_shape() {
 	curve_to(0.2, -0.05, 0.2, 0.2);
 }
 
-
+/**/
 // implementation
 //////////////////////////////////////////////////////////
-
 vec2 aspect;
 vec2 uv;
 vec2 position;
@@ -238,7 +263,6 @@ vec2 query_position;
 float ScreenH;
 float AA;
 float AAINV;
-
 //////////////////////////////////////////////////////////
 
 float det(vec2 a, vec2 b) { return a.x*b.y - b.x*a.y; }
@@ -246,27 +270,14 @@ float det(vec2 a, vec2 b) { return a.x*b.y - b.x*a.y; }
 //////////////////////////////////////////////////////////
 
 vec3 hue(float hue) {
-
-	//vec3 a = mod(vec3(2.1f , 3.2f, 2.1f), 1.2);
-
-	//vec3 b = (hue * 6.0f + vec3(0.0f, 4.0f, 2.0f));
-	//vec3 c = mod(vec3(2.1f, 3.2f, 2.1f), 6.);
-
-	return 
-		clamp(
-		abs(
-			mod(
-				(vec3)(hue * 6.0f + vec3(0.0f, 4.0f, 2.0f)),  6.0f)
-			- 3.0f) 
-			- 1.0f,
-		
-		0.0f, 
-		1.0f);
+	return clamp(
+		abs(mod(hue * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0,
+		0.0, 1.0);
 }
 
 vec3 hsl(float h, float s, float l) {
 	vec3 rgb = hue(h);
-	return l + s * (rgb - 0.5f) * (1.0f - abs(2.0f * l - 1.0f));
+	return l + s * (rgb - 0.5) * (1.0 - abs(2.0 * l - 1.0));
 }
 
 vec4 hsl(float h, float s, float l, float a) {
@@ -275,37 +286,36 @@ vec4 hsl(float h, float s, float l, float a) {
 
 //////////////////////////////////////////////////////////
 
-#define DEFAULT_SHAPE_V 1e+20
-#define DEFAULT_CLIP_V -1e+20
+\n#define DEFAULT_SHAPE_V 1e+20\n
+\n#define DEFAULT_CLIP_V - 1e+20\n
 
 Context _stack;
 
-void init(vec2 fragCoord) {
-	uv = fragCoord.xy / iResolution.xy;
-	vec2 m = iMouse.xy / iResolution.xy;
+void init(vec2 uv) {
+	//uv = fragCoord.xy / iResolution.xy;
+	vec2 m = vec2(0.);//iMouse.xy / iResolution.xy;
 
-	position = (uv*2.0f - 1.0f)*aspect;
-	query_position = (m*2.0f - 1.0f)*aspect;
+	position = (uv*2.0 - 1.0)*aspect;
+	query_position = (m*2.0 - 1.0)*aspect;
 
-	_stack = Context{
-		vec4(position, query_position),  //position
-		vec2(DEFAULT_SHAPE_V),//shape
-		vec2(DEFAULT_CLIP_V),//clip
-		vec2(1.0),//scale
-		1.0,//line_width
-		false,//premultiply
-		vec2(0.0, 1.0),//blur
-		vec4(vec3(0.0), 1.0),//source
-		vec2(0.0),//start_pt
-		vec2(0.0),//last_pt
-		Replace,//source_blend
-		false// has_clip
-	};
-
-
+	_stack = Context(
+		vec4(position, query_position),
+		vec2(DEFAULT_SHAPE_V),
+		vec2(DEFAULT_CLIP_V),
+		vec2(1.0),
+		1.0,
+		false,
+		vec2(0.0, 1.0),
+		vec4(vec3(0.0), 1.0),
+		vec2(0.0),
+		vec2(0.0),
+		Replace,
+		false
+	);
 }
 
 vec3 _color = vec3(1.0);
+
 
 vec2 get_origin() {
 	return _stack.position.xy;
@@ -359,25 +369,28 @@ void identity_matrix() {
 
 void set_matrix(mat3 mtx) {
 	mtx = mat2x3_invert(mtx);
-	_stack.position.xy = (vec2)(mtx * vec3(position, 1.0)).xy;
-	_stack.position.zw = (vec2)(mtx * vec3(query_position, 1.0)).xy;
-	_stack.scale = vec2(glm::length((vec2)mtx[0].xy), glm::length((vec2)mtx[1].xy));
+	_stack.position.xy = (mtx * vec3(position, 1.0)).xy;
+	_stack.position.zw = (mtx * vec3(query_position, 1.0)).xy;
+	_stack.scale = vec2(length(mtx[0].xy), length(mtx[1].xy));
 }
 
 void transform(mat3 mtx) {
 	mtx = mat2x3_invert(mtx);
-	_stack.position.xy = (vec2)(mtx * vec3(_stack.position.xy, 1.0)).xy;
-	_stack.position.zw = (vec2)(mtx * vec3(_stack.position.zw, 1.0)).xy;
-	_stack.scale *= vec2(length((vec2)mtx[0].xy), length((vec2)mtx[1].xy));
+	_stack.position.xy = (mtx * vec3(_stack.position.xy, 1.0)).xy;
+	_stack.position.zw = (mtx * vec3(_stack.position.zw, 1.0)).xy;
+	_stack.scale *= vec2(length(mtx[0].xy), length(mtx[1].xy));
 }
 
+
+
 void rotate(float a) {
-	float cs = cos(a), sn = sin(a);
-	transform(mat3(
-		cs, sn, 0.0,
-		-sn, cs, 0.0,
-		0.0, 0.0, 1.0));
+	 float cs = cos(a); float sn = sin(a);
+	 transform(mat3(
+		 cs, sn, 0.0,
+		 -sn, cs, 0.0,
+		 0.0, 0.0, 1.0));
 }
+
 
 void scale(vec2 s) {
 	transform(mat3(s.x, 0.0, 0.0, 0.0, s.y, 0.0, 0.0, 0.0, 1.0));
@@ -398,21 +411,14 @@ void translate(vec2 p) {
 void translate(float x, float y) { translate(vec2(x, y)); }
 
 void clear() {
-	//if (_color.r != 1 || _color.g != 1 || _color.b != 1 )
-	//{
-	//	_color = mix(_color, (vec3)_stack.source.rgb, _stack.source.a);  // this is why we need clear color !
-	//}
-	float x = mix(_color, (vec3)_stack.source.rgb, _stack.source.a).x;
-
-	vec3 c = (vec3)mix(_color, (vec3)_stack.source.rgb, _stack.source.a);
-	_color = c;
+	_color = mix(_color, _stack.source.rgb, _stack.source.a);
 }
 
-void blit(  vec4 & dest) {
-	dest = vec4(glm::sqrt(_color), 1.0f);
+void blit(out vec4 dest) {
+	dest = vec4(sqrt(_color), 1.0);
 }
 
-void blit( vec3 &dest) {
+void blit(out vec3 dest) {
 	dest = _color;
 }
 
@@ -422,14 +428,16 @@ void add_clip(vec2 d) {
 	_stack.has_clip = true;
 }
 
+
 void add_field(vec2 d) {
 	d = d / _stack.scale;
-		_stack.shape = min(_stack.shape, d);
+
+	_stack.shape = min(_stack.shape, d);
+
 }
 
 void add_field(float c) {
 	_stack.shape.x = min(_stack.shape.x, c);
-
 }
 
 void new_path() {
@@ -468,12 +476,7 @@ void set_blur(float b) {
 void write_color(vec4 rgba, float w) {
 	float src_a = w * rgba.a;
 	float dst_a = _stack.premultiply ? w : src_a;
-	
-	_color = _color * (1.0f - src_a) + rgba.rgb * dst_a;
-//	if (_isnan(_color.x))
-	{
-//		_isnan(1);
-	}
+	_color = _color * (1.0 - src_a) + rgba.rgb * dst_a;
 }
 
 void premultiply_alpha(bool enable) {
@@ -485,33 +488,36 @@ float min_uniform_scale() {
 }
 
 float uniform_scale_for_aa() {
-	return min(1.0f, _stack.scale.x / _stack.scale.y);
+	return min(1.0, _stack.scale.x / _stack.scale.y);
 }
 
 float calc_aa_blur(float w) {
-	
 	vec2 blur = _stack.blur;
 	w -= blur.x;
-	float wa = clamp(-w*AA*uniform_scale_for_aa(), 0.0f, 1.0f);
-	float wb = clamp(-w / blur.x + blur.y, 0.0f, 1.0f);
-	float r = wa * wb;
-	//if (_isnan(r))
-	{
-	//	_isnan(1);
-	}
-	if (r != .0)
-	{
-		//_isnan(1);
-	}
-	return r;
-	return w;
+
+	
+//	i = abs(stroke_shape().x);
+	float wa = clamp(-w*AA*uniform_scale_for_aa(), 0.0, 1.0);
+	float wb = clamp(-w / blur.x + blur.y, 0.0, 1.0);
+
+	//if (w < 0)
+	//{
+	//	gl_FragColor = vec4(.0, wb, 0.0, 1.0);
+
+	//}
+	//else
+	//{
+	//	gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+	//}
+
+
+	return wa * wb;
 }
 
 void fill_preserve() {
-
-	//write_color(_stack.source, calc_aa_blur(_stack.shape.x  ));
+	write_color(_stack.source, calc_aa_blur(_stack.shape.x));
 	if (_stack.has_clip) {
-			write_color(_stack.source, calc_aa_blur(_stack.clip.x));
+		write_color(_stack.source, calc_aa_blur(_stack.clip.x));
 	}
 }
 
@@ -533,26 +539,41 @@ float get_gradient_eps() {
 }
 
 vec2 stroke_shape() {
+
+
+	//if ( (abs(_stack.shape) - _stack.line_width / _stack.scale).x < 0)
+	//{
+	//	gl_FragColor = vec4(1., 0., 0.0, 1.0);
+
+	//}
+	//else
+	//{
+	//	gl_FragColor = vec4(.0, 1.0, 0.0, 1.0);
+	//}
+
+
+
 	return abs(_stack.shape) - _stack.line_width / _stack.scale;
 }
-/*
-float w = stroke_shape().x;
-write_color(_stack.source, calc_aa_blur(w));
-*/
+
+
 void stroke_preserve() {
+
 	float w = stroke_shape().x;
-
-	if (w > -0.01 && w < -.005)   //  width 0.01
-	{
-		calc_aa_blur(_stack.shape.x);
-		
-	}
+	// w = _stack.shape.x;
+	write_color(_stack.source, calc_aa_blur(w));
 
 
-	float calb = calc_aa_blur(w);
+	//if (w < 0)
+	//{
+	//	gl_FragColor = vec4(_stack.blur.x, 0., 0.0, 1.0);
 
-	
-	write_color(_stack.source, calb);
+	//}
+	//else
+	//{
+	//	gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+	//}
+
 }
 
 void stroke() {
@@ -569,6 +590,8 @@ bool in_stroke() {
 	return (w <= 0.0);
 }
 
+
+
 void set_source_rgba(vec4 c) {
 	//c.rgb *= c.rgb;
 	c *= c;
@@ -579,13 +602,14 @@ void set_source_rgba(vec4 c) {
 		float src_a = c.a;
 		float dst_a = _stack.premultiply ? 1.0 : src_a;
 		_stack.source =
-			vec4(_stack.source.rgb * (1.0f - src_a) + c.rgb * dst_a,
+			vec4(_stack.source.rgb * (1.0 - src_a) + c.rgb * dst_a,
 				max(_stack.source.a, c.a));
 	}
 	else {
 		_stack.source = c;
 	}
 }
+
 
 void set_source_rgba(float r, float g, float b, float a) {
 	set_source_rgba(vec4(r, g, b, a));
@@ -601,10 +625,11 @@ void set_source_rgb(float r, float g, float b) { set_source_rgb(vec3(r, g, b)); 
 //	set_source_rgba(texture(image, _stack.position.xy));
 //}
 
+
 void set_source_linear_gradient(vec4 color0, vec4 color1, vec2 p0, vec2 p1) {
 	vec2 pa = _stack.position.xy - p0;
 	vec2 ba = p1 - p0;
-	float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0f, 1.0f);
+	float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
 	set_source_rgba(mix(color0, color1, h));
 }
 
@@ -613,12 +638,12 @@ void set_source_linear_gradient(vec3 color0, vec3 color1, vec2 p0, vec2 p1) {
 }
 
 void set_source_radial_gradient(vec4 color0, vec4 color1, vec2 p, float r) {
-	float h = clamp(length(_stack.position.xy - p) / r, 0.0f, 1.0f);
+	float h = clamp(length(_stack.position.xy - p) / r, 0.0, 1.0);
 	set_source_rgba(mix(color0, color1, h));
 }
 
 void set_source_radial_gradient(vec3 color0, vec3 color1, vec2 p, float r) {
-	set_source_radial_gradient(vec4(color0, 1.0f), vec4(color1, 1.0f), p, r);
+	set_source_radial_gradient(vec4(color0, 1.0), vec4(color1, 1.0), p, r);
 }
 
 void set_source_blend_mode(int mode) {
@@ -626,13 +651,14 @@ void set_source_blend_mode(int mode) {
 }
 
 vec2 length2(vec4 a) {
-	return vec2(length((vec2)a.xy), length((vec2)a.zw));
+	return vec2(length(a.xy), length(a.zw));
 }
 
 vec2 dot2(vec4 a, vec2 b) {
-	return vec2(dot((vec2)a.xy, b), dot((vec2)a.zw, b));
+	return vec2(dot(a.xy, b), dot(a.zw, b));
 }
 
+//
 //void letter(ivec2 l) {
 //	vec2 p = vec2(l);
 //	vec3 tx;
@@ -640,27 +666,31 @@ vec2 dot2(vec4 a, vec2 b) {
 //	float d;
 //	int ic;
 //	ip = vec2(l);
-//	p += clamp(_stack.position.xy, 0.0f, 1.0f);
-//	ic = 0x21 + int(mod(16.f + ip.x + 2.f * ip.y, 94.f));
-//	tx = texture(font_texture_source, mod((vec2(mod(float(ic), 16.f),
-//		15.f - floor(float(ic) / 16.f)) + fract(p)) * (1.f / 16.f), 1.f)).gba - 0.5f;
-//	d = tx.b + 1.f / 256.f;
+//	p += clamp(_stack.position.xy, 0.0, 1.0);
+//	ic = 0x21 + int(mod(16. + ip.x + 2. * ip.y, 94.));
+//	tx = texture(font_texture_source, mod((vec2(mod(float(ic), 16.),
+//		15. - floor(float(ic) / 16.)) + fract(p)) * (1. / 16.), 1.)).gba - 0.5;
+//	d = tx.b + 1. / 256.;
 //	add_field(d / min_uniform_scale());
 //}
+
 //
 //void letter(int lx, int ly) {
 //	letter(ivec2(lx, ly));
 //}
+//
+//
+
 
 void rounded_rectangle(vec2 o, vec2 s, float r) {
-	s = (s * 0.5f);
+	s = (s * 0.5);
 	r = min(r, min(s.x, s.y));
 	o += s;
 	s -= r;
 	vec4 d = abs(o.xyxy - _stack.position) - s.xyxy;
-	vec4 dmin = min(d, 0.0f);
-	vec4 dmax = max(d, 0.0f);
-	vec2 df = max((vec2)dmin.xz, (vec2)dmin.yw) + length2(dmax);
+	vec4 dmin = min(d, 0.0);
+	vec4 dmax = max(d, 0.0);
+	vec2 df = max(dmin.xz, dmin.yw) + length2(dmax);
 	add_field(df - r);
 }
 
@@ -678,12 +708,14 @@ void rectangle(float ox, float oy, float sx, float sy) {
 
 void circle(vec2 p, float r) {
 	vec4 c = _stack.position - p.xyxy;
-	add_field(vec2(length((vec2)c.xy), length((vec2)c.zw)) - r);
+	add_field(vec2(length(c.xy), length(c.zw)) - r);
 }
 void circle(float x, float y, float r) { circle(vec2(x, y), r); }
 
+
+
 // from https://www.shadertoy.com/view/4sS3zz
-float sdEllipse(vec2 p,   vec2& ab)
+float sdEllipse(vec2 p, in vec2 ab)
 {
 	p = abs(p); if (p.x > p.y) { p = p.yx; ab = ab.yx; }
 
@@ -708,26 +740,26 @@ float sdEllipse(vec2 p,   vec2& ab)
 
 	if (d<0.0)
 	{
-		float p = acos(q / c3) / 3.0f;
+		float p = acos(q / c3) / 3.0;
 		float s = cos(p);
-		float t = sin(p)*glm::sqrt(3.0f);
-		float rx = glm::sqrt(-c*(s + t + 2.0f) + m2);
-		float ry = glm::sqrt(-c*(s - t + 2.0f) + m2);
+		float t = sin(p)*sqrt(3.0);
+		float rx = sqrt(-c*(s + t + 2.0) + m2);
+		float ry = sqrt(-c*(s - t + 2.0) + m2);
 		co = (ry + sign(l)*rx + abs(g) / (rx*ry) - m) / 2.0;
 	}
 	else
 	{
-		float h = 2.0*m*n*glm::sqrt(d);
-		float s = sign(q + h)*pow(abs(q + h), 1.0 / 3.0f);
-		float u = sign(q - h)*pow(abs(q - h), 1.0 / 3.0f);
-		float rx = -s - u - c*4.0f + 2.0f*m2;
-		float ry = (s - u)*glm::sqrt(3.0f);
-		float rm = glm::sqrt(rx*rx + ry*ry);
-		float p = ry / glm::sqrt(rm - rx);
-		co = (p + 2.0f*g / rm - m) / 2.0f;
+		float h = 2.0*m*n*sqrt(d);
+		float s = sign(q + h)*pow(abs(q + h), 1.0 / 3.0);
+		float u = sign(q - h)*pow(abs(q - h), 1.0 / 3.0);
+		float rx = -s - u - c*4.0 + 2.0*m2;
+		float ry = (s - u)*sqrt(3.0);
+		float rm = sqrt(rx*rx + ry*ry);
+		float p = ry / sqrt(rm - rx);
+		co = (p + 2.0*g / rm - m) / 2.0;
 	}
 
-	float si = glm::sqrt(1.0f - co*co);
+	float si = sqrt(1.0 - co*co);
 
 	vec2 r = vec2(ab.x*co, ab.y*si);
 
@@ -748,54 +780,23 @@ void move_to(vec2 p) {
 	_stack.last_pt = p;
 }
 
+
 void move_to(float x, float y) { move_to(vec2(x, y)); }
 
 // stroke only
 void line_to(vec2 p) {
 	vec4 pa = _stack.position - _stack.last_pt.xyxy;
 	vec2 ba = p - _stack.last_pt;
-	vec2 h = clamp(dot2(pa, ba) / dot(ba, ba), 0.0f, 1.0f);
+	vec2 h = clamp(dot2(pa, ba) / dot(ba, ba), 0.0, 1.0);
 	vec2 s = sign(pa.xz*ba.y - pa.yw*ba.x);
 	vec2 d = length2(pa - ba.xyxy*h.xxyy);
-	if (s.x > 0.)
-	{
-		add_field(d);
-	}
-	else
-		add_field(d);
-	add_clip(d * s);
-	_stack.last_pt = p;
-}
 
 
-// stroke only
-void line_to_(vec2 p) {
-	_stack.position = vec4(.3f, .3f, 0.f, 2.f);
-	//p = vec2(.5f, .5f);
-	//_stack.last_pt = vec2(-2.f, 0.f);
 
-	//float xxx = atan2(-1.f, 0.f);
-	
-	vec4 pa = _stack.position - _stack.last_pt.xyxy;
-	vec2 ba = p - _stack.last_pt;
-	vec2 pb = dot2(pa, ba);
-	float bb = dot(ba, ba);
-	//vec2 h = clamp(dot2(pa, ba) / dot(ba, ba), 0.0f, 1.0f);
-		vec2 h = dot2(pa, ba) / dot(ba, ba);
-	vec2 ss = pa.xz*ba.y - pa.yw*ba.x;
-	vec2 s = sign((vec2)ss);
-
-	vec4 projectionVector = ba.xyxy*h.xxyy;
-	vec4 subPlayervector_Projectionvector = pa - projectionVector;
-	vec2 d = length2(subPlayervector_Projectionvector);
-	//vec2 d = length2(pa - h.xxyy);
 	add_field(d);
 	add_clip(d * s);
 	_stack.last_pt = p;
 }
-
-
-
 
 void line_to(float x, float y) { line_to(vec2(x, y)); }
 
@@ -812,38 +813,45 @@ float test_cross(vec2 a, vec2 b, vec2 p) {
 
 // Determine which side we're on (using barycentric parameterization)
 float bezier_sign(vec2 A, vec2 B, vec2 C, vec2 p) {
-	vec2 a = C - A, b = B - A, c = p - A;
+	vec2 a = C - A;
+	vec2 b = B - A;
+	vec2 c = p - A;
 	vec2 bary = vec2(c.x*b.y - b.x*c.y, a.x*c.y - c.x*a.y) / (a.x*b.y - b.x*a.y);
-	vec2 d = vec2(bary.y * 0.5f, 0.0) + 1.0f - bary.x - bary.y;
-	return mix(sign(d.x * d.x - d.y), mix(-1.0f, 1.0f,
-		step(test_cross(A, B, p) * test_cross(B, C, p), 0.0f)),
-		step((d.x - d.y), 0.0f)) * test_cross(A, C, B);
+	vec2 d = vec2(bary.y * 0.5, 0.0) + 1.0 - bary.x - bary.y;
+	return mix(sign(d.x * d.x - d.y), mix(-1.0, 1.0,
+		step(test_cross(A, B, p) * test_cross(B, C, p), 0.0)),
+		step((d.x - d.y), 0.0)) * test_cross(A, C, B);
 }
 
 // Solve cubic equation for roots
 vec3 bezier_solve(float a, float b, float c) {
-	float p = b - a*a / 3.0f, p3 = p*p*p;
-	float q = a * (2.0f*a*a - 9.0*b) / 27.0f + c;
-	float d = q*q + 4.0f*p3 / 27.0f;
-	float offset = -a / 3.0f;
-	if (d >= 0.0f) {
-		float z = glm::sqrt(d);
-		vec2 x = (vec2(z, -z) - q) / 2.0f;
-		vec2 uv = sign(x)*pow(abs(x), vec2(1.0f / 3.0f));
+	float p = b - a*a / 3.0;
+		float p3 = p*p*p;
+	float q = a * (2.0*a*a - 9.0*b) / 27.0 + c;
+	float d = q*q + 4.0*p3 / 27.0;
+	float offset = -a / 3.0;
+	if (d >= 0.0) {
+		float z = sqrt(d);
+		vec2 x = (vec2(z, -z) - q) / 2.0;
+		vec2 uv = sign(x)*pow(abs(x), vec2(1.0 / 3.0));
 		return vec3(offset + uv.x + uv.y);
 	}
-	float v = acos(-glm::sqrt(-27.0f / p3) * q / 2.0f) / 3.0f;
-	float m = cos(v), n = sin(v)*1.732050808f;
-	return vec3(m + m, -n - m, n - m) * glm::sqrt(-p / 3.0f) + offset;
+	float v = acos(-sqrt(-27.0 / p3) * q / 2.0) / 3.0;
+	float m = cos(v);
+	float n = sin(v)*1.732050808;
+	return vec3(m + m, -n - m, n - m) * sqrt(-p / 3.0) + offset;
 }
 
 // Find the signed distance from a point to a quadratic bezier curve
 float bezier(vec2 A, vec2 B, vec2 C, vec2 p)
 {
-	B = mix(B + vec2(1e-4), B, abs(sign(B * 2.0f - A - C)));
-	vec2 a = B - A, b = A - B * 2.0f + C, c = a * 2.0f, d = A - p;
-	vec3 k = vec3(3.f*dot(a, b), 2.f*dot(a, a) + dot(d, b), dot(d, a)) / dot(b, b);
-	vec3 t = clamp(bezier_solve(k.x, k.y, k.z), 0.0f, 1.0f);
+	B = mix(B + vec2(1e-4), B, abs(sign(B * 2.0 - A - C)));
+	vec2 a = B - A;
+	vec2 b = A - B * 2.0 + C;
+	vec2 c = a * 2.0;
+	vec2 d = A - p;
+	vec3 k = vec3(3.*dot(a, b), 2.*dot(a, a) + dot(d, b), dot(d, a)) / dot(b, b);
+	vec3 t = clamp(bezier_solve(k.x, k.y, k.z), 0.0, 1.0);
 	vec2 pos = A + (c + b*t.x)*t.x;
 	float dis = length(pos - p);
 	pos = A + (c + b*t.y)*t.y;
@@ -851,6 +859,7 @@ float bezier(vec2 A, vec2 B, vec2 C, vec2 p)
 	pos = A + (c + b*t.z)*t.z;
 	dis = min(dis, length(pos - p));
 	return dis * bezier_sign(A, B, C, p);
+
 }
 
 void curve_to(vec2 b1, vec2 b2) {
@@ -867,242 +876,241 @@ void curve_to(float b1x, float b1y, float b2x, float b2y) {
 }
 
 void graph(vec2 p, float f_x, float df_x) {
-	add_field(abs(f_x - p.y) / glm::sqrt(1.0f + (df_x * df_x)));
+	add_field(abs(f_x - p.y) / sqrt(1.0 + (df_x * df_x)));
 }
 
 void graph(vec2 p, float f_x, vec2 df_x) {
 	add_field(abs(f_x) / length(df_x));
 }
 
+void paint();
+void main()
+{
+	//vec2 uv = _uv - vec2(0.5);
+	//uv.x *= _w / _h;
+
+	aspect = vec2(_w / _h, 1.0);
+
+	//ScreenH = min(iResolution.x, iResolution.y);
+	//AA = ScreenH*0.4;
+	AA = 800.0 * 0.4;
+	AAINV = 1.0 / 400.0;
+	init(_uv);
+	paint();
+	blit(gl_FragColor);
+	//gl_FragColor = vec4(_uv.x, 0.0, 0.0, 1.0);
+	//textureCoordOut.x += .5;
+//	gl_FragColor = texture2D(Texture_1, textureCoordOut /*+ vec2(.5, .0)*/);
+
+	//gl_FragColor = vec4(arrFloat[0], arrFloat[1], arrFloat[2], 1.0);
+	//gl_FragColor = vec4(uv.x, 0.0, 0.0, 1.0);
+	//gl_FragColor = vec4(uv.y, 0.0, 0.0, 1.0);
+	//gl_FragColor = vec4(sin (iGlobalTime), cos(iGlobalTime), 1, 1)  * lightPosition* texture2D (demoTexture, textureCoordOut);
+	//gl_FragColor = vec4(uv.x,uv.y,0.,1.);
+	//gl_FragColor = vec4(_uv.x,1.0,1.0,1.);
+	//gl_FragColor = lightPosition;
+	//gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+	//the second fragment shader
+}
+);
 
 
-void paint() {
 
-	// traingle !
 
-	set_source_rgb(vec3(1.0, 1.0, 1.));
+
+
+
+
+
+
+
+
+juce::String fragmentShader2 =
+STRINGIFY(\
+	void paint() {
+
+	set_source_linear_gradient(
+		vec3(0.0, 0.0, 0.3),
+		vec3(0.0, 0.0, 0.6),
+		vec2(0.0, -1.0),
+		vec2(0.0, 1.0));
 	clear();
 
+	// draw 1D graph
+	graph1D(myf);
+	// graphs only look good at pixel size
+	set_line_width_px(1.0);
+	set_source_rgba(vec4(vec3(1.0), 0.3));
+	stroke();
+	//set_source_rgba(1., 0.0, 0.0, 1.);
+	//set_line_width(0.01);
+	////set_blur(0.0001);
+	//move_to(-.5f, -.5f);
 
+	////curve_to(0.f, 0.5f, -0.5f, 0.f);
+	//line_to(.5f, .5f);
+	////close_path();
+	//stroke();
+	////fill_preserve();
 
-	//example 1 ellipse 
-	/*
+	//
+	// draw 2D graph
+	graph2D(myf2);
+	// graphs only look good at pixel size
+	set_line_width_px(1.0);
+	set_source_rgba(vec4(vec3(1.0), 0.3));
+	stroke();
+	//
+	// fill ellipse
 	ellipse(0.0, 0.0, 0.3, 0.5);
-	set_line_width(0.01);
-	set_source_rgba(0., 1., 0., 1.);
-	//stroke_preserve();   if use this , part of che ellipse and circle are the same color!!!!
-	//fill();
+	bool in_circle = in_fill();
+	set_source_radial_gradient(
+		hsl(0.1, 1.0, in_circle ? 0.7 : 0.5),
+		hsl(0.0, 1.0, 0.5),
+		vec2(0.0), 0.3);
+	fill_preserve(); // don't reset shape
+					 //
+					 // add a circle
+	circle(0.3 + 0.3*(sin(iGlobalTime / 10)*0.5 + 0.5), 0.0, 0.2);
+	set_line_width(0.04);
+	bool in_circle_rim = in_circle || in_stroke();
+	// stroke circle and ellipse, twice
+	set_source_rgb(hsl(0.0, 1.0, 0.3));
+	set_line_width(0.04);
+	stroke_preserve();
+	set_source_rgb(hsl(0.1, 1.0, in_circle_rim ? 0.8 : 0.5));
+	set_line_width(0.02);
 	stroke();
-	*/
+	//
+	//// shadowed stop sign stroke
+	//
+	move_to(-0.2, 0.0);
+	line_to(0.2, 0.0);
 
+	set_source_rgba(0.5, 0.0, 0.0, 0.5);
+	set_line_width(0.02);
+	set_blur(0.05);
+	stroke_preserve();
+	set_blur(0.0);
 
-
-	//example 2 circle 
-	/*
-	circle(0.3 + 0.3*(sin(1.2)*0.5 + 0.5), 0.0, 0.2);
-	set_line_width(0.01);
-	set_source_rgba(0., 0., 1., 1.);
+	set_source_rgb(vec3(1.0));
+	set_line_width(0.02);
 	stroke();
-	*/
+	//
+	//// transformed glowing triangle
+	//
+	//// to preserve stroke width, first save context...
+	{ save(ctx);
+	translate(-1.0, 0.4);
+	scale(0.01 + 0.5 * (sin(iGlobalTime)*0.5 + 0.5));
+	rotate(radians(iGlobalTime*30.0));
+	move_to(0.5, 0.0);
+	for (int i = 1; i < 6; ++i) {
+		float a0 = radians((float(i) - 0.5) * 360.0 / 5.0);
+		float a1 = radians(float(i) * 360.0 / 5.0);
+		curve_to(
+			cos(a0)*0.5, sin(a0)*0.5,
+			cos(a1)*0.5, sin(a1)*0.5);
+	}
+	//close_path();
+	// ...then restore to previous transformation
+	restore(ctx); }
+	//
+	set_line_width_px(0.1);
+	bool tri_active = in_stroke();
+	set_source_rgba(hsl(tri_active ? 0.1 : 0.5, 1.0, 0.5, 0.5));
+	fill_preserve();
+	// add glow
+	set_source_rgba(vec4(hsl(tri_active ? 0.1 : 0.52, 1.0, 0.5)*0.2, 0.0));
+	set_line_width(0.02);
+	set_blur(0.1);
+	premultiply_alpha(true);
+	stroke_preserve();
+	premultiply_alpha(false);
+	set_blur(0.0);
 
 
 
-	//example 3 line 
-	/*	
-	set_source_rgba(1., 0.0, 0.0, 1.);
-	set_line_width(0.01);
-
-	set_blur(0.001);
-	//scale(.5f);
-	move_to(.0f, .0f);
-	line_to(.0f, .1f);
-	line_to(0.1f, .0f);
-	close_path();
-	if (_stack.position.y < -.2f)
-	{
-		
-		fill_preserve();
+	// and stroke
+	set_line_width_px(1.2);
+	set_source_rgb(hsl(tri_active ? 0.1 : 0.5, 1.0, 0.5));
+	stroke();
+	
+	// pink alphablended rectangle
+	
+	{ save(ctx);
+	translate(0.9, 0.1);
+	rotate(-radians(iGlobalTime*30.0));
+	rounded_rectangle(-0.3, -0.4, 0.6, 0.8, mix(0.0, 0.3, sin(iGlobalTime*1.114)*0.5 + 0.5));
+	
+	if (in_fill()) {
+	// animate the texture a little
+	save(ctx);
+	translate(mod(iGlobalTime*0.2, 1.0), 0.0);
+	//set_source(iChannel0);
+	restore(ctx);
+	set_source_blend_mode(Multiply);
+	set_source_linear_gradient(
+	hsl(0.7, 1.0, 0.5, 1.0),
+	hsl(0.9, 1.0, 0.5, 1.0),
+	vec2(-0.3, -0.4),
+	vec2(0.3, 0.4));
+	set_source_blend_mode(Replace);
 	}
 	else
-	{
-		fill_preserve();
-	}*/
+	set_source_linear_gradient(
+	hsl(0.7, 1.0, 0.5, 0.2),
+	hsl(0.9, 1.0, 0.5, 0.9),
+	vec2(-0.3, -0.4),
+	vec2(0.3, 0.4));
+	fill_preserve();
 	
-	
-	//stroke_preserve();
-
-
-	//example 4 curve
-
-	/**/
-	set_source_rgba(1., 0.0, 0.0, 1.);
-	set_line_width(0.01);
-	set_blur(0.0001);
-	move_to(.0f, 0.0f);
-
-	//curve_to(0.f, 0.5f, -0.5f, 0.f);
-	line_to(.5f, .0f);
-	//close_path();
+	set_line_width(0.02);
+	set_source_linear_gradient(
+	hsl(0.9, 1.0, 0.5, 1.0),
+	hsl(0.7, 1.0, 0.5, 1.0),
+	vec2(0.3, 0.4),
+	vec2(-0.3, -0.4));
 	stroke();
-	//fill_preserve();
-	
-
-
-	//float liushidu = 0.6283185306;  // 36 du
-	//translate(-1.0f, 0.4f);
-	//scale(0.5f);
-//	rotate(radians(30.0f));	
-	//stroke();
-	//for (int i = 1; i < 6; ++i) {
-	//	float a0 = liushidu*((float)i*2.f -1);//
-	//	//a0 = radians((float(i) - 0.5f) * 72.f);
-	//	float a1 = liushidu*((float)i* 2.f ) ;//
-	//	//a1 = radians(float(i) * 72.f);
-	//	//curve_to(
-	//	//	cos(a0)*0.5f, sin(a0)*0.5f,
-	//	//	cos(a1)*0.5f, sin(a1)*0.5f);
-	//	float ax, ay, xx, xy;
-	//	ax = cos(a0);
-	//	ay = sin(a0);
-	//	xx = cos(a1);
-	//	xy = sin(a1);
-	//	curve_to(
-	//		ax, ay,
-	//		xx, xy);
-	//}
-
-	//for (int i = 1; i < 6; ++i) {
-	//	float a0 = radians((float(i) - 0.5f) * 360.0f / 5.0f);
-	//	a0 = radians((float(i) - 0.5f) * 72.f);
-	//	float a1 = radians(float(i) * 360.0f / 5.0f);
-	//	curve_to(
-	//		cos(a0)*0.5f, sin(a0)*0.5f,
-	//		cos(a1)*0.5f, sin(a1)*0.5f);
-	//}
-
-
-	//set_line_width_px(0.1f);
-	//bool tri_active = in_stroke();
-	//set_source_rgba(hsl(tri_active ? 0.1f : 0.5f, 1.0f, 0.5f, 0.5f));
-	//fill_preserve();
-	//stroke();
-	/**/
-
-
-
-
-}
-
-
-
-
-// Test if point p crosses line (a, b), returns sign of result
-float testCross(vec2 a, vec2 b, vec2 p) {
-	return sign((b.y - a.y) * (p.x - a.x) - (b.x - a.x) * (p.y - a.y));
-}
-
-// Determine which side we're on (using barycentric parameterization)
-float signBezier(vec2 A, vec2 B, vec2 C, vec2 p)
-{
-	vec2 a = C - A, b = B - A, c = p - A;
-	vec2 bary = vec2(c.x*b.y - b.x*c.y, a.x*c.y - c.x*a.y) / (a.x*b.y - b.x*a.y);
-	vec2 d = vec2(bary.y * 0.5f, 0.0f) + 1.0f - bary.x - bary.y;
-	return mix(sign(d.x * d.x - d.y), mix(-1.0f, 1.0f,
-		step(testCross(A, B, p) * testCross(B, C, p), 0.0f)),
-		step((d.x - d.y), 0.0f)) * testCross(A, C, B);
-}
-
-// Solve cubic equation for roots
-vec3 solveCubic(float a, float b, float c)
-{
-	float p = b - a*a / 3.0f, p3 = p*p*p;
-	float q = a * (2.0f*a*a - 9.0f*b) / 27.0f + c;
-	float d = q*q + 4.0f*p3 / 27.0f;
-	float offset = -a / 3.0f;
-	if (d >= 0.0f) {
-		float z = sqrt(d);
-		vec2 x = (vec2(z, -z) - q) / 2.0f;
-		vec2 uv = sign(x)*pow(abs(x), vec2(1.0f / 3.0f));
-		return vec3(offset + uv.x + uv.y);
-	}
-	float v = acos(-sqrt(-27.0f / p3) * q / 2.0f) / 3.0f;
-	float m = cos(v), n = sin(v)*1.732050808f;
-	return vec3(m + m, -n - m, n - m) * sqrt(-p / 3.0f) + offset;
-}
-
-// Find the signed distance from a point to a bezier curve
-float sdBezier(vec2 A, vec2 B, vec2 C, vec2 p)
-{
-	B = mix(B + vec2(1e-4), B, abs(sign(B * 2.0f - A - C)));
-	vec2 a = B - A, b = A - B * 2.0f + C, c = a * 2.0f, d = A - p;
-	vec3 k = vec3(3.*dot(a, b), 2.*dot(a, a) + dot(d, b), dot(d, a)) / dot(b, b);
-	vec3 t = clamp(solveCubic(k.x, k.y, k.z), 0.0f, 1.0f);
-	vec2 pos = A + (c + b*t.x)*t.x;
-	float dis = length(pos - p);
-	pos = A + (c + b*t.y)*t.y;
-	dis = min(dis, length(pos - p));
-	pos = A + (c + b*t.z)*t.z;
-	dis = min(dis, length(pos - p));
-	return dis * signBezier(A, B, C, p);
-}
-void mainImage(vec2 gl_FragCoord)
-{
-	gl_FragCoord.y = iResolution.y - gl_FragCoord.y;
-
-
-
-	vec2 uv = gl_FragCoord.xy() / iResolution.xy();
-	uv = uv - vec2(0.5f);
-	uv.x *= iResolution.x / iResolution.y;
-
-
-
-
-	aspect = vec2(iResolution.x / iResolution.y, 1.0);
-	ScreenH = min(iResolution.x, iResolution.y);
-	AA = ScreenH*0.4;
-	AAINV = 1.0 / AA;
-
-	init(gl_FragCoord);
-
-	paint();
-
-	blit(fragColor);
-
-
-
-	/*
-	float aspect = iResolution.x / iResolution.y;
-	vec2 p = (2.0f*gl_FragCoord.xy - iResolution.xy) / iResolution.y;
-	p.x *= aspect;
-	vec2 m = vec3(-.5f, -.5f, .0f);
-	m.x *= aspect;
-
-
-
-	// Define the control points of our curve
-	vec2 A = vec2(0.0f, -0.6f), C = vec2(0.0f, +0.6f), B = (4.0f * m - A - C) / 2.0f; 
-
-
-
-	// Render the control points
-	float d = min(distance(p, A), (min(distance(p, m), distance(p, C))));  //B, m
-	if (d < 0.04f)
+	restore(ctx); }
+	//
+	//// quadratic bezier spline
+	//
+	save(ctx);
+	translate(-0.8, -0.7);
+	shield_shape();
+	set_source_linear_gradient(
+	hsl(0.9, 1.0, 0.6),
+	hsl(0.9, 1.0, 0.4),
+	vec2(0.0, -0.2),
+	vec2(0.0, 0.2));
+	fill();
+	restore(ctx);
+	translate(0.8, -0.7);
+	shield_shape();
+	set_line_width(0.04);
+	bool bezier_active = in_stroke();
+	set_source_rgb(hsl(0.9, 1.0, bezier_active ? 1.0 : 0.5));
+	stroke_preserve();
+	set_line_width(0.02);
+	set_source_rgb(hsl(0.9, 1.0, 0.1));
+	stroke();
+	restore(ctx);
+	//
 	{
-		fragColor = vec4(1.f, 1.f, 0.f, 1.f); 
-		return; 
+	save(ctx);
+	translate(-1.2, 0.7);
+	scale(vec2(0.2));
+	for (int i = 0; i < 26; ++i) {
+	translate(0.4, 0.0);
+//	letter(48 + i, 0);
 	}
-
-
-
-	// Get the signed distance to bezier curve
-	d = sdBezier(A, B, C, p);
-	if(d>0)
-		fragColor = vec4(fract(d*10.f),0, 0,1.0f);
-	if(d == 0)
-		fragColor = vec4(0.f, 0.f, 1.f, 1.0f);
-	if (d < 0)
-		fragColor = vec4(0.f, 0.f, fract(abs(d)*10.f), 1.0f);
-	return;
-	*/
+	set_line_width(0.05);
+	set_source_rgb(vec3(0.0));
+	stroke_preserve();
+	set_source_rgb(vec3(1.0));
+	fill();
+	restore(ctx);
+	}
 }
+);

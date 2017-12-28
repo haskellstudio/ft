@@ -34,7 +34,7 @@ overlay::overlay ()
     //[/Constructor_pre]
 
     addAndMakeVisible (label = new Label ("new label",
-                                          TRANS("label text")));
+                                          TRANS("label text on overlay")));
     label->setFont (Font (25.00f, Font::plain).withTypefaceStyle ("Regular"));
     label->setJustificationType (Justification::centredLeft);
     label->setEditable (false, false, false);

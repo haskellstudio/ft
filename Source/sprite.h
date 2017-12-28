@@ -9,7 +9,7 @@ class Sprite
 {
 public:
 	Sprite(OpenGLContext& openGLContext) :_vboID(0),
-		_openGLContext(openGLContext), isClicked(0)
+		_openGLContext(openGLContext)
 	{
 	}
 
@@ -170,7 +170,7 @@ public:
 	float _width;
 	float _height;
 	GLuint _vboID;
-	int isClicked;
+
 	OpenGLContext& _openGLContext;
 	OpenGLShaderProgram * _shader;
 
