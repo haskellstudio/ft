@@ -51,7 +51,7 @@ public:
     //[UserMethods]     -- You can add your own custom methods in this section.
 	void updateShader()
 	{
-		if (!_strVertex.isNotEmpty() && !_strFragment.isNotEmpty())
+		if (_strVertex.isEmpty() && _strFragment.isEmpty())
 		{
 			return;
 		}
@@ -224,6 +224,12 @@ public:
 			if (uf->winH)
 			{
 				uf->winH->set(winh);
+			}
+			//void OpenGLShaderProgram::Uniform::set (const GLfloat* values, GLsizei numValues)
+			if (uf->arrFloat)
+			{
+				GLfloat v[4] = { 0.0, 1.0, 0.0, 0.8 };
+				uf->arrFloat->set(v, 4);
 			}
 		}
 

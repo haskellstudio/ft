@@ -74,10 +74,16 @@ struct ShaderData {
 		uniform float _y;
 		uniform float _w;
 		uniform float _h;
+
+		uniform float arrFloat[4];
+
 		void main()
 		{
 			//textureCoordOut.x += .5;
 			gl_FragColor = texture2D(Texture_1, textureCoordOut /*+ vec2(.5, .0)*/);
+
+			gl_FragColor = vec4(arrFloat[0], arrFloat[1], arrFloat[2], 1.0);
+
 			//gl_FragColor = vec4(sin (iGlobalTime), cos(iGlobalTime), 1, 1)  * lightPosition* texture2D (demoTexture, textureCoordOut);
 			//gl_FragColor = vec4(uv.x,uv.y,0.,1.);
 			//gl_FragColor = vec4(_uv.x,1.0,1.0,1.);
