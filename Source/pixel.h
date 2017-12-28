@@ -137,7 +137,7 @@ public:
 			{
 				//	msg(_compileResult);
 				//l->setText(_compileResult, dontSendNotification);
-			//	overLay->setTxt(juce::String(fps.fps));
+				overLay->setTxt(juce::String(fps.fps));
 			}
 			
 		}

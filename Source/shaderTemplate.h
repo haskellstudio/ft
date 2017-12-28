@@ -51,14 +51,8 @@ void main()
 	//gl_Position =vec4(position, .0, 1.0);
 }
 );
-
-
-
-
-
-
-
-juce::String fragmentShader =
+  
+ juce::String fragmentShader =
 STRINGIFY(\
 	#version 120 \n
 	uniform vec4 lightPosition;
@@ -73,28 +67,10 @@ uniform float _x;
 uniform float _y;
 uniform float _w;
 uniform float _h;
-
 uniform float arrFloat[4];
-
-
-
-
 uniform float iTime;
 uniform vec2 iResolution;
 uniform vec2 iMouse;
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // set color source for stroke / fill / clear
 void set_source_rgba(vec4 c);
@@ -242,8 +218,6 @@ struct Context {
 	bool has_clip;
 };
 
-
-
 // save current stroke width, starting
 // point and blend mode from active context.
 Context _save();
@@ -271,7 +245,6 @@ float myf2(vec2 x) {
 	float a = atan(x.y, x.x);
 	return r - 1.0 + 0.5 * sin(3.0*a + 2.0*r*r);
 }
-
 void shield_shape() {
 	move_to(0.2, 0.2);
 	line_to(0.0, 0.3);
@@ -280,210 +253,9 @@ void shield_shape() {
 	curve_to(0.2, -0.05, 0.2, 0.2);
 }
 
-
-void paint() {
-
-	//set_source_linear_gradient(
-	//vec3(0.0, 0.0, 0.3),
-	//vec3(0.0, 0.0, 0.6),
-	//vec2(0.0, -1.0),
-	//vec2(0.0, 1.0));
-	//clear();
-	//
-	//
-	set_source_rgb(vec3(1.0, 1.0, 1.));
-	clear();
-
-	set_source_rgba(1., 0.0, 0.0, 1.);
-	set_line_width(0.0001);
-	//set_blur(0.0001);
-	move_to(-1.f, -1.0f);
-
-	//curve_to(0.f, 0.5f, -0.5f, 0.f);
-	line_to(1.f, 1.f);
-	//close_path();
-	stroke();
-	//fill_preserve();
-
-
-//float t = iTime;
-//
-//// clear screen with a subtle gradient
-//
-//set_source_linear_gradient(
-//vec3(0.0, 0.0, 0.3),
-//vec3(0.0, 0.0, 0.6),
-//vec2(0.0, -1.0),
-//vec2(0.0, 1.0));
-//clear();
-//
-//// draw 1D graph
-//graph1D(myf);
-//// graphs only look good at pixel size
-//set_line_width_px(1.0);
-//set_source_rgba(vec4(vec3(1.0), 0.3));
-//stroke();
-//
-//// draw 2D graph
-//graph2D(myf2);
-//// graphs only look good at pixel size
-//set_line_width_px(1.0);
-//set_source_rgba(vec4(vec3(1.0), 0.3));
-//stroke();
-//
-//// fill ellipse
-//ellipse(0.0, 0.0, 0.3, 0.5);
-//bool in_circle = in_fill();
-//set_source_radial_gradient(
-//hsl(0.1, 1.0, in_circle ? 0.7 : 0.5),
-//hsl(0.0, 1.0, 0.5),
-//vec2(0.0), 0.3);
-//fill_preserve(); // don't reset shape
-//
-//// add a circle
-//circle(0.3 + 0.3*(sin(t)*0.5 + 0.5), 0.0, 0.2);
-//set_line_width(0.04);
-//bool in_circle_rim = in_circle || in_stroke();
-//// stroke circle and ellipse, twice
-//set_source_rgb(hsl(0.0, 1.0, 0.3));
-//set_line_width(0.04);
-//stroke_preserve();
-//set_source_rgb(hsl(0.1, 1.0, in_circle_rim ? 0.8 : 0.5));
-//set_line_width(0.02);
-//stroke();
-//
-//// shadowed stop sign stroke
-//
-//move_to(-0.2, 0.0);
-//line_to(0.2, 0.0);
-//
-//set_source_rgba(0.5, 0.0, 0.0, 0.5);
-//set_line_width(0.02);
-//set_blur(0.05);
-//stroke_preserve();
-//set_blur(0.0);
-//
-//set_source_rgb(vec3(1.0));
-//set_line_width(0.02);
-//stroke();
-//
-//// transformed glowing triangle
-//
-//// to preserve stroke width, first save context...
-//{ save(ctx);
-//translate(-1.0, 0.4);
-//scale(0.01 + 0.5 * (sin(t)*0.5 + 0.5));
-//rotate(radians(t*30.0));
-//move_to(0.5, 0.0);
-//for (int i = 1; i < 6; ++i) {
-//float a0 = radians((float(i) - 0.5) * 360.0 / 5.0);
-//float a1 = radians(float(i) * 360.0 / 5.0);
-//curve_to(
-//cos(a0)*0.5, sin(a0)*0.5,
-//cos(a1)*0.5, sin(a1)*0.5);
-//}
-////close_path();
-//// ...then restore to previous transformation
-//restore(ctx); }
-//
-//set_line_width_px(0.1);
-//bool tri_active = in_stroke();
-//set_source_rgba(hsl(tri_active ? 0.1 : 0.5, 1.0, 0.5, 0.5));
-//fill_preserve();
-//// add glow
-//set_source_rgba(vec4(hsl(tri_active ? 0.1 : 0.52, 1.0, 0.5)*0.2, 0.0));
-//set_line_width(0.02);
-//set_blur(0.1);
-//premultiply_alpha(true);
-//stroke_preserve();
-//premultiply_alpha(false);
-//set_blur(0.0);
-//// and stroke
-//set_line_width_px(1.2);
-//set_source_rgb(hsl(tri_active ? 0.1 : 0.5, 1.0, 0.5));
-//stroke();
-//
-//// pink alphablended rectangle
-//
-//{ save(ctx);
-//translate(0.9, 0.1);
-//rotate(-radians(t*30.0));
-//rounded_rectangle(-0.3, -0.4, 0.6, 0.8, mix(0.0, 0.3, sin(iTime*1.114)*0.5 + 0.5));
-//
-//if (in_fill()) {
-//// animate the texture a little
-//save(ctx);
-//translate(mod(iTime*0.2, 1.0), 0.0);
-////set_source(iChannel0);
-//restore(ctx);
-//set_source_blend_mode(Multiply);
-//set_source_linear_gradient(
-//hsl(0.7, 1.0, 0.5, 1.0),
-//hsl(0.9, 1.0, 0.5, 1.0),
-//vec2(-0.3, -0.4),
-//vec2(0.3, 0.4));
-//set_source_blend_mode(Replace);
-//}
-//else
-//set_source_linear_gradient(
-//hsl(0.7, 1.0, 0.5, 0.2),
-//hsl(0.9, 1.0, 0.5, 0.9),
-//vec2(-0.3, -0.4),
-//vec2(0.3, 0.4));
-//fill_preserve();
-//
-//set_line_width(0.02);
-//set_source_linear_gradient(
-//hsl(0.9, 1.0, 0.5, 1.0),
-//hsl(0.7, 1.0, 0.5, 1.0),
-//vec2(0.3, 0.4),
-//vec2(-0.3, -0.4));
-//stroke();
-//restore(ctx); }
-//
-//// quadratic bezier spline
-//
-//save(ctx);
-//translate(-0.8, -0.7);
-//shield_shape();
-//set_source_linear_gradient(
-//hsl(0.9, 1.0, 0.6),
-//hsl(0.9, 1.0, 0.4),
-//vec2(0.0, -0.2),
-//vec2(0.0, 0.2));
-//fill();
-//restore(ctx);
-//translate(0.8, -0.7);
-//shield_shape();
-//set_line_width(0.04);
-//bool bezier_active = in_stroke();
-//set_source_rgb(hsl(0.9, 1.0, bezier_active ? 1.0 : 0.5));
-//stroke_preserve();
-//set_line_width(0.02);
-//set_source_rgb(hsl(0.9, 1.0, 0.1));
-//stroke();
-//restore(ctx);
-//
-//{
-//save(ctx);
-//translate(-1.2, 0.7);
-//scale(vec2(0.2));
-//for (int i = 0; i < 26; ++i) {
-//translate(0.4, 0.0);
-//letter(48 + i, 0);
-//}
-//set_line_width(0.05);
-//set_source_rgb(vec3(0.0));
-//stroke_preserve();
-//set_source_rgb(vec3(1.0));
-//fill();
-//restore(ctx);
-//}
-}
 /**/
 // implementation
 //////////////////////////////////////////////////////////
-
 vec2 aspect;
 vec2 uv;
 vec2 position;
@@ -491,7 +263,6 @@ vec2 query_position;
 float ScreenH;
 float AA;
 float AAINV;
-
 //////////////////////////////////////////////////////////
 
 float det(vec2 a, vec2 b) { return a.x*b.y - b.x*a.y; }
@@ -724,21 +495,22 @@ float calc_aa_blur(float w) {
 	vec2 blur = _stack.blur;
 	w -= blur.x;
 
-	float  i = abs(w);
-	i = w;
-	//i = abs(stroke_shape().x);
-	if (i < 0.04)
-	{
-		gl_FragColor = vec4(_stack.blur.x, 0., 0.0, 1.0);
-
-	}
-	else
-	{
-		gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-	}
-
+	
+//	i = abs(stroke_shape().x);
 	float wa = clamp(-w*AA*uniform_scale_for_aa(), 0.0, 1.0);
 	float wb = clamp(-w / blur.x + blur.y, 0.0, 1.0);
+
+	//if (w < 0)
+	//{
+	//	gl_FragColor = vec4(.0, wb, 0.0, 1.0);
+
+	//}
+	//else
+	//{
+	//	gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+	//}
+
+
 	return wa * wb;
 }
 
@@ -767,6 +539,20 @@ float get_gradient_eps() {
 }
 
 vec2 stroke_shape() {
+
+
+	//if ( (abs(_stack.shape) - _stack.line_width / _stack.scale).x < 0)
+	//{
+	//	gl_FragColor = vec4(1., 0., 0.0, 1.0);
+
+	//}
+	//else
+	//{
+	//	gl_FragColor = vec4(.0, 1.0, 0.0, 1.0);
+	//}
+
+
+
 	return abs(_stack.shape) - _stack.line_width / _stack.scale;
 }
 
@@ -777,10 +563,8 @@ void stroke_preserve() {
 	// w = _stack.shape.x;
 	write_color(_stack.source, calc_aa_blur(w));
 
-	float  i = abs(w);
-	i = w;
-	//i = abs(stroke_shape().x);
-	//if (i < 0)
+
+	//if (w < 0)
 	//{
 	//	gl_FragColor = vec4(_stack.blur.x, 0., 0.0, 1.0);
 
@@ -1099,39 +883,22 @@ void graph(vec2 p, float f_x, vec2 df_x) {
 	add_field(abs(f_x) / length(df_x));
 }
 
-
-
-
-
-
-
-
-
-
+void paint();
 void main()
 {
 	//vec2 uv = _uv - vec2(0.5);
 	//uv.x *= _w / _h;
 
-
-
-
 	aspect = vec2(_w / _h, 1.0);
-
 
 	//ScreenH = min(iResolution.x, iResolution.y);
 	//AA = ScreenH*0.4;
+	AA = 800.0 * 0.4;
 	AAINV = 1.0 / 400.0;
-
 	init(_uv);
-
 	paint();
-
-//	blit(gl_FragColor);
-
+	blit(gl_FragColor);
 	//gl_FragColor = vec4(_uv.x, 0.0, 0.0, 1.0);
-
-
 	//textureCoordOut.x += .5;
 //	gl_FragColor = texture2D(Texture_1, textureCoordOut /*+ vec2(.5, .0)*/);
 
@@ -1145,7 +912,205 @@ void main()
 	//gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 	//the second fragment shader
 }
+);
 
 
 
+
+
+
+
+
+
+
+
+
+juce::String fragmentShader2 =
+STRINGIFY(\
+	void paint() {
+
+	set_source_linear_gradient(
+		vec3(0.0, 0.0, 0.3),
+		vec3(0.0, 0.0, 0.6),
+		vec2(0.0, -1.0),
+		vec2(0.0, 1.0));
+	clear();
+
+	// draw 1D graph
+	graph1D(myf);
+	// graphs only look good at pixel size
+	set_line_width_px(1.0);
+	set_source_rgba(vec4(vec3(1.0), 0.3));
+	stroke();
+	//set_source_rgba(1., 0.0, 0.0, 1.);
+	//set_line_width(0.01);
+	////set_blur(0.0001);
+	//move_to(-.5f, -.5f);
+
+	////curve_to(0.f, 0.5f, -0.5f, 0.f);
+	//line_to(.5f, .5f);
+	////close_path();
+	//stroke();
+	////fill_preserve();
+
+	//
+	// draw 2D graph
+	graph2D(myf2);
+	// graphs only look good at pixel size
+	set_line_width_px(1.0);
+	set_source_rgba(vec4(vec3(1.0), 0.3));
+	stroke();
+	//
+	// fill ellipse
+	ellipse(0.0, 0.0, 0.3, 0.5);
+	bool in_circle = in_fill();
+	set_source_radial_gradient(
+		hsl(0.1, 1.0, in_circle ? 0.7 : 0.5),
+		hsl(0.0, 1.0, 0.5),
+		vec2(0.0), 0.3);
+	fill_preserve(); // don't reset shape
+					 //
+					 // add a circle
+	circle(0.3 + 0.3*(sin(iGlobalTime / 10)*0.5 + 0.5), 0.0, 0.2);
+	set_line_width(0.04);
+	bool in_circle_rim = in_circle || in_stroke();
+	// stroke circle and ellipse, twice
+	set_source_rgb(hsl(0.0, 1.0, 0.3));
+	set_line_width(0.04);
+	stroke_preserve();
+	set_source_rgb(hsl(0.1, 1.0, in_circle_rim ? 0.8 : 0.5));
+	set_line_width(0.02);
+	stroke();
+	//
+	//// shadowed stop sign stroke
+	//
+	move_to(-0.2, 0.0);
+	line_to(0.2, 0.0);
+
+	set_source_rgba(0.5, 0.0, 0.0, 0.5);
+	set_line_width(0.02);
+	set_blur(0.05);
+	stroke_preserve();
+	set_blur(0.0);
+
+	set_source_rgb(vec3(1.0));
+	set_line_width(0.02);
+	stroke();
+	//
+	//// transformed glowing triangle
+	//
+	//// to preserve stroke width, first save context...
+	{ save(ctx);
+	translate(-1.0, 0.4);
+	scale(0.01 + 0.5 * (sin(iGlobalTime)*0.5 + 0.5));
+	rotate(radians(iGlobalTime*30.0));
+	move_to(0.5, 0.0);
+	for (int i = 1; i < 6; ++i) {
+		float a0 = radians((float(i) - 0.5) * 360.0 / 5.0);
+		float a1 = radians(float(i) * 360.0 / 5.0);
+		curve_to(
+			cos(a0)*0.5, sin(a0)*0.5,
+			cos(a1)*0.5, sin(a1)*0.5);
+	}
+	//close_path();
+	// ...then restore to previous transformation
+	restore(ctx); }
+	//
+	set_line_width_px(0.1);
+	bool tri_active = in_stroke();
+	set_source_rgba(hsl(tri_active ? 0.1 : 0.5, 1.0, 0.5, 0.5));
+	fill_preserve();
+	// add glow
+	set_source_rgba(vec4(hsl(tri_active ? 0.1 : 0.52, 1.0, 0.5)*0.2, 0.0));
+	set_line_width(0.02);
+	set_blur(0.1);
+	premultiply_alpha(true);
+	stroke_preserve();
+	premultiply_alpha(false);
+	set_blur(0.0);
+
+
+
+	// and stroke
+	set_line_width_px(1.2);
+	set_source_rgb(hsl(tri_active ? 0.1 : 0.5, 1.0, 0.5));
+	stroke();
+	
+	// pink alphablended rectangle
+	
+	{ save(ctx);
+	translate(0.9, 0.1);
+	rotate(-radians(iGlobalTime*30.0));
+	rounded_rectangle(-0.3, -0.4, 0.6, 0.8, mix(0.0, 0.3, sin(iGlobalTime*1.114)*0.5 + 0.5));
+	
+	if (in_fill()) {
+	// animate the texture a little
+	save(ctx);
+	translate(mod(iGlobalTime*0.2, 1.0), 0.0);
+	//set_source(iChannel0);
+	restore(ctx);
+	set_source_blend_mode(Multiply);
+	set_source_linear_gradient(
+	hsl(0.7, 1.0, 0.5, 1.0),
+	hsl(0.9, 1.0, 0.5, 1.0),
+	vec2(-0.3, -0.4),
+	vec2(0.3, 0.4));
+	set_source_blend_mode(Replace);
+	}
+	else
+	set_source_linear_gradient(
+	hsl(0.7, 1.0, 0.5, 0.2),
+	hsl(0.9, 1.0, 0.5, 0.9),
+	vec2(-0.3, -0.4),
+	vec2(0.3, 0.4));
+	fill_preserve();
+	
+	set_line_width(0.02);
+	set_source_linear_gradient(
+	hsl(0.9, 1.0, 0.5, 1.0),
+	hsl(0.7, 1.0, 0.5, 1.0),
+	vec2(0.3, 0.4),
+	vec2(-0.3, -0.4));
+	stroke();
+	restore(ctx); }
+	//
+	//// quadratic bezier spline
+	//
+	save(ctx);
+	translate(-0.8, -0.7);
+	shield_shape();
+	set_source_linear_gradient(
+	hsl(0.9, 1.0, 0.6),
+	hsl(0.9, 1.0, 0.4),
+	vec2(0.0, -0.2),
+	vec2(0.0, 0.2));
+	fill();
+	restore(ctx);
+	translate(0.8, -0.7);
+	shield_shape();
+	set_line_width(0.04);
+	bool bezier_active = in_stroke();
+	set_source_rgb(hsl(0.9, 1.0, bezier_active ? 1.0 : 0.5));
+	stroke_preserve();
+	set_line_width(0.02);
+	set_source_rgb(hsl(0.9, 1.0, 0.1));
+	stroke();
+	restore(ctx);
+	//
+	{
+	save(ctx);
+	translate(-1.2, 0.7);
+	scale(vec2(0.2));
+	for (int i = 0; i < 26; ++i) {
+	translate(0.4, 0.0);
+//	letter(48 + i, 0);
+	}
+	set_line_width(0.05);
+	set_source_rgb(vec3(0.0));
+	stroke_preserve();
+	set_source_rgb(vec3(1.0));
+	fill();
+	restore(ctx);
+	}
+}
 );

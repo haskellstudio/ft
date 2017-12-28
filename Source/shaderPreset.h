@@ -30,7 +30,7 @@ struct ShaderData {
 
 			vetexShader
 			,
-	        fragmentShader
+	        fragmentShader + fragmentShader2
 		};
 
 		_shaderPreset.add(p);
