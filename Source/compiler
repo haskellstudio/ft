@@ -30,12 +30,12 @@
 //static FILE *f;            /* input source file */
 
 static char f[] =SFY(
-                     int i;
-                     int c;
-                     int d;
-                     int k;
-                     
-                     //sp 02    03       04
+//                     int i;
+//                     int c;
+//                     int d;
+//                     int k;
+//
+//                     //sp 02    03       04
                      int fun (int x, int y , int z)  // sp 000 is return address;
                      {
                          int zz = 7;  // sp 000     stack pos 0
@@ -45,16 +45,17 @@ static char f[] =SFY(
                          return z;
 
                      }
- 
+
                      int main()
                      {
-//                         int a=6;
+                         int a=6;
+                         int b = 7;
 //                         int b=7;
 //                         int c=8;
 //
 //                         int d = fun(9);
 
-                         return k;
+                         return b;
                      }
                      );
 
@@ -88,6 +89,7 @@ static struct sym {
     int  addr;
     char name[MAXTOKSZ];
     int  nParams;
+    float faddr;
 } sym[MAXSYMBOLS];
 
 
@@ -139,7 +141,7 @@ struct OP
 {
     float op ;
     float nargs;
-    char name[16];
+    char name[32];
     OP(float o, float a, char * n)
     {
         op = o;
@@ -149,22 +151,27 @@ struct OP
 };
 
 
-OP opArray[3] = {
+OP opArray[8] = {
                         OP(0.0, 0.0, "nop"),
                         OP(1.0, 1.0, "mov eax, "),
-                        OP(2.0, 1.0, "")
+                        OP(2.0, 1.0, "jmp "),
+                        OP(3.0, 1.0, "lea eax, [esp"),
+                        OP(4.0, 0.0, "push eax"),
+                        OP(5.0, 0.0, "mov eax, [eax]"),
+                        OP(6.0, 0.0, "unused"),
+                        OP(7.0, 0.0, "ret")
 };
 
 
 typedef enum {
     NOOP    = 0,
-    mov_eax_xxx    = 1,   // int add
-    ISUB    = 2,
-    IMUL    = 3,
-    ILT     = 4,   // int less than
-    IEQ     = 5,   // int equal
-    BR      = 6,   // branch
-    BRT     = 7,   // branch if true
+    mov_eax_xxx    = 1,
+    jmp    = 2,
+    lea_eax_esp_xx    = 3,
+    push_eax     = 4,
+    mov_eax_addr = 5,
+    mov_eax_byte_addr = 6,
+    ret     = 7,
     BRF     = 8,   // branch if true
     ICONST  = 9,   // push constant integer
     LOAD    = 10,  // load from local context
@@ -286,6 +293,7 @@ struct _imm_struct {
 };
 
 int fixme_offset = 0;
+int ffixme_offset = 0;
 int addrCnt = 0;
 
 static struct _imm_struct _load_immediate( int32_t v );
@@ -298,6 +306,14 @@ static void gen_start(int nGlobalVars) {
     strcat(buf,"JMP xxxx\n");
     strcat(buf,"---\n");
     emits(buf);
+    
+    
+    
+    bin[binpos++] = opArray[jmp].op;
+    ffixme_offset = binpos;
+    bin[binpos++] = float(-1);
+    
+    
 }
 
 static void gen_finish() {
@@ -309,6 +325,9 @@ static void gen_finish() {
     sprintf(s, "%04x", funcmain->addr);
     memcpy(code+fixme_offset, s, 4);
     printf("%s", code);
+    
+    
+    bin[ffixme_offset] = float(funcmain->faddr);
 }
 
 // generate function pre-amble
@@ -340,6 +359,9 @@ static void gen_ret(int nVars) {
     gen_postamble(nVars);
     emits("ret    \n");
     stack_pos = stack_pos - 1;
+    
+    bin[binpos++] = opArray[ret].op;
+    
 }
 
 static void gen_const(int n) {
@@ -368,6 +390,10 @@ static void gen_sym_addr(struct sym *sym) {
 static void gen_push() {
     emits("push A \n");
     stack_pos = stack_pos + 1;
+    
+    
+    
+    bin[binpos++] = opArray[push_eax].op;
 }
 
 static void gen_pop(int n) {
@@ -383,11 +409,21 @@ static void gen_stack_addr(int addr) {
     char s[32];
     sprintf(s, "sp@%04x\n", addr);
     emits(s);
+    
+    bin[binpos++] = opArray[lea_eax_esp_xx].op;
+    
+    bin[binpos++] = float(addr);
+    
+    
 }
 
 static void gen_unref(int type) {
     if (type == TYPE_INTVAR) {
         emits("A:=M[A]\n");
+        
+        bin[binpos++] = opArray[mov_eax_addr].op;
+   
+        
     } else if (type == TYPE_CHARVAR) {
         emits("A:=m[A]\n");
     }
@@ -612,6 +648,21 @@ static struct sym *sym_find(char *s) {
     for (i = 0; i < sympos; i++) {
         if (strcmp(sym[i].name, s) == 0) {
             symbol = &sym[i];
+        }
+    }
+    return symbol;
+}
+
+
+static struct sym *sym_find_name(int addr)
+{
+    int i;
+    struct sym *symbol = NULL;
+    
+    for (i = 0; i < sympos; i++) {
+        if ( int( sym[i].faddr ) == addr  && sym[i].type == 'F') {
+            symbol = &sym[i];
+            break;
         }
     }
     return symbol;
@@ -1027,6 +1078,7 @@ static void compile() {
             var->addr = codepos;
             var->type = 'F';
             var->nParams = argc;
+            var->faddr = binpos;
             gen_sym(var);
             printf("FUNCTION: %s with %d params\n",var->name, argc);
             strcpy(context,var->name);
@@ -1088,12 +1140,48 @@ int main(int argc, const char * argv[]) {
     
     for(int i = 0 ; i < binpos; )
     {
+        
+  
+        
+        struct sym * s =  sym_find_name(i);
+        if(s)
+        {
+            printf("%s:\n", s->name);
+        }
+        
+        printf("%4i:    ", i);
         float op = bin[i++];
         printf("%s", opArray[int(op)].name);
         for(int j = 0; j < opArray[int(op)].nargs; j++)
         {
-            printf("%f ", bin[i+j]);
+            if(int(op) == lea_eax_esp_xx)
+            {
+                if(bin[i+j] == 0.0)
+                {
+                    printf("]");
+                }
+                else
+                {
+                    printf(" + %.1f]", bin[i+j]);
+                }
+            }
+            else if(int(op) == ret)
+            {
+              //  printf("\n\n");
+            }
+            else
+            {
+                printf("%f ", bin[i+j]);
+            }
+            
         }
+        
+        if(int(op) == ret)
+        {
+            printf("\n\n");
+        }
+        
+        
         i = i +opArray[int(op)].nargs;
         
         printf("\n");
