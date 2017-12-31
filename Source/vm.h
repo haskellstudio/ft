@@ -1,10 +1,4 @@
-//
-//  vm.h
-//  xcodeConsoleTest
-//
-//  Created by 朱飞 on 29/12/2017.
-//  Copyright © 2017 soho. All rights reserved.
-//
+
 
 #ifndef vm_h
 #define vm_h
