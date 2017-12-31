@@ -36,26 +36,29 @@ static char f[] =SFY(
 //                     int k;
 //
 //                     //sp 02    03       04
-                     int fun (int x, int y , int z)  // sp 000 is return address;
-                     {
-                         int zz = 7;  // sp 000     stack pos 0
-                         int aa = 8;   //           stack pos 1
-                         int cc = 9;   //           stack pos 2
-                         int dd = 6;    //          stack pos 3   // gstackpos = 4
-                         return z;
+//                     int fun (int x, int y , int z)  // sp 000 is return address;
+//                     {
+//                         int zz = 7;  // sp 000     stack pos 0
+//                         int aa = 8;   //           stack pos 1
+//                         int cc = 9;   //           stack pos 2
+//                         int dd = 6;    //          stack pos 3   // gstackpos = 4
+//                         return z;
+//
+//                     }
 
-                     }
-
-                     int main()
+                     int main(char * argv, int argc)
                      {
-                         int a=6;
-                         int b = 7;
-//                         int b=7;
-//                         int c=8;
+                         int a;
+                         int b ;
+                        // int c=2;
+                         
+                       //  a = c;
+                        // a = b = c;
+                     
 //
 //                         int d = fun(9);
-
-                         return b;
+                         a=b=2;
+                         return a;
                      }
                      );
 
@@ -89,7 +92,13 @@ static struct sym {
     int  addr;
     char name[MAXTOKSZ];
     int  nParams;
-    float faddr;
+    char params[64][64];
+    float faddr; // code address for fuction . ex: main = 29
+    
+    sym()
+    {
+        addr = faddr = 0;
+    }
 } sym[MAXSYMBOLS];
 
 
@@ -109,6 +118,11 @@ typedef struct {
 
 static float bin[MAXCODESZ];
 static int binpos = 0;
+
+
+
+char PDBFunctionSymble[MAXCODESZ][256] = {0};
+char PDBsymble[MAXCODESZ][256] = {0};
 
 
 static VM_INSTRUCTION vm_instructions[] = {
@@ -141,7 +155,7 @@ struct OP
 {
     float op ;
     float nargs;
-    char name[32];
+    char name[64];
     OP(float o, float a, char * n)
     {
         op = o;
@@ -151,7 +165,7 @@ struct OP
 };
 
 
-OP opArray[8] = {
+OP opArray[10] = {
                         OP(0.0, 0.0, "nop"),
                         OP(1.0, 1.0, "mov eax, "),
                         OP(2.0, 1.0, "jmp "),
@@ -159,7 +173,10 @@ OP opArray[8] = {
                         OP(4.0, 0.0, "push eax"),
                         OP(5.0, 0.0, "mov eax, [eax]"),
                         OP(6.0, 0.0, "unused"),
-                        OP(7.0, 0.0, "ret")
+                        OP(7.0, 0.0, "ret"),
+                        OP(8.0, 0.0, "pop ebx; \n         mov [ebx], eax"),
+                        OP(9.0, 1, "add esp ,"),
+    
 };
 
 
@@ -167,13 +184,13 @@ typedef enum {
     NOOP    = 0,
     mov_eax_xxx    = 1,
     jmp    = 2,
-    lea_eax_esp_xx    = 3,
+    lea_eax_mesp_xx    = 3,
     push_eax     = 4,
     mov_eax_addr = 5,
     mov_eax_byte_addr = 6,
     ret     = 7,
-    BRF     = 8,   // branch if true
-    ICONST  = 9,   // push constant integer
+    pop_ebx_mov_mebx_eax     = 8,
+    add_esp_xx = 9,
     LOAD    = 10,  // load from local context
     GLOAD   = 11,  // load from global memory
     STORE   = 12,  // store in local context
@@ -369,6 +386,7 @@ static void gen_const(int n) {
     sprintf(s, "A:=%04x\n", n);
     emits(s);
     
+    sprintf(PDBsymble[binpos], "%d is a constant",  n);
     bin[binpos++] = opArray[mov_eax_xxx].op;
     bin[binpos++] = float(n);
     
@@ -402,6 +420,11 @@ static void gen_pop(int n) {
         sprintf(s, "pop%04x\n", n);
         emits(s);
         stack_pos = stack_pos - n;
+        
+        sprintf(PDBsymble[binpos], "free local stack space for %d space", n);
+        bin[binpos++] = opArray[add_esp_xx].op;
+        
+        bin[binpos++] = float(n);
     }
 }
 
@@ -410,7 +433,7 @@ static void gen_stack_addr(int addr) {
     sprintf(s, "sp@%04x\n", addr);
     emits(s);
     
-    bin[binpos++] = opArray[lea_eax_esp_xx].op;
+    bin[binpos++] = opArray[lea_eax_mesp_xx].op;
     
     bin[binpos++] = float(addr);
     
@@ -654,13 +677,13 @@ static struct sym *sym_find(char *s) {
 }
 
 
-static struct sym *sym_find_name(int addr)
+static struct sym *sym_find_name(int addr, char type)
 {
     int i;
     struct sym *symbol = NULL;
     
     for (i = 0; i < sympos; i++) {
-        if ( int( sym[i].faddr ) == addr  && sym[i].type == 'F') {
+        if ( int( sym[i].faddr ) == addr  && sym[i].type == type) {
             symbol = &sym[i];
             break;
         }
@@ -708,7 +731,7 @@ static struct sym *sym_declare(char *ctx, char *name, char type, int addr) {
  * PARSER AND COMPILER
  */
 
-static int expr();
+static int expr(struct sym * as);
 
 // read type name:
 //   int, char and pointers (int* char*) are supported
@@ -751,7 +774,7 @@ static int parse_immediate_value() {
     return 0;
 }
 
-static int prim_expr() {
+static int prim_expr(struct sym *as) {
     int type = TYPE_NUM;
     if (isdigit(tok[0])) {
         int n = parse_immediate_value();
@@ -773,17 +796,24 @@ static int prim_expr() {
                 error("[line %d] Undeclared symbol: %s\n", linenum,tok);
             }
         }
+        
         printf("SYM: %s\n",symName);
         if (s->type == 'L') {
             // Local Symbol
+           // *as = *s;
+            as->faddr = s->faddr;
+            as->addr = s->addr;
+            strcpy(as->name, s->name);
+            sprintf(PDBsymble[binpos] , "get %s addr",  s->name);
             gen_stack_addr(stack_pos - s->addr - 1);
+            
         } else {
             // Other Symbols (Global)
             gen_sym_addr(s);
         }
         type = TYPE_INTVAR;
     } else if (accept("(")) {
-        type = expr();
+        type = expr(nullptr);
         expect(__LINE__,")");
     } else if (tok[0] == '"') {
         int i, j;
@@ -812,12 +842,12 @@ static int prim_expr() {
     return type;
 }
 
-static int binary(int type, int (*f)(), char *buf, size_t len) {
+static int binary(int type, int (*f)(struct sym * s), char *buf, size_t len) {
     if (type != TYPE_NUM) {
         gen_unref(type);
     }
     gen_push();
-    type = f();
+    type = f(nullptr);
     if (type != TYPE_NUM) {
         gen_unref(type);
     }
@@ -826,8 +856,8 @@ static int binary(int type, int (*f)(), char *buf, size_t len) {
     return TYPE_NUM;
 }
 
-static int postfix_expr() {
-    int type = prim_expr();
+static int postfix_expr(struct sym *s) {
+    int type = prim_expr(s);
     
     if (type == TYPE_INTVAR && accept("[")) {
         binary(type, expr, GEN_ADD, GEN_ADDSZ);
@@ -838,10 +868,10 @@ static int postfix_expr() {
         gen_push(); /* store function address */
         int call_addr = stack_pos - 1;
         if (accept(")") == 0) {
-            expr();
+            expr(nullptr);
             gen_push();
             while (accept(",")) {
-                expr();
+                expr(nullptr);
                 gen_push();
             }
             expect(__LINE__,")");
@@ -862,8 +892,8 @@ static int postfix_expr() {
     return type;
 }
 
-static int add_expr() {
-    int type = postfix_expr();
+static int add_expr(struct sym *s) {
+    int type = postfix_expr(s);
     while (peek("+") || peek("-")) {
         if (accept("+")) {
             type = binary(type, postfix_expr, GEN_ADD, GEN_ADDSZ);
@@ -874,8 +904,8 @@ static int add_expr() {
     return type;
 }
 
-static int shift_expr() {
-    int type = add_expr();
+static int shift_expr(struct sym *s) {
+    int type = add_expr(s);
     while (peek("<<") || peek(">>")) {
         if (accept("<<")) {
             type = binary(type, add_expr, GEN_SHL, GEN_SHLSZ);
@@ -886,8 +916,8 @@ static int shift_expr() {
     return type;
 }
 
-static int rel_expr() {
-    int type = shift_expr();
+static int rel_expr(struct sym *s) {
+    int type = shift_expr(s);
     while (peek("<")) {
         if (accept("<")) {
             type = binary(type, shift_expr, GEN_LESS, GEN_LESSSZ);
@@ -896,8 +926,8 @@ static int rel_expr() {
     return type;
 }
 
-static int eq_expr() {
-    int type = rel_expr();
+static int eq_expr(struct sym *s) {
+    int type = rel_expr(s);
     while (peek("==") || peek("!=")) {
         if (accept("==")) {
             type = binary(type, rel_expr, GEN_EQ, GEN_EQSZ);
@@ -908,8 +938,8 @@ static int eq_expr() {
     return type;
 }
 
-static int bitwise_expr() {
-    int type = eq_expr();
+static int bitwise_expr(struct sym * s) {
+    int type = eq_expr(s);
     
     while (peek("|") || peek("&") || peek("^") || peek("/") || peek("*") || peek("%") ) {
         if (accept("|")) {        // expression '|'
@@ -929,20 +959,41 @@ static int bitwise_expr() {
     return type;
 }
 
-static int expr() {
-    int type = bitwise_expr();
-    if (type != TYPE_NUM) {
-        if (accept("=")) {
+static int expr(struct sym * as) {
+    struct sym s;
+    int type = bitwise_expr( &s);
+    if (type != TYPE_NUM)
+    {
+        if (accept("="))
+        {
             printf("HERE 1=\n");
-            gen_push(); expr();
-            if (type == TYPE_INTVAR) {
+            if(s.faddr != 0)
+            {
+                sprintf(PDBsymble[binpos], "push %s's addr to stack",s.name);
+            }
+            gen_push();
+            expr(nullptr);
+            if (type == TYPE_INTVAR)
+            {
+                if(s.faddr != 0)
+                {
+                    sprintf(PDBsymble[binpos], "assign value to  %s",s.name);
+                }
                 emit(GEN_ASSIGN, GEN_ASSIGNSZ);
-            } else {
+                bin[binpos++] = opArray[pop_ebx_mov_mebx_eax].op;
+                
+            }
+            else
+            {
                 emit(GEN_ASSIGN8, GEN_ASSIGN8SZ);
+                
+                
             }
             stack_pos = stack_pos - 1; // assume ASSIGN contains pop
             type = TYPE_NUM;
-        } else {
+        }
+        else
+        {
             gen_unref(type);
         }
     }
@@ -969,12 +1020,20 @@ static void statement() {
         readtok();
         if (accept("=")) {
             printf("HERE 2=\n");
-            expr();
+            expr(nullptr);
         }
         numPreambleVars++;
         // gen_push(); // make room for new local variable
+        
+        var->faddr = binpos;
+        
+       
         gen_push();
+        
         var->addr = stack_pos-1;
+        
+        sprintf(PDBsymble[binpos-1], "%s    local var,stack_pos : %d",var->name, var->addr);
+        
         expect(__LINE__,";");
         return;
     }
@@ -987,7 +1046,7 @@ static void statement() {
     
     if (accept("if")) {
         expect(__LINE__,"(");
-        expr();
+        expr(nullptr);
         emit(GEN_JZ, GEN_JZSZ);
         int p1 = codepos;
         expect(__LINE__,")");
@@ -1008,7 +1067,7 @@ static void statement() {
         expect(__LINE__,"(");
         int p1 = codepos;
         gen_loop_start();
-        expr();
+        expr(nullptr);
         emit(GEN_JZ, GEN_JZSZ);
         int p2 = codepos;
         expect(__LINE__,")");
@@ -1020,7 +1079,7 @@ static void statement() {
     }
     if (accept("return")) {
         if (peek(";") == 0) {
-            expr();
+            expr(nullptr);
         }
         expect(__LINE__,";");
         gen_pop(stack_pos); // remove all locals from stack (except return address)
@@ -1029,7 +1088,7 @@ static void statement() {
         return;
     }
     // we should process an expression...
-    expr();
+    expr(nullptr);
     expect(__LINE__,";");
 }
 
@@ -1062,7 +1121,10 @@ static void compile() {
                 break;
             }
             printf("GEN_PARM_VAR %s_%s\n",var->name,tok);
-            sym_declare(var->name,tok, 'L', -argc-1);
+            struct sym * s = sym_declare(var->name,tok, 'L', -argc-1);
+            
+            sprintf(var->params[argc-1], "%s", /*s->name*/ tok);
+            
             readtok();
             if (peek(")")) {
                 break;
@@ -1079,6 +1141,36 @@ static void compile() {
             var->type = 'F';
             var->nParams = argc;
             var->faddr = binpos;
+            
+            sprintf(PDBFunctionSymble[binpos], "function: %s ", var->name);
+            if(var->nParams == 0)
+            {
+                strcat(PDBFunctionSymble[binpos], "(void)");
+            }
+            else
+            {
+                for(int i =0; i<var->nParams; i++)
+                {
+                    if(i == 0)
+                    {
+                        strcat(PDBFunctionSymble[binpos], "( ");
+                    }
+                    
+                 
+                    strcat(PDBFunctionSymble[binpos], var->params[i]);
+                    
+                    if(i == var->nParams -1)
+                    {
+                        strcat(PDBFunctionSymble[binpos], " )");
+                    }
+                    else
+                    {
+                        strcat(PDBFunctionSymble[binpos], ", ");
+                    }
+                }
+            }
+
+
             gen_sym(var);
             printf("FUNCTION: %s with %d params\n",var->name, argc);
             strcpy(context,var->name);
@@ -1137,24 +1229,49 @@ int main(int argc, const char * argv[]) {
     
     printf("\n");
     
+   // char * currentContextName = nullptr;
+    
     
     for(int i = 0 ; i < binpos; )
     {
         
   
         
-        struct sym * s =  sym_find_name(i);
-        if(s)
+      //  struct sym * s =  sym_find_name(i, 'F');
+       // if(s)
         {
-            printf("%s:\n", s->name);
+        //    printf("%s:\n", s->name);
+       //     currentContextName = s->name;
         }
         
+        int codeaddr = i;
+        
+        
+        
+        
+        if(PDBFunctionSymble[codeaddr][0] != 0)
+        {
+            printf("\n\n\n%s:\n", PDBFunctionSymble[codeaddr]);
+        }
+        if(PDBsymble[codeaddr][0] != 0)
+        {
+            printf("                                 %s\n", PDBsymble[codeaddr]);
+        }
+
+        
         printf("%4i:    ", i);
+
+        
+        
         float op = bin[i++];
         printf("%s", opArray[int(op)].name);
+        
+        
+        
+        
         for(int j = 0; j < opArray[int(op)].nargs; j++)
         {
-            if(int(op) == lea_eax_esp_xx)
+            if(int(op) == lea_eax_mesp_xx)
             {
                 if(bin[i+j] == 0.0)
                 {
@@ -1165,10 +1282,22 @@ int main(int argc, const char * argv[]) {
                     printf(" + %.1f]", bin[i+j]);
                 }
             }
-            else if(int(op) == ret)
+            else if(int(op) == jmp)
             {
-              //  printf("\n\n");
+                printf("%.0f", bin[i+j]);
+                
+                int targetAddr = bin[i+j];
+                
+                struct sym * s =  sym_find_name(targetAddr, 'F');
+                if(s)
+                {
+                    printf("                   %s", s->name);
+                }
             }
+//            else if(int(op) == add_esp_xx)
+//            {
+//
+//            }
             else
             {
                 printf("%f ", bin[i+j]);
@@ -1183,6 +1312,11 @@ int main(int argc, const char * argv[]) {
         
         
         i = i +opArray[int(op)].nargs;
+        
+        
+        
+        
+
         
         printf("\n");
     }
