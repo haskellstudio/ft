@@ -35,30 +35,24 @@ static char f[] =SFY(
 //                     int d;
 //                     int k;
 //
-//                     //sp 02    03       04
-//                     int fun (int x, int y , int z)  // sp 000 is return address;
-//                     {
-//                         int zz = 7;  // sp 000     stack pos 0
-//                         int aa = 8;   //           stack pos 1
-//                         int cc = 9;   //           stack pos 2
-//                         int dd = 6;    //          stack pos 3   // gstackpos = 4
-//                         return z;
-//
-//                     }
+                     //sp 02    03       04
+                     int fun (int x, int y , int z)  // sp 000 is return address;
+                     {
+                         int zz = 7;  // sp 000     stack pos 0
+                         int aa = 8;   //           stack pos 1
+                         int cc = 9;   //           stack pos 2
+                         int dd = 6;    //          stack pos 3   // gstackpos = 4
+                         return z;
+
+                     }
 
                      int main(char * argv, int argc)
                      {
                          int a;
                          int b ;
-                        // int c=2;
-                         
-                       //  a = c;
-                        // a = b = c;
-                     
-//
-//                         int d = fun(9);
+                         int d = fun(9, 10, 11);
                          a=b=2;
-                         return a;
+                         return d;
                      }
                      );
 
@@ -804,7 +798,7 @@ static int prim_expr(struct sym *as) {
             as->faddr = s->faddr;
             as->addr = s->addr;
             strcpy(as->name, s->name);
-            sprintf(PDBsymble[binpos] , "get %s addr",  s->name);
+            sprintf(PDBsymble[binpos] , "%s addr to eax",  s->name);
             gen_stack_addr(stack_pos - s->addr - 1);
             
         } else {
@@ -994,6 +988,10 @@ static int expr(struct sym * as) {
         }
         else
         {
+            if(s.faddr != 0)
+            {
+                sprintf(PDBsymble[binpos], "%s value to eax",s.name);
+            }
             gen_unref(type);
         }
     }
