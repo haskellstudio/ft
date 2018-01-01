@@ -1457,6 +1457,26 @@ static void compile() {
     }
 }
 
+const int stackSize = 1024;
+float stack[stackSize];
+
+int pc = 0;
+
+int esp = stackSize; // no value
+int op = 0;
+float eax = 0;
+float ebx = 0;
+
+void printstatus()
+{
+    printf("eax = %f \nebx = %f \nesp = %d \neip = %d\n", eax, ebx, esp, pc);
+    printf("stack begin: \n");
+    for(int i = esp ; i < stackSize; i++)
+    {
+        printf("%d       %f\n", i, stack[i]);
+    }
+    printf("stack end: \n");
+}
 
 
 void vm()
@@ -1468,20 +1488,18 @@ void vm()
         
     };
     
-    const int stackSize = 1024;
-    float stack[stackSize];
+ 
+
     
-    int pc = 0;
     
-    int esp = stackSize; // no value
     
     int codeSize = bytecode[0];
     
-    int op = 0;
-    float eax = 0;
-    float ebx = 0;
+   
+ 
     for( pc=1; pc < codeSize; )
     {
+        printstatus();
         op = bytecode[pc++];
        // int args = opArray[op].nargs;
         
@@ -1491,7 +1509,7 @@ void vm()
         }
         else if(op == jmp)
         {
-            pc = bytecode[pc+1];
+            pc = bytecode[pc];
         }
         else if(op == lea_eax_mesp_xx)
         {
@@ -1499,7 +1517,7 @@ void vm()
         }
         else if(op == push_eax)
         {
-            stack[-esp] = eax;
+            stack[--esp] = eax;
         }
         else if(op == mov_eax_xxx)
         {
@@ -1538,6 +1556,7 @@ void vm()
             pc = eax;
             stack[--esp] = (pc+1);
         }
+        
     }
 }
 
@@ -1547,6 +1566,9 @@ void vm()
 
 int main(int argc, const char * argv[]) {
     
+    
+    vm();
+    return 0;
     int ii;
     
     strcpy(context,"");
