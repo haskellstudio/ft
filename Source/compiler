@@ -1,13 +1,6 @@
-
 #include <iostream>
 //#include "boost/asio.hpp"
 //#include "vm.h"
-
-
-
-
-
-
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,12 +9,7 @@
 #include <ctype.h>
 #include <string.h>
 
-
-
-
 #define SFY(a) #a
-//static FILE *f;            /* input source file */
-
 static char f[] =SFY(
 //                     int i;
 //                     int c;
@@ -38,18 +26,25 @@ static char f[] =SFY(
 //                         return z;
 //
 //                     }
+                     
+                     int add2(int x, int y)
+                     {
+                     
+                     }
 
                      int main(char * argv, int argc)
                      {
-                         int a = 2;
+                      //   int a = 2;
 
-                         int b = a =3 ;
-
-                         int c=4;
+                     //    int b = a =3 ;
                          
-                         int d;
+                         int b = add2(1,1);
                          
-                         return d;
+                       //  int c=4*a*a;
+                         
+                        // int d;
+                         
+                        // return d;
                         // b;
                        //  int d = fun(9, 10, 11);
                        //  a=b=2;
@@ -108,31 +103,6 @@ char PDBFunctionSymble[MAXCODESZ][256] = {0};
 char PDBsymble[MAXCODESZ][256] = {0};
 
 
-static VM_INSTRUCTION vm_instructions[] = {
-    { "nop",   0 },    // 0
-    { "mov eax, ",   1 },    // A := XXXX
-    
-    
-    
-    { "isub",   0 },    // 2
-    { "imul",   0 },    // 3
-    { "ilt",    0 },    // 4
-    { "ieq",    0 },    // 5
-    { "br",     1 },    // 7
-    { "brt",    1 },    // 8
-    { "brf",    1 },    // 9
-    { "iconst", 1 },    // 10
-    { "load",   1 },
-    { "gload",  1 },
-    { "store",  1 },
-    { "gstore", 1 },
-    { "print",  0 },
-    { "pop",    0 },
-    { "call",   3 },
-    { "ret",    0 },
-    { "halt",   0 }
-};
-
 
 struct OP
 {
@@ -148,7 +118,7 @@ struct OP
 };
 
 
-OP opArray[10] = {
+OP opArray[13] = {
                         OP(0.0, 0.0, "nop"),
                         OP(1.0, 1.0, "mov eax, "),
                         OP(2.0, 1.0, "jmp "),
@@ -158,7 +128,10 @@ OP opArray[10] = {
                         OP(6.0, 0.0, "unused"),
                         OP(7.0, 0.0, "ret"),
                         OP(8.0, 0.0, "pop ebx; \n         mov [ebx], eax"),
-                        OP(9.0, 1, "add esp ,"),
+                        OP(9.0, 1.0, "add esp ,"),
+                        OP(10.0, 0.0, "pop ebx; \n         imul eax, ebx"),
+                        OP(11.0, 0.0, "pop ebx; \n         add eax, ebx"),
+                        OP(12.0, 0.0, "call eax"),
     
 };
 
@@ -174,9 +147,9 @@ typedef enum {
     ret     = 7,
     pop_ebx_mov_mebx_eax     = 8,
     add_esp_xx = 9,
-    LOAD    = 10,  // load from local context
-    GLOAD   = 11,  // load from global memory
-    STORE   = 12,  // store in local context
+    pop_ebx_imul_eax_ebx    = 10,
+    pop_ebx_add_eax_ebx   = 11,
+    call_eax   = 12,
     GSTORE  = 13,  // store in global memory
     PRINT   = 14,  // print stack top
     POP     = 15,  // throw away top of stack
@@ -394,6 +367,7 @@ static void gen_sym_addr(struct sym *sym) {
     emits(s);
 
     
+    int fn = sym->faddr;
     if(sym->type == 'F')
     {
         sprintf(PDBsymble[binpos] , "function %s addr to eax",  sym->name);
@@ -404,7 +378,7 @@ static void gen_sym_addr(struct sym *sym) {
     }
     
     bin[binpos++] = opArray[mov_eax_xxx].op;
-    bin[binpos++] = float(n);
+    bin[binpos++] = float(fn);
 }
 
 static void gen_push() {
@@ -456,6 +430,8 @@ static void gen_unref(int type) {
 
 static void gen_call() {
     emits("call A \n");
+    
+     bin[binpos++] = opArray[call_eax].op;
 }
 
 static void gen_array(char *array, int size) {
@@ -985,14 +961,45 @@ static int prim_expr(struct sym *as) {
     return type;
 }
 
-static int binary(int type, int (*f)(struct sym * s), char *buf, size_t len) {
+static int binary(int type, int (*f)(struct sym * s), char *buf, size_t len, struct sym *s, int binaryOp = -1) {
     if (type != TYPE_NUM) {
         gen_unref(type);
     }
+    
+    sprintf(PDBsymble[binpos], "push %s to stack",s->name);
+    
     gen_push();
-    type = f(nullptr);
+    
+    
+    struct sym lss;
+    type = f(&lss);
+
     if (type != TYPE_NUM) {
+        sprintf(PDBsymble[binpos], "%s value to eax",lss.name);
         gen_unref(type);
+    }
+    
+    if(binaryOp == pop_ebx_imul_eax_ebx)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s * %s ",s->name, lss.name, s->name );
+        
+        bin[binpos++] = pop_ebx_imul_eax_ebx;
+        
+        strcat(s->name, "*");
+        strcat(s->name, lss.name);
+    }
+    else if(binaryOp == pop_ebx_add_eax_ebx)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s + %s ",s->name, lss.name, s->name );
+        
+        bin[binpos++] = pop_ebx_add_eax_ebx;
+        
+        strcat(s->name, "+");
+        strcat(s->name, lss.name);
+    }
+    else
+    {
+        error(" %s not implement, the stack can not balence\n", buf);
     }
     emit(buf, len);
     stack_pos = stack_pos - 1; /* assume that buffer contains a "pop" */
@@ -1003,7 +1010,7 @@ static int postfix_expr(struct sym *s) {
     int type = prim_expr(s);
     
     if (type == TYPE_INTVAR && accept("[")) {
-        binary(type, expr, GEN_ADD, GEN_ADDSZ);
+        binary(type, expr, GEN_ADD, GEN_ADDSZ, s);
         expect(__LINE__,"]");
         type = TYPE_CHARVAR;
     } else if (accept("(")) {
@@ -1014,19 +1021,35 @@ static int postfix_expr(struct sym *s) {
         if (accept(")") == 0) {
             struct sym lls;
             expr(&lls);
+            int argnum = 1;
+            sprintf(PDBsymble[binpos] , "arg%d %s to stack",  argnum, lls.name);
             gen_push();
             while (accept(",")) {
                 struct sym lls2;
                 expr(&lls2);
+                argnum++;
+                sprintf(PDBsymble[binpos] , "arg%d %s to stack",  argnum, lls2.name);
                 gen_push();
             }
             expect(__LINE__,")");
         }
         type = TYPE_NUM;
+        
+        sprintf(PDBsymble[binpos] , "function %s addr to eax",  s->name);
         gen_stack_addr(stack_pos - call_addr - 1);
         gen_unref(TYPE_INTVAR);
+        
+        sprintf(PDBsymble[binpos] , "call %s ",  s->name);
         gen_call();
+        
         if (currFunction) {
+            sprintf(PDBsymble[binpos], "free %d args stack space for function %s", currFunction->nParams, s->name);
+            
+            bin[binpos++] = opArray[add_esp_xx].op;
+            
+            bin[binpos++] = float(currFunction->nParams);
+            
+            
             gen_call_cleanup(currFunction->nParams);
         } else {
             error("[line %d] Error: unexpected function exit\n",linenum);
@@ -1042,9 +1065,9 @@ static int add_expr(struct sym *s) {
     int type = postfix_expr(s);
     while (peek("+") || peek("-")) {
         if (accept("+")) {
-            type = binary(type, postfix_expr, GEN_ADD, GEN_ADDSZ);
+            type = binary(type, postfix_expr, GEN_ADD, GEN_ADDSZ, s, pop_ebx_add_eax_ebx);
         } else if (accept("-")) {
-            type = binary(type, postfix_expr, GEN_SUB, GEN_SUBSZ);
+            type = binary(type, postfix_expr, GEN_SUB, GEN_SUBSZ, s);
         }
     }
     return type;
@@ -1054,9 +1077,9 @@ static int shift_expr(struct sym *s) {
     int type = add_expr(s);
     while (peek("<<") || peek(">>")) {
         if (accept("<<")) {
-            type = binary(type, add_expr, GEN_SHL, GEN_SHLSZ);
+            type = binary(type, add_expr, GEN_SHL, GEN_SHLSZ, s);
         } else if (accept(">>")) {
-            type = binary(type, add_expr, GEN_SHR, GEN_SHRSZ);
+            type = binary(type, add_expr, GEN_SHR, GEN_SHRSZ, s);
         }
     }
     return type;
@@ -1066,7 +1089,7 @@ static int rel_expr(struct sym *s) {
     int type = shift_expr(s);
     while (peek("<")) {
         if (accept("<")) {
-            type = binary(type, shift_expr, GEN_LESS, GEN_LESSSZ);
+            type = binary(type, shift_expr, GEN_LESS, GEN_LESSSZ, s);
         }
     }
     return type;
@@ -1076,9 +1099,9 @@ static int eq_expr(struct sym *s) {
     int type = rel_expr(s);
     while (peek("==") || peek("!=")) {
         if (accept("==")) {
-            type = binary(type, rel_expr, GEN_EQ, GEN_EQSZ);
+            type = binary(type, rel_expr, GEN_EQ, GEN_EQSZ, s);
         } else if (accept("!=")) {
-            type = binary(type, rel_expr, GEN_NEQ, GEN_NEQSZ);
+            type = binary(type, rel_expr, GEN_NEQ, GEN_NEQSZ, s);
         }
     }
     return type;
@@ -1089,17 +1112,17 @@ static int bitwise_expr(struct sym * s) {
     
     while (peek("|") || peek("&") || peek("^") || peek("/") || peek("*") || peek("%") ) {
         if (accept("|")) {        // expression '|'
-            type = binary(type, eq_expr, GEN_OR, GEN_ORSZ);
+            type = binary(type, eq_expr, GEN_OR, GEN_ORSZ, s);
         } else if (accept("&")) { // expression '&'
-            type = binary(type, eq_expr, GEN_AND, GEN_ANDSZ);
+            type = binary(type, eq_expr, GEN_AND, GEN_ANDSZ, s);
         } else if (accept("^")) { // expression '^'
-            type = binary(type, eq_expr, GEN_XOR, GEN_XORSZ);
+            type = binary(type, eq_expr, GEN_XOR, GEN_XORSZ, s);
         } else if (accept("/")) { // expression '/'
-            type = binary(type, eq_expr, GEN_DIV, GEN_DIVSZ);
+            type = binary(type, eq_expr, GEN_DIV, GEN_DIVSZ, s);
         } else if (accept("*")) { // expression '*'
-            type = binary(type, eq_expr, GEN_MUL, GEN_MULSZ);
+            type = binary(type, eq_expr, GEN_MUL, GEN_MULSZ, s, pop_ebx_imul_eax_ebx);
         } else if (accept("%")) { // expression '%'
-            type = binary(type, eq_expr, GEN_MOD, GEN_MODSZ);
+            type = binary(type, eq_expr, GEN_MOD, GEN_MODSZ, s);
         }
     }
     return type;
