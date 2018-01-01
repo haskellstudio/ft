@@ -297,7 +297,7 @@ static void gen_start(int nGlobalVars) {
     strcat(buf,"---\n");
     emits(buf);
     
-    
+    bin[binpos++] = 0x0;
     
     bin[binpos++] = opArray[jmp].op;
     ffixme_offset = binpos;
@@ -318,6 +318,7 @@ static void gen_finish() {
     
     
     bin[ffixme_offset] = float(funcmain->faddr);
+    bin[0] = binpos;
 }
 
 // generate function pre-amble
@@ -1458,7 +1459,87 @@ static void compile() {
 
 
 
-
+void vm()
+{
+    float bytecode[4096] =
+    {
+        42.000000, 2.000000, 12.000000, 3.000000, 1.000000, 5.000000, 4.000000, 3.000000, 3.000000, 5.000000, 11.000000, 7.000000, 1.000000, 2.000000, 4.000000, 4.000000, 3.000000, 0.000000, 4.000000, 1.000000, 3.000000, 4.000000, 3.000000, 3.000000, 5.000000, 4.000000, 1.000000, 1.000000, 4.000000, 3.000000, 2.000000, 5.000000, 12.000000, 9.000000, 3.000000, 8.000000, 3.000000, 0.000000, 5.000000, 9.000000, 2.000000, 7.000000
+        
+        
+    };
+    
+    const int stackSize = 1024;
+    float stack[stackSize];
+    
+    int pc = 0;
+    
+    int esp = stackSize; // no value
+    
+    int codeSize = bytecode[0];
+    
+    int op = 0;
+    float eax = 0;
+    float ebx = 0;
+    for( pc=1; pc < codeSize; )
+    {
+        op = bytecode[pc++];
+       // int args = opArray[op].nargs;
+        
+        if(op == mov_eax_xxx)
+        {
+            eax = bytecode[pc++];
+        }
+        else if(op == jmp)
+        {
+            pc = bytecode[pc+1];
+        }
+        else if(op == lea_eax_mesp_xx)
+        {
+            eax  = esp + bytecode[pc++];
+        }
+        else if(op == push_eax)
+        {
+            stack[-esp] = eax;
+        }
+        else if(op == mov_eax_xxx)
+        {
+            eax = stack[(int)eax];
+        }
+        else if(op == mov_eax_byte_addr)
+        {
+            
+        }
+        else if(op == ret)
+        {
+            pc = stack[esp];
+            esp++;
+        }
+        else if(op == pop_ebx_mov_mebx_eax)
+        {
+            ebx = stack[esp++];
+            stack[(int)ebx] = eax;
+        }
+        else if(op == add_esp_xx)
+        {
+            esp += bytecode[pc++];
+        }
+        else if(op == pop_ebx_imul_eax_ebx)
+        {
+            ebx = stack[esp++];
+            eax = eax * ebx;
+        }
+        else if(op == pop_ebx_add_eax_ebx)
+        {
+            ebx = stack[esp++];
+            eax = eax + ebx;
+        }
+        else if(op == call_eax)
+        {
+            pc = eax;
+            stack[--esp] = (pc+1);
+        }
+    }
+}
 
 
 
@@ -1502,7 +1583,7 @@ int main(int argc, const char * argv[]) {
    // char * currentContextName = nullptr;
     
     
-    for(int i = 0 ; i < binpos; )
+    for(int i = 1 ; i < binpos; )
     {
         
   
@@ -1592,15 +1673,31 @@ int main(int argc, const char * argv[]) {
     }
     
     
-    //    nextc = fgetc(f);
-    //
-    //    readtok();
-    //    gen_start();
-    //    compile();
-    //    gen_finish();
-    // std::cout << csrc;
+    
+    for(int i = 0 ; i < binpos; i++)
+    {
+        printf(" %f,", bin[i]);
+        
+    }
+    
     return 0;
+
+    
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
