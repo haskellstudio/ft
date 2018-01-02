@@ -27,23 +27,36 @@ static char f[] = SFY(
 
 int main(char * argv, int argc)
 {
-	int a;
-	int b = 2;
-	if (b == 1)
-		a = 1;
-	else
+	
+	int a = 130;
+	while (a > 120)
 	{
-		if (b == 3)
-			a = 7;
-		else
-		{ 
-			if(b==2)
-				a = 17;
-		}
+		a = a - 8;
 		
 	}
-	if(b == 3)a = 3;
 	return a;
+	//int b = 2;
+	//if (b == 1)
+	//	a = 1;
+	//else
+	//{
+	//	if (b == 3)
+	//		a = 7;
+	//	else
+	//	{ 
+	//		if (b == 2)
+	//		{
+	//			if (b == 2)
+	//				a = 18;
+	//			else
+	//				a = 19;
+	//		}
+	//		a = 17;
+	//	}
+	//	
+	//}
+	//if(b == 3)a = 3;
+	//return a;
 }
 
 //                     //                     int i;
@@ -155,7 +168,7 @@ struct OP
 };
 
 
-OP opArray[18] = {
+OP opArray[20] = {
 	OP(0.0, 0.0, "nop"),
 	OP(1.0, 1.0, "mov eax, "),
 	OP(2.0, 1.0, "jmp "),
@@ -173,7 +186,10 @@ OP opArray[18] = {
 	OP(14.0, 1.0, "jz "),
 	OP(15.0, 0.0, "pop ebx  \n         cmp eax, ebx"),
 	OP(16.0, 0.0, "pop ebx  \n         cmp eax, ebx	\n         not eax"),
-	OP(17.0, 1.0, "call ")
+	OP(17.0, 1.0, "call "),
+	OP(18.0, 0.0, "pop ebx \n		   cmp ebx, eax \n		   jl xxx")	,
+	OP(19.0, 0.0, "pop ebx \n		   cmp ebx, eax \n		   jg xxx")
+	
 
 
 };
@@ -195,9 +211,12 @@ typedef enum {
 	call_eax = 12,
 	halt = 13,
 	jz = 14,
-	pop_ebx_equal_eax_ebx=15,
-	pop_ebx_not_equal_eax_ebx=16,
-	call_addr = 17
+	pop_ebx_equal_eax_ebx = 15,
+	pop_ebx_not_equal_eax_ebx = 16,
+	call_addr = 17,
+	pop_ebx_ebx_less_than_ebx = 18,
+	pop_ebx_ebx_greate_than_ebx = 19,
+	pop_ebx_sub_ebx_eax = 20,
 
 } VM_CODE;
 
@@ -279,6 +298,9 @@ static int mem_pos = 0;
 
 #define GEN_LESS  "pop B  \nA:=B<A \n"
 #define GEN_LESSSZ strlen(GEN_LESS)
+
+#define GEN_GREATE  "pop B  \nA:=B<A \n"
+#define GEN_GREATESZ strlen(GEN_LESS)
 
 #define GEN_EQ "pop B  \nA:=B==A\n"
 #define GEN_EQSZ strlen(GEN_EQ)
@@ -1031,6 +1053,7 @@ static int prim_expr(struct sym *as) {
 		struct sym lls;
 		type = expr(&lls);
 		expect(__LINE__, ")");
+		return type;
 	}
 	else if (tok[0] == '"') {
 		int i, j;
@@ -1097,7 +1120,16 @@ static int binary(int type, int(*f)(struct sym * s), char *buf, size_t len, stru
 		strcat(s->name, "+");
 		strcat(s->name, lss.name);
 	}
+	else if (binaryOp == pop_ebx_sub_ebx_eax)
+	{
+		sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s - %s ", s->name, lss.name, s->name);
 
+		bin[binpos++] = pop_ebx_sub_ebx_eax;
+
+		strcat(s->name, "-");
+		strcat(s->name, lss.name);
+	}
+	
 	else if (binaryOp == pop_ebx_equal_eax_ebx)
 	{
 		sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s == %s ", s->name, lss.name, s->name);
@@ -1118,6 +1150,25 @@ static int binary(int type, int(*f)(struct sym * s), char *buf, size_t len, stru
 		strcat(s->name, " != ");
 		strcat(s->name, lss.name);
 	}
+	else if (binaryOp == pop_ebx_ebx_less_than_ebx)
+	{
+		sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s < %s ", s->name, lss.name, s->name);
+
+		bin[binpos++] = pop_ebx_ebx_less_than_ebx;
+
+		strcat(s->name, " < ");
+		strcat(s->name, lss.name);
+	}
+	else if (binaryOp == pop_ebx_ebx_greate_than_ebx)
+	{
+		sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s > %s ", s->name, lss.name, s->name);
+
+		bin[binpos++] = pop_ebx_ebx_greate_than_ebx;
+
+		strcat(s->name, " > ");
+		strcat(s->name, lss.name);
+	}
+	
 	else
 	{
 		error(" %s not implement, the stack can not balence\n", buf);
@@ -1197,7 +1248,7 @@ static int add_expr(struct sym *s) {
 			type = binary(type, postfix_expr, GEN_ADD, GEN_ADDSZ, s, pop_ebx_add_eax_ebx);
 		}
 		else if (accept("-")) {
-			type = binary(type, postfix_expr, GEN_SUB, GEN_SUBSZ, s);
+			type = binary(type, postfix_expr, GEN_SUB, GEN_SUBSZ, s, pop_ebx_sub_ebx_eax);
 		}
 	}
 	return type;
@@ -1220,7 +1271,13 @@ static int rel_expr(struct sym *s) {
 	int type = shift_expr(s);
 	while (peek("<")) {
 		if (accept("<")) {
-			type = binary(type, shift_expr, GEN_LESS, GEN_LESSSZ, s);
+			type = binary(type, shift_expr, GEN_LESS, GEN_LESSSZ, s, pop_ebx_ebx_less_than_ebx);
+		}
+	}
+
+	while (peek(">")) {
+		if (accept(">")) {
+			type = binary(type, shift_expr, GEN_GREATE, GEN_GREATESZ, s, pop_ebx_ebx_greate_than_ebx);
 		}
 	}
 	return type;
@@ -1483,16 +1540,53 @@ static void statement() {
 	if (accept("while")) {
 		expect(__LINE__, "(");
 		int p1 = codepos;
+		float jmp_from_while_end = binpos;
+
 		gen_loop_start();
 		struct sym lls4;
 		expr(&lls4);
 		emit(GEN_JZ, GEN_JZSZ);
+
+
+
+
+		sprintf(PDBsymble[binpos], "while eval to false , then jmp");
+
+		bin[binpos++] = opArray[jz].op;
+		bin[binpos++] = float(-1);
+		int here_need_jmp_to_while_end = binpos - 1;
+
 		int p2 = codepos;
+		
+
 		expect(__LINE__, ")");
-		statement();
+
+
+		int prev_stack_pos = stack_pos;
+
+
+		if (accept("{")) {
+			while (accept("}") == 0) {
+				statement();
+			}
+		}
+		else
+		{
+			statement();
+		}
+
+		stack_pos = prev_stack_pos;
+
 		emit(GEN_JMP, GEN_JMPSZ);
+
+		sprintf(PDBsymble[binpos], "jump to start of while");
+		bin[binpos++] = opArray[jmp].op;
+		bin[binpos++] = jmp_from_while_end;
+
 		gen_patch(code + codepos, p1);
 		gen_patch(code + p2, codepos);
+
+		bin[here_need_jmp_to_while_end] = binpos;
 		return;
 	}
 	if (accept("return")) {
@@ -1720,6 +1814,11 @@ void vm(float bytecode[])
 			ebx = stack[esp++];
 			eax = eax + ebx;
 		}
+		else if (op == pop_ebx_sub_ebx_eax)
+		{
+			ebx = stack[esp++];
+			eax = ebx - eax;
+		}
 		else if (op == pop_ebx_equal_eax_ebx)
 		{
 			ebx = stack[esp++];
@@ -1740,6 +1839,27 @@ void vm(float bytecode[])
 			else
 				eax = 0;
 		}
+		else if (op == pop_ebx_ebx_less_than_ebx)
+		{
+			ebx = stack[esp++];
+			if (ebx < eax)
+			{
+				eax = 1;
+			}
+			else
+				eax = 0;
+		}
+		else if (op == pop_ebx_ebx_greate_than_ebx)
+		{
+			ebx = stack[esp++];
+			if (ebx > eax)
+			{
+				eax = 1;
+			}
+			else
+				eax = 0;
+		}
+		
 		else if (op == call_eax)
 		{
 			stack[--esp] = pc;
