@@ -135,7 +135,7 @@ struct OP
 };
 
 
-OP opArray[13] = {
+OP opArray[14] = {
                         OP(0.0, 0.0, "nop"),
                         OP(1.0, 1.0, "mov eax, "),
                         OP(2.0, 1.0, "jmp "),
@@ -149,6 +149,7 @@ OP opArray[13] = {
                         OP(10.0, 0.0, "pop ebx; \n         imul eax, ebx"),
                         OP(11.0, 0.0, "pop ebx; \n         add eax, ebx"),
                         OP(12.0, 0.0, "call eax"),
+                        OP(13.0, 0.0, "halt")
     
 };
 
@@ -167,7 +168,7 @@ typedef enum {
     pop_ebx_imul_eax_ebx    = 10,
     pop_ebx_add_eax_ebx   = 11,
     call_eax   = 12,
-    GSTORE  = 13,  // store in global memory
+    halt  = 13,
     PRINT   = 14,  // print stack top
     POP     = 15,  // throw away top of stack
     CALL    = 16,  // call function at address with nargs,nlocals
@@ -355,6 +356,15 @@ static void gen_ret(int nVars) {
     
 }
 
+
+static void gen_halt() {
+   
+    emits("ret    \n");
+   // stack_pos = stack_pos - 1;
+    
+    bin[binpos++] = opArray[halt].op;
+    
+}
 static void gen_const(int n) {
     char s[32];
     sprintf(s, "A:=%04x\n", n);
@@ -1355,7 +1365,14 @@ static void statement() {
         expect(__LINE__,";");
         gen_pop(stack_pos); // remove all locals from stack (except return address)
         lastIsReturn = 1;
-        gen_ret(numPreambleVars);
+        if(currFunction==nullptr)
+            error("why there is ret when no funtion");
+        else if(strcmp("_main", currFunction->name) == 0)
+        {
+            gen_halt();
+        }
+        else
+            gen_ret(numPreambleVars);
         return;
     }
     // we should process an expression...
@@ -1483,15 +1500,11 @@ void vm()
 {
     float bytecode[4096] =
     {
-        42.000000, 2.000000, 12.000000, 3.000000, 1.000000, 5.000000, 4.000000, 3.000000, 3.000000, 5.000000, 11.000000, 7.000000, 1.000000, 2.000000, 4.000000, 4.000000, 3.000000, 0.000000, 4.000000, 1.000000, 3.000000, 4.000000, 3.000000, 3.000000, 5.000000, 4.000000, 1.000000, 1.000000, 4.000000, 3.000000, 2.000000, 5.000000, 12.000000, 9.000000, 3.000000, 8.000000, 3.000000, 0.000000, 5.000000, 9.000000, 2.000000, 7.000000
         
-        
+         42.000000, 2.000000, 12.000000, 3.000000, 1.000000, 5.000000, 4.000000, 3.000000, 3.000000, 5.000000, 11.000000, 7.000000, 1.000000, 2.000000, 4.000000, 4.000000, 3.000000, 0.000000, 4.000000, 1.000000, 3.000000, 4.000000, 3.000000, 3.000000, 5.000000, 4.000000, 1.000000, 1.000000, 4.000000, 3.000000, 2.000000, 5.000000, 12.000000, 9.000000, 3.000000, 8.000000, 3.000000, 0.000000, 5.000000, 9.000000, 2.000000, 13.000000
     };
     
  
-
-    
-    
     
     int codeSize = bytecode[0];
     
@@ -1519,7 +1532,7 @@ void vm()
         {
             stack[--esp] = eax;
         }
-        else if(op == mov_eax_xxx)
+        else if(op == mov_eax_addr)
         {
             eax = stack[(int)eax];
         }
@@ -1553,8 +1566,14 @@ void vm()
         }
         else if(op == call_eax)
         {
+            stack[--esp] = pc;
             pc = eax;
-            stack[--esp] = (pc+1);
+            
+        }
+        else if(op == halt)
+        {
+            printf("virtual machine exit with return value is %f\n", eax);
+            break;
         }
         
     }
@@ -1568,6 +1587,8 @@ int main(int argc, const char * argv[]) {
     
     
     vm();
+
+    printf("main is over \n");
     return 0;
     int ii;
     
@@ -1686,10 +1707,7 @@ int main(int argc, const char * argv[]) {
         
         i = i +opArray[int(op)].nargs;
         
-        
-        
-        
-
+    
         
         printf("\n");
     }
