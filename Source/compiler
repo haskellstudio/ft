@@ -27,8 +27,15 @@ static char f[] = SFY(
 
 int main(char * argv, int argc)
 {
-	int b = 2;
-	int a = 32 >> !!2 ;
+	int a = 3;
+	if (a <= 3)
+	{
+		return 11;
+	}
+	else
+		return 7;
+//	int b = 2;
+	//int a = 32 >> !!2 ;
 
 	
 	//while (a < 120)
@@ -36,7 +43,7 @@ int main(char * argv, int argc)
 	//	a = a + 8;
 	//	
 	//}
-	return a;
+//	return a;
 	//int b = 2;
 	//if (b == 1)
 	//	a = 1;
@@ -170,7 +177,7 @@ struct OP
 };
 
 
-OP opArray[36] = {
+OP opArray[38] = {
 	OP(0.0, 0.0, "nop"),
 	OP(1.0, 1.0, "mov eax, "),
 	OP(2.0, 1.0, "jmp "),
@@ -206,7 +213,11 @@ OP opArray[36] = {
 	OP(32.0, 0.0, "bit neg eax "),   // 3  ~3
 	OP(33.0, 0.0, "mov eax, [eax]\n		   bit neg eax"),
 	OP(34.0, 0.0, "not eax"),        // 3 0 1 0 1
-	OP(35.0, 0.0, "mov eax, [eax]\n		   not eax")
+	OP(35.0, 0.0, "mov eax, [eax]\n		   not eax"),
+	
+	OP(36.0, 0.0, "pop ebx \n		   cmp ebx, eax \n		   jg xxx")	,
+	OP(37.0, 0.0, "pop ebx \n		   cmp ebx, eax \n		   jl xxx") ,
+
 };
 
 
@@ -233,7 +244,7 @@ typedef enum {
 	pop_ebx_ebx_greate_than_ebx = 19,
 	pop_ebx_sub_ebx_eax = 20,
 	pop_ebx_fdiv_ebx_eax = 21,
-	pop_ebx_mod_ebx_eax =  22,
+	pop_ebx_mod_ebx_eax = 22,
 	pop_ebx_logic_and_ebx_eax = 23,
 	pop_ebx_logic_or_ebx_eax = 24,
 	pop_ebx_bit_and_ebx_eax = 25,
@@ -241,12 +252,15 @@ typedef enum {
 	pop_ebx_bit_xor_ebx_eax = 27,
 	pop_ebx_shl_ebx_eax = 28,
 	pop_ebx_shr_ebx_eax = 29,
-	negative_eax=30,
-	mov_eax_ValueAtEax_negative_eax=31,
-	bit_negative_eax=32,
-	mov_eax_ValueAtEax_bit_negative_eax=33,
-	not_eax=34,
-	mov_eax_ValueAtEax_not_eax=35
+	negative_eax = 30,
+	mov_eax_ValueAtEax_negative_eax = 31,
+	bit_negative_eax = 32,
+	mov_eax_ValueAtEax_bit_negative_eax = 33,
+	not_eax = 34,
+	mov_eax_ValueAtEax_not_eax = 35,
+	pop_ebx_ebx_greate_EQUAL_than_ebx = 36,
+	pop_ebx_ebx_less_EQUAL_than_ebx = 37
+
 
 } VM_CODE;
 
@@ -342,6 +356,18 @@ static int mem_pos = 0;
 
 #define GEN_GREATE  "pop B  \nA:=B<A \n"
 #define GEN_GREATESZ strlen(GEN_LESS)
+
+
+
+#define GEN_LESS_EQUAL  "pop B  \nA:=B<A \n"
+#define GEN_LESS_EQUALSZ strlen(GEN_LESS)
+
+#define GEN_GREATE_EQUAL  "pop B  \nA:=B<A \n"
+#define GEN_GREATE_EQUALSZ strlen(GEN_LESS)
+
+
+
+
 
 #define GEN_EQ "pop B  \nA:=B==A\n"
 #define GEN_EQSZ strlen(GEN_EQ)
@@ -1422,7 +1448,24 @@ static int binary(int type, int(*f)(struct sym * s), char *buf, size_t len, stru
 		strcat(s->name, " > ");
 		strcat(s->name, lss.name);
 	}
-	
+	else if (binaryOp == pop_ebx_ebx_greate_EQUAL_than_ebx)
+	{
+		sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s >= %s ", s->name, lss.name, s->name);
+
+		bin[binpos++] = pop_ebx_ebx_greate_EQUAL_than_ebx;
+
+		strcat(s->name, " >= ");
+		strcat(s->name, lss.name);
+	}
+	else if (binaryOp == pop_ebx_ebx_less_EQUAL_than_ebx)
+	{
+		sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s >= %s ", s->name, lss.name, s->name);
+
+		bin[binpos++] = pop_ebx_ebx_less_EQUAL_than_ebx;
+
+		strcat(s->name, " <= ");
+		strcat(s->name, lss.name);
+	} 
 	else
 	{
 		error(" %s not implement, the stack can not balence\n", buf);
@@ -1639,6 +1682,17 @@ static int rel_expr(struct sym *s) {
 			type = binary(type, shift_expr, GEN_GREATE, GEN_GREATESZ, s, pop_ebx_ebx_greate_than_ebx);
 		}
 	}
+
+	while (peek(">=") || peek("<=")) {
+		
+		if (accept(">=")) {
+			type = binary(type, rel_expr, GEN_GREATE_EQUAL, GEN_GREATE_EQUALSZ, s, pop_ebx_ebx_greate_EQUAL_than_ebx);
+		}
+		else if (accept("<=")) {
+			type = binary(type, rel_expr, GEN_LESS_EQUAL, GEN_LESS_EQUALSZ, s, pop_ebx_ebx_less_EQUAL_than_ebx);
+		}
+	}
+
 	return type;
 }
 
@@ -2281,7 +2335,27 @@ void vm(float bytecode[])
 			else
 				eax = 0;
 		}
-		
+		else if (op == pop_ebx_ebx_greate_EQUAL_than_ebx)
+		{
+			ebx = stack[esp++];
+			if (ebx >= eax)
+			{
+				eax = 1;
+			}
+			else
+				eax = 0;
+		}
+		else if (op == pop_ebx_ebx_less_EQUAL_than_ebx)
+		{
+			ebx = stack[esp++];
+			if (ebx <= eax)
+			{
+				eax = 1;
+			}
+			else
+				eax = 0;
+		}
+		 
 		else if (op == call_eax)
 		{
 			stack[--esp] = pc;
