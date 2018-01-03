@@ -28,12 +28,12 @@ static char f[] = SFY(
 int main(char * argv, int argc)
 {
 	
-	int a = 130;
-	while (a > 120)
+	int a = -0.021  - -0.1;
+	/*while (a > 120)
 	{
 		a = a - 8;
 		
-	}
+	}*/
 	return a;
 	//int b = 2;
 	//if (b == 1)
@@ -419,12 +419,12 @@ static void gen_halt() {
 	bin[binpos++] = opArray[halt].op;
 
 }
-static void gen_const(int n) {
+static void gen_const(float n) {
 	char s[32];
-	sprintf(s, "A:=%04x\n", n);
+	sprintf(s, "A:=%04f\n", n);
 	emits(s);
 
-	sprintf(PDBsymble[binpos], "%d is a constant", n);
+	sprintf(PDBsymble[binpos], "%f is a constant", n);
 	bin[binpos++] = opArray[mov_eax_xxx].op;
 	bin[binpos++] = float(n);
 
@@ -951,39 +951,79 @@ static int typename_() {
 	return 0;
 }
 
-static int parse_immediate_value() {
+static float parse_immediate_value() {
+	int currentTokLen = strlen(tok);
+	int curGlobalPos = spos;
+
+	char* currentParsePos = f + curGlobalPos - currentTokLen-1;
+	//strtof("3.141592", nullptr)
+	char * stop;
+
+	float a = strtof(currentParsePos, &stop);
+
+
+	if (stop == currentParsePos)
+			error("[line %d] Invalid symbol: %s\n", linenum, currentParsePos);
+	else
+	{
+		spos = stop - f;
+		nextc = fgetc(f);
+	}
+	
+	return a;
+
+	//if (stop != nullptr)
+	//	if (stop[0] != 0)
+	//		error("[line %d] Invalid symbol: %s\n", linenum, tok);
+	//return a;
+	/*
+	
 	if (tok[0] == '0') {
 		if (tok[1] == 0) return 0;
 		if (strlen(tok) < 3) {
-			error("[line %d] Invalid symbol: %s\n", linenum, tok);
+			int a = strtol(tok + 1, &stop, 16);
+			if (stop != nullptr)
+				if (stop[0] != 0)
+					error("[line %d] Invalid symbol: %s\n", linenum, tok);
+			return a;
 		}
 		if ((tok[1] == 'x') || (tok[1] == 'X')) {
-			return strtol(tok + 2, NULL, 16);
+			return strtol(tok + 2, &stop, 16);
 		}
 		else
 			if ((tok[1] == 'o') || (tok[1] == 'o')) {
-				return strtol(tok + 2, NULL, 8);
+				return strtol(tok + 2, &stop, 8);
 			}
 			else
 				if ((tok[1] == 'b') || (tok[1] == 'b')) {
-					return strtol(tok + 2, NULL, 2);
+					return strtol(tok + 2, &stop, 2);
 				}
 				else {
-					error("[line %d] Invalid symbol: %s\n", linenum, tok);
+					int a = strtol(tok + 1, &stop, 10);
+					if (stop != nullptr)
+					{
+						if (stop[0] != 0)
+						{
+							error("[line %d] Invalid symbol: %s\n", linenum, tok);
+						}
+					}
+						
+					return a;
+					
 				}
 	}
 	else {
-		return strtol(tok, NULL, 10);
+		return strtol(tok, &stop, 10);
 	}
 
 	error("error : [line %d]   %s\n", linenum, tok);
-	return 0;
+	return 0;*/
 }
 
 static int prim_expr(struct sym *as) {
 	int type = TYPE_NUM;
-	if (isdigit(tok[0])) {
-		int n = parse_immediate_value();
+	if (isdigit(tok[0])  || tok[0] == '-') {
+		float n = parse_immediate_value();
 		gen_const(n);
 
 		as->value = n;
@@ -1890,10 +1930,8 @@ int main(int argc, const char * argv[]) {
 
 	/**/
 		
-
-
-
-
+	printf("%f\n", strtof("3.141592", nullptr));
+	//return 0;
 
 	int ii;
 
