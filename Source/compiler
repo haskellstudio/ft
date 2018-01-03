@@ -28,7 +28,14 @@ static char f[] = SFY(
 int main(char * argv, int argc)
 {
 	
-	int a =  100 % 3 ;
+	int a =  2 ^ 7 ;
+
+	if (2 & 1)
+	{
+		a = 3;
+	}
+	else
+		a = 4;
 	//while (a < 120)
 	//{
 	//	a = a + 8;
@@ -168,7 +175,7 @@ struct OP
 };
 
 
-OP opArray[23] = {
+OP opArray[28] = {
 	OP(0.0, 0.0, "nop"),
 	OP(1.0, 1.0, "mov eax, "),
 	OP(2.0, 1.0, "jmp "),
@@ -192,10 +199,12 @@ OP opArray[23] = {
 	OP(20.0, 0.0, "pop ebx \n		   sub ebx, eax") ,
 	OP(21.0, 0.0, "pop ebx \n		   fdiv ebx, eax") ,
 	OP(22.0, 0.0, "pop ebx \n		   mod ebx, eax") ,
-
+	OP(22.0, 0.0, "pop ebx \n		   logic_and ebx, eax") ,
+	OP(22.0, 0.0, "pop ebx \n		   logic_or ebx, eax") ,
+	OP(22.0, 0.0, "pop ebx \n		   bit_and ebx, eax") ,
+	OP(22.0, 0.0, "pop ebx \n		   bit_or ebx, eax"), 
+	OP(22.0, 0.0, "pop ebx \n		   bit_xor ebx, eax")
 	
-
-
 };
 
 
@@ -222,7 +231,12 @@ typedef enum {
 	pop_ebx_ebx_greate_than_ebx = 19,
 	pop_ebx_sub_ebx_eax = 20,
 	pop_ebx_fdiv_ebx_eax = 21,
-	pop_ebx_mod_ebx_eax =  22
+	pop_ebx_mod_ebx_eax =  22,
+	pop_ebx_logic_and_ebx_eax = 23,
+	pop_ebx_logic_or_ebx_eax = 24,
+	pop_ebx_bit_and_ebx_eax = 25,
+	pop_ebx_bit_or_ebx_eax = 26,
+	pop_ebx_bit_xor_ebx_eax = 27
 
 } VM_CODE;
 
@@ -1186,7 +1200,51 @@ static int binary(int type, int(*f)(struct sym * s), char *buf, size_t len, stru
 		strcat(s->name, "%");
 		strcat(s->name, lss.name);
 	}
-	
+	else if (binaryOp == pop_ebx_logic_and_ebx_eax)
+	{
+		sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s && %s ", s->name, s->name, lss.name);
+
+		bin[binpos++] = pop_ebx_logic_and_ebx_eax;
+
+		strcat(s->name, "&&");
+		strcat(s->name, lss.name);
+	}
+	else if (binaryOp == pop_ebx_logic_or_ebx_eax)
+	{
+		sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s || %s ", s->name, s->name, lss.name);
+
+		bin[binpos++] = pop_ebx_logic_or_ebx_eax;
+
+		strcat(s->name, "||");
+		strcat(s->name, lss.name);
+	}
+	else if (binaryOp == pop_ebx_bit_and_ebx_eax)
+	{
+		sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s & %s ", s->name, s->name, lss.name);
+
+		bin[binpos++] = pop_ebx_bit_and_ebx_eax;
+
+		strcat(s->name, "&");
+		strcat(s->name, lss.name);
+	}
+	else if (binaryOp == pop_ebx_bit_or_ebx_eax)
+	{
+		sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s | %s ", s->name, s->name, lss.name);
+
+		bin[binpos++] = pop_ebx_bit_or_ebx_eax;
+
+		strcat(s->name, "|");
+		strcat(s->name, lss.name);
+	}
+	else if (binaryOp == pop_ebx_bit_xor_ebx_eax)
+	{
+		sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s xor %s ", s->name, s->name, lss.name);
+
+		bin[binpos++] = pop_ebx_bit_xor_ebx_eax;
+
+		strcat(s->name, "xor");
+		strcat(s->name, lss.name);
+	}
 	else if (binaryOp == pop_ebx_add_eax_ebx)
 	{
 		sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s + %s ", s->name, lss.name, s->name);
@@ -1401,13 +1459,13 @@ static int bitwise_expr(struct sym * s) {
 
 	while (peek("|") || peek("&") || peek("^") /*|| peek("/") || peek("*") || peek("%")*/) {
 		if (accept("|")) {        // expression '|'
-			type = binary(type, eq_expr, GEN_OR, GEN_ORSZ, s);  // 3
+			type = binary(type, eq_expr, GEN_OR, GEN_ORSZ, s, pop_ebx_bit_or_ebx_eax);  // 3
 		}
 		else if (accept("&")) { // expression '&'
-			type = binary(type, eq_expr, GEN_AND, GEN_ANDSZ, s); // 4
+			type = binary(type, eq_expr, GEN_AND, GEN_ANDSZ, s, pop_ebx_bit_and_ebx_eax); // 4
 		}
 		else if (accept("^")) { // expression '^'
-			type = binary(type, eq_expr, GEN_XOR, GEN_XORSZ, s); // 5
+			type = binary(type, eq_expr, GEN_XOR, GEN_XORSZ, s, pop_ebx_bit_xor_ebx_eax); // 5
 		}
 	}
 	return type;
@@ -1421,10 +1479,10 @@ static int logic_expr(struct sym * s) {
 
 	while (peek("||") || peek("&&")  /*|| peek("/") || peek("*") || peek("%")*/) {
 		if (accept("||")) {        // expression '|'
-			type = binary(type, bitwise_expr, GEN_OR_OR, GEN_OR_ORSZ, s);  // 6
+			type = binary(type, bitwise_expr, GEN_OR_OR, GEN_OR_ORSZ, s, pop_ebx_logic_or_ebx_eax);  // 6
 		}
 		else if (accept("&&")) { // expression '&'
-			type = binary(type, bitwise_expr, GEN_AND_AND, GEN_AND_ANDSZ, s);  // 7
+			type = binary(type, bitwise_expr, GEN_AND_AND, GEN_AND_ANDSZ, s, pop_ebx_logic_and_ebx_eax);  // 7
 		}
 
 	}
@@ -1928,7 +1986,37 @@ void vm(float bytecode[])
 			ebx = stack[esp++];
 			eax = (int)ebx % (int)eax;
 		}
-		
+		else if (op == pop_ebx_logic_and_ebx_eax)
+		{
+			ebx = stack[esp++];
+			if (eax != 0 && ebx != 0)
+				eax = 1;
+			else
+				eax = 0;
+		}
+		else if (op == pop_ebx_logic_or_ebx_eax)
+		{
+			ebx = stack[esp++];
+			if (eax == 0  && ebx == 0)
+				eax = 0;
+			else
+				eax = 1;
+		}
+		else if (op == pop_ebx_bit_and_ebx_eax)
+		{
+			ebx = stack[esp++];
+			eax = (int)eax & (int)ebx;
+		}
+		else if (op == pop_ebx_bit_or_ebx_eax)
+		{
+			ebx = stack[esp++];
+			eax = (int)eax | (int)ebx;
+		}
+		else if (op == pop_ebx_bit_xor_ebx_eax)
+		{
+			ebx = stack[esp++];
+			eax = (int)eax ^ (int)ebx;
+		}
 		else if (op == pop_ebx_add_eax_ebx)
 		{
 			ebx = stack[esp++];
@@ -2011,8 +2099,7 @@ int main(int argc, const char * argv[]) {
 	/**/
 	//int a;
 
-	printf("%d ", 7 ^ 2);
-	return 0;
+	
 
 	int ii;
 
