@@ -27,15 +27,10 @@ static char f[] = SFY(
 
 int main(char * argv, int argc)
 {
-	
-	int a =  2 ^ 7 ;
+	int b = 2;
+	int a = 32 >> !!2 ;
 
-	if (2 & 1)
-	{
-		a = 3;
-	}
-	else
-		a = 4;
+	
 	//while (a < 120)
 	//{
 	//	a = a + 8;
@@ -175,7 +170,7 @@ struct OP
 };
 
 
-OP opArray[28] = {
+OP opArray[36] = {
 	OP(0.0, 0.0, "nop"),
 	OP(1.0, 1.0, "mov eax, "),
 	OP(2.0, 1.0, "jmp "),
@@ -199,12 +194,19 @@ OP opArray[28] = {
 	OP(20.0, 0.0, "pop ebx \n		   sub ebx, eax") ,
 	OP(21.0, 0.0, "pop ebx \n		   fdiv ebx, eax") ,
 	OP(22.0, 0.0, "pop ebx \n		   mod ebx, eax") ,
-	OP(22.0, 0.0, "pop ebx \n		   logic_and ebx, eax") ,
-	OP(22.0, 0.0, "pop ebx \n		   logic_or ebx, eax") ,
-	OP(22.0, 0.0, "pop ebx \n		   bit_and ebx, eax") ,
-	OP(22.0, 0.0, "pop ebx \n		   bit_or ebx, eax"), 
-	OP(22.0, 0.0, "pop ebx \n		   bit_xor ebx, eax")
-	
+	OP(23.0, 0.0, "pop ebx \n		   logic_and ebx, eax") ,
+	OP(24.0, 0.0, "pop ebx \n		   logic_or ebx, eax") ,
+	OP(25.0, 0.0, "pop ebx \n		   bit_and ebx, eax") ,
+	OP(26.0, 0.0, "pop ebx \n		   bit_or ebx, eax"), 
+	OP(27.0, 0.0, "pop ebx \n		   bit_xor ebx, eax"),
+	OP(28.0, 0.0, "pop ebx \n		   shl ebx, eax"),
+	OP(29.0, 0.0, "pop ebx \n		   shr ebx, eax"),
+	OP(30.0, 0.0, "neg eax"),   // -3  3 -3 3
+	OP(31.0, 0.0, "mov eax, [eax]\n		   neg eax"),
+	OP(32.0, 0.0, "bit neg eax "),   // 3  ~3
+	OP(33.0, 0.0, "mov eax, [eax]\n		   bit neg eax"),
+	OP(34.0, 0.0, "not eax"),        // 3 0 1 0 1
+	OP(35.0, 0.0, "mov eax, [eax]\n		   not eax")
 };
 
 
@@ -236,10 +238,29 @@ typedef enum {
 	pop_ebx_logic_or_ebx_eax = 24,
 	pop_ebx_bit_and_ebx_eax = 25,
 	pop_ebx_bit_or_ebx_eax = 26,
-	pop_ebx_bit_xor_ebx_eax = 27
+	pop_ebx_bit_xor_ebx_eax = 27,
+	pop_ebx_shl_ebx_eax = 28,
+	pop_ebx_shr_ebx_eax = 29,
+	negative_eax=30,
+	mov_eax_ValueAtEax_negative_eax=31,
+	bit_negative_eax=32,
+	mov_eax_ValueAtEax_bit_negative_eax=33,
+	not_eax=34,
+	mov_eax_ValueAtEax_not_eax=35
 
 } VM_CODE;
 
+
+/*
+
+OP(30.0, 0.0, "neg eax"),   // -3  3 -3 3
+OP(31.0, 0.0, "mov eax, [eax]\n		   neg eax"),
+OP(32.0, 0.0, "bit neg eax "),   // 3  ~3
+OP(33.0, 0.0, "mov eax, [eax]\n		   bit neg eax"),
+OP(34.0, 0.0, "not eax"),        // 3 0 1 0 1
+OP(35.0, 0.0, "mov eax, [eax]\n		   not eax"),
+
+*/
 
 static void emit(char *buf, size_t len) 
 {
@@ -800,7 +821,66 @@ void readchr() {
 	nextc = fgetc(f);
 	if ('\n' == nextc) { linenum++; }
 }
-
+bool wrong(int a, int b)
+{
+	if (a == '!' && b == '!')
+	{
+		return true;
+	}
+	if (a == '<' && b == '!')
+	{
+		return true;
+	}
+	if (a == '<' && b == '&')
+	{
+		return true;
+	}
+	if (a == '<' && b == '|')
+	{
+		return true;
+	}
+	if (a == '=' && b == '>')
+	{
+		return true;
+	}
+	if (a == '=' && b == '!')
+	{
+		return true;
+	}
+	if (a == '=' && b == '&')
+	{
+		return true;
+	}
+	if (a == '=' && b == '|')
+	{
+		return true;
+	}
+	if (a == '>' && b == '|')
+	{
+		return true;
+	}
+	if (a == '>' && b == '&')
+	{
+		return true;
+	}
+	if (a == '>' && b == '|')
+	{
+		return true;
+	}
+	if (a == '!' && b == '&')
+	{
+		return true;
+	}
+	if (a == '!' && b == '|')
+	{
+		return true;
+	}
+	if (a == '&' && b == '|')
+	{
+		return true;
+	}
+	return false;
+}
 /* read single token */
 void readtok() {
 	for (;;) {
@@ -816,8 +896,13 @@ void readtok() {
 		}
 		/* if it's not a literal token */
 		if (tokpos == 0) {
+			int oldc = nextc;
 			while (nextc == '<' || nextc == '=' || nextc == '>' || nextc == '!' || nextc == '&' || nextc == '|') {
+
 				readchr();
+				if (wrong(oldc, nextc))
+					break;
+			
 			}
 		}
 		/* if it's not special chars that looks like an operator */
@@ -1053,7 +1138,23 @@ static float parse_immediate_value() {
 
 static int prim_expr(struct sym *as) {
 	int type = TYPE_NUM;
-	if (isdigit(tok[0])  || tok[0] == '-') {
+	
+	peekToken("what erver", spos-1);
+	
+
+/*	if (tok[0] == '^')
+	{
+
+	}
+	else if (tok[0] == '!')
+	{
+
+	}
+	else if (tok[0] == '-' && isalpha(ptok[0]))
+	{
+
+	}
+	else*/ if (isdigit(tok[0])  /*|| tok[0] == '-'*/) {
 		float n = parse_immediate_value();
 		gen_const(n);
 
@@ -1245,6 +1346,25 @@ static int binary(int type, int(*f)(struct sym * s), char *buf, size_t len, stru
 		strcat(s->name, "xor");
 		strcat(s->name, lss.name);
 	}
+	else if (binaryOp == pop_ebx_shl_ebx_eax)
+	{
+		sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s shl %s ", s->name, s->name, lss.name);
+
+		bin[binpos++] = pop_ebx_shl_ebx_eax;
+
+		strcat(s->name, "shl");
+		strcat(s->name, lss.name);
+	}
+	else if (binaryOp == pop_ebx_shr_ebx_eax)
+	{
+		sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s shr %s ", s->name, s->name, lss.name);
+
+		bin[binpos++] = pop_ebx_shr_ebx_eax;
+
+		strcat(s->name, "shr");
+		strcat(s->name, lss.name);
+	}
+	
 	else if (binaryOp == pop_ebx_add_eax_ebx)
 	{
 		sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s + %s ", s->name, lss.name, s->name);
@@ -1376,9 +1496,93 @@ static int postfix_expr(struct sym *s) {
 }
 
 
+static int prefix_expr(struct sym *s)
+ {
+	int type;
+
+	while (peek("-") || peek("~") || peek("!"))
+	{
+		if (accept("-"))
+		{
+			type = prefix_expr(s);
+			if (type == TYPE_NUM)
+			{
+				bin[binpos++] = opArray[negative_eax].op;
+			}
+			else
+			{
+				bin[binpos++] = opArray[mov_eax_ValueAtEax_negative_eax].op;
+			}
+			type = TYPE_NUM;
+			return type;
+		}
+
+		else if (accept("~"))
+		{
+			type = prefix_expr(s);
+			if (type == TYPE_NUM)
+			{
+				bin[binpos++] = opArray[bit_negative_eax].op;
+			}
+			else
+			{
+				bin[binpos++] = opArray[mov_eax_ValueAtEax_bit_negative_eax].op;
+			}
+			type = TYPE_NUM;
+			return type;
+		}
+		else if (accept("!"))
+		{
+				type = prefix_expr(s);
+				if (type == TYPE_NUM)
+				{
+					bin[binpos++] = opArray[not_eax].op;
+				}
+				else
+				{
+					bin[binpos++] = opArray[mov_eax_ValueAtEax_not_eax].op;
+				}
+				type = TYPE_NUM;
+				return type;
+		}
+		
+	}
+	type = postfix_expr(s);
+
+	return type;
+
+	//if (type != TYPE_NUM) {  
+	//	gen_unref(type);
+	//}
+
+	//if (tok[0] == '^')
+	//{
+
+	//}
+	//else if (tok[0] == '!')
+	//{
+
+	//}
+	//else if (tok[0] == '-' && isalpha(ptok[0]))
+	//{
+
+	//}
+	//else if (isdigit(tok[0]) || tok[0] == '-') {
+	//	float n = parse_immediate_value();
+	//	gen_const(n);
+
+	//	as->value = n;
+	//	as->type = 'C';
+	//	strcpy(as->name, tok);
+
+	//}
+
+
+}
+
 static int arithmetic_multi_divide_mod_expr(struct sym * s)
 {
-	int type = postfix_expr (s);
+	int type = prefix_expr(s);
 
 	while ( peek("/") || peek("*") || peek("%"))
 	{
@@ -1413,10 +1617,10 @@ static int shift_expr(struct sym *s) {
 	int type = add_expr(s);
 	while (peek("<<") || peek(">>")) {
 		if (accept("<<")) {
-			type = binary(type, add_expr, GEN_SHL, GEN_SHLSZ, s);   // 1
+			type = binary(type, add_expr, GEN_SHL, GEN_SHLSZ, s, pop_ebx_shl_ebx_eax);   // 1
 		}
 		else if (accept(">>")) {
-			type = binary(type, add_expr, GEN_SHR, GEN_SHRSZ, s);   //2
+			type = binary(type, add_expr, GEN_SHR, GEN_SHRSZ, s, pop_ebx_shr_ebx_eax);   //2
 		}
 	}
 	return type;
@@ -2017,6 +2221,16 @@ void vm(float bytecode[])
 			ebx = stack[esp++];
 			eax = (int)eax ^ (int)ebx;
 		}
+		else if (op == pop_ebx_shl_ebx_eax)
+		{
+			ebx = stack[esp++];
+			eax = (int)ebx << (int)eax;
+		}
+		else if (op == pop_ebx_shr_ebx_eax)
+		{
+			ebx = stack[esp++];
+			eax = (int)ebx >> (int)eax;
+		}
 		else if (op == pop_ebx_add_eax_ebx)
 		{
 			ebx = stack[esp++];
@@ -2086,6 +2300,33 @@ void vm(float bytecode[])
 
 			pc = bin[pc];
 		}
+		else if (op == negative_eax)
+		{
+			eax = -eax;
+		}
+		else if (op == mov_eax_ValueAtEax_negative_eax)
+		{
+			eax = stack[(int)eax];
+			eax = -eax;
+		}
+		else if (op == bit_negative_eax)
+		{
+			eax = ~(int)eax;
+		}
+		else if (op == not_eax)
+		{
+			eax = !eax;
+		}
+		else if (op == mov_eax_ValueAtEax_bit_negative_eax)
+		{
+			eax = stack[(int)eax];
+			eax = ~(int)eax;
+		}
+		else if (op == mov_eax_ValueAtEax_not_eax)
+		{
+			eax = stack[(int)eax];
+			eax = !eax;
+		}
 
 	}
 }
@@ -2097,9 +2338,11 @@ void vm(float bytecode[])
 int main(int argc, const char * argv[]) {
 
 	/**/
-	//int a;
+	//
+	//int a = - 1;
+	//printf("%d \n", ~~~(3+1+a) );
+	//return 0;  //  !  ~  
 
-	
 
 	int ii;
 
