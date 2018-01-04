@@ -27,9 +27,11 @@ static char f[] = SFY(
 
 int main(char * argv, int argc)
 {
-	int a = "aaaa";
+	int a[10];
+	//int a = "123456";
 
-	a[7];
+	//int b = []
+	//a[7];
 //	int b = 2;
 	//int a = 32 >> !!2 ;
 
@@ -597,8 +599,13 @@ static void gen_array(char *array, int size) {
 	int i = size;
 	char *tok = array;
 	/* put token on stack */
-	for (; i >= 0; i -= 2) {
-		gen_const((tok[i] << 8 | tok[i - 1]));
+//	for (; i >= 0; i -= 2) {
+	//	gen_const((tok[i] << 8 | tok[i - 1]));
+	//	gen_push();
+	//}
+
+	for (; i >= 0; i -= 1) {
+		gen_const(tok[i]);
 		gen_push();
 	}
 	/* put token address on stack */
@@ -1270,10 +1277,10 @@ static int prim_expr(struct sym *as) {
 			}
 		}
 		tok[i] = 0;
-		if (i % 2 == 0) {
-			i++;
-			tok[i] = 0;
-		}
+		//if (i % 2 == 0) {
+		//	i++;
+		//	tok[i] = 0;
+		//}
 		gen_array(tok, i);
 		type = TYPE_NUM;
 
@@ -1285,6 +1292,11 @@ static int prim_expr(struct sym *as) {
 		strcpy(as->name, "addr of array ");
 		strcat(as->name, nameTok);
 		
+	}
+	else if (tok[0] == '[')
+	{
+
+
 	}
 	else {
 		error("[line %d] Unexpected primary expression: %s\n", linenum, tok);
@@ -1855,6 +1867,41 @@ static void statement() {
 
 			readtok();  // int a ;
 		}
+		else if (peekToken("[", spos - 1))   // int a[10];
+		{
+			readtok();
+			if (accept("["))
+			{
+				char * stop = nullptr;
+				int nItem = std::strtof(tok, &stop);
+
+				if (stop == tok)
+					error("[line %d] array number is invalid: %s\n", linenum, tok);
+				else
+				{
+					for (int i=0; i < nItem; i++) 
+					{
+						gen_const(-1);
+						gen_push();
+					}
+					/* put token address on stack */
+					gen_stack_addr(0);
+
+					
+				}
+				readtok();
+				expect(__LINE__, "]");
+
+
+			}
+			//while (peek("|") || peek("&") || peek("^") ) 
+			//{
+			//	if (accept("|"))
+			//	{
+
+			//	}
+			//}
+		}
 		else if (peekToken("=", spos - 1))
 		{
 
@@ -1876,6 +1923,7 @@ static void statement() {
 					sprintf(PDBsymble[binpos], "alloc %s = %d  on stack, stack_pos : %d", var->name, s.value, var->addr);
 				gen_push();
 			}
+	
 			else
 			{
 				var->faddr = binpos;
@@ -2427,10 +2475,15 @@ int main(int argc, const char * argv[]) {
 	//int a = - 1;
 	//printf("%d \n", ~~~(3+1+a) );
 	//return 0;  //  !  ~  
+	
+	
+	//float ff = 99999999;
+	//int ii = *(int*)&ff;//99999999;
+	//printf("%d \n", ii);
+	//return 0;
 
 
 	int ii;
-
 	strcpy(context, "");
 
 	_debug = 1;
