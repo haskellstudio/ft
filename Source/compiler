@@ -27,13 +27,9 @@ static char f[] = SFY(
 
 int main(char * argv, int argc)
 {
-	int a = 3;
-	if (a <= 3)
-	{
-		return 11;
-	}
-	else
-		return 7;
+	int a = "aaaa";
+
+	a[7];
 //	int b = 2;
 	//int a = 32 >> !!2 ;
 
@@ -177,7 +173,7 @@ struct OP
 };
 
 
-OP opArray[38] = {
+OP opArray[39] = {
 	OP(0.0, 0.0, "nop"),
 	OP(1.0, 1.0, "mov eax, "),
 	OP(2.0, 1.0, "jmp "),
@@ -217,6 +213,7 @@ OP opArray[38] = {
 	
 	OP(36.0, 0.0, "pop ebx \n		   cmp ebx, eax \n		   jg xxx")	,
 	OP(37.0, 0.0, "pop ebx \n		   cmp ebx, eax \n		   jl xxx") ,
+	OP(38.0, 0.0, "pop ebx \n		   mov eax, [ebx+ \n") ,
 
 };
 
@@ -259,7 +256,8 @@ typedef enum {
 	not_eax = 34,
 	mov_eax_ValueAtEax_not_eax = 35,
 	pop_ebx_ebx_greate_EQUAL_than_ebx = 36,
-	pop_ebx_ebx_less_EQUAL_than_ebx = 37
+	pop_ebx_ebx_less_EQUAL_than_ebx = 37,
+	pop_ebx_mov_mebx_eax_with_offset = 38,
 
 
 } VM_CODE;
@@ -1254,6 +1252,10 @@ static int prim_expr(struct sym *as) {
 		return type;
 	}
 	else if (tok[0] == '"') {
+		char nameTok[201] = { 0 };
+		
+		strncpy(nameTok, tok, 200);
+
 		int i, j;
 		i = 0; j = 1;
 		while (tok[j] != '"') {
@@ -1274,6 +1276,15 @@ static int prim_expr(struct sym *as) {
 		}
 		gen_array(tok, i);
 		type = TYPE_NUM;
+
+
+		as->faddr =0;
+		as->addr = 0;
+		as->type = 'A';  // array
+
+		strcpy(as->name, "addr of array ");
+		strcat(as->name, nameTok);
+		
 	}
 	else {
 		error("[line %d] Unexpected primary expression: %s\n", linenum, tok);
@@ -1479,9 +1490,9 @@ static int postfix_expr(struct sym *s) {
 	int type = prim_expr(s);
 
 	if (type == TYPE_INTVAR && accept("[")) {
-		binary(type, expr, GEN_ADD, GEN_ADDSZ, s);
+		binary(type, expr, GEN_ADD, GEN_ADDSZ, s, pop_ebx_add_eax_ebx);
 		expect(__LINE__, "]");
-		type = TYPE_CHARVAR;
+		type = TYPE_INTVAR;
 	}
 	else if (accept("(")) {
 		int prev_stack_pos = stack_pos;
@@ -2540,8 +2551,8 @@ int main(int argc, const char * argv[]) {
 		printf("\n");
 	}
 
-	vm(bin);
-	printf("vm is over return %f\n", eax);
+	//vm(bin);
+	//printf("vm is over return %f\n", eax);
 	return 0;
 
 	//for (int i = 0; i < binpos; i++)
