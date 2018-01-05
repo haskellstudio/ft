@@ -426,7 +426,7 @@ int addrCnt = 0;
 
 static struct _imm_struct _load_immediate(int32_t v);
 
-static void gen_start(int nGlobalVars) {
+static void gen_start(int nGlobalVars, vector<struct sym *> &gvector) {
 	char buf[100];
 	sprintf(buf, "GLOBALS %d\n", nGlobalVars);
 	strcat(buf, "---\n");
@@ -435,12 +435,21 @@ static void gen_start(int nGlobalVars) {
 	strcat(buf, "---\n");
 	emits(buf);
 
-	bin[binpos++] = 0x0;
+	bin[binpos++] = 0x0;   // code size 
 
 	bin[binpos++] = opArray[call_addr].op;
 	ffixme_offset = binpos;
 	bin[binpos++] = float(-1);
 	bin[binpos++] = halt;
+
+
+	for (int i = 0; i < gvector.size(); i++)
+	{
+		struct sym * v = gvector[i];
+		bin[binpos++] = v->value;
+	}
+
+
 
 }
 
@@ -2245,6 +2254,7 @@ static void statement() {
 }
 
 static void compile() {
+	vector<struct sym *> gvector;
 	while (tok[0] != 0) { // until EOF
 		if (typename_() == 0) {
 			error("[line %d] Error: type name expected\n", linenum);
@@ -2256,6 +2266,7 @@ static void compile() {
 				var->type = 'G';
 				numGlobalVars++;
 				gen_sym(var);
+				gvector.push_back(var);
 				continue;
 			}
 			else {
@@ -2263,7 +2274,7 @@ static void compile() {
 			}
 		}
 		if (1 == flagScanGlobalVars) {
-			gen_start(numGlobalVars);
+			gen_start(numGlobalVars, gvector);
 			flagScanGlobalVars = 0;
 		}
 		expect(__LINE__, "(");
