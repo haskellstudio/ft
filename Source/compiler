@@ -17,31 +17,16 @@
 static char f[1024] = "		\n\
 \n\
 int main () { \n\
-//int a;\n\
-//int b;\n\
-//a = b;\n\
-//int a[2]; \n\
-//a[0] = 7;\n\
-//return a[0];\n\
-//int b={7,8 }; \n\
-//b[1] =2;\n\
-//int b ; \n\
-//b = 2; \n\
-//return b; \n\
- \n\
-//return b[1];\n\
-int a[5]; \n\
-int b={7, 8, 9, 10, 11, 12 }; \n\
-//return a[0]; \n\
-int i = 0;\n\
-while (i < 5)\n\
+int a = {9,10}; \n\
+int b={7, 8 }; \n\
+int i = 0; \n\
+while (i < 2)\n\
 {\n\
 	a[i] = b[i];\n\
 	i = i + 1; \n\
 }\n\
-//a[i] = b[i];\n\
-//a[1] = b[1];\n\
-return a[3];\n\
+return a[0];\n\
+//return i;\n\
 //int c = 777; \n\
 //int b; \n\
 //b = 2;\n\
@@ -1143,6 +1128,7 @@ static struct sym *sym_declare(char *ctx, char *name, char type, int addr) {
 */
 
 static int expr(struct sym * as);
+static int expr_ex(struct sym * as);
 
 // read type name:
 //   int, char and pointers (int* char*) are supported
@@ -1560,7 +1546,7 @@ static int postfix_expr(struct sym *s) {
 	int type = prim_expr(s);
 
 	if (type == TYPE_INTVAR && accept("[")) {
-		binary(TYPE_NUM, expr, GEN_SUB, GEN_SUBSZ, s, pop_ebx_sub_ebx_eax);
+		binary(TYPE_NUM, expr_ex, GEN_SUB, GEN_SUBSZ, s, pop_ebx_sub_ebx_eax);
 		//expr(s);
 		expect(__LINE__, "]");
 		type = TYPE_INTVAR;
@@ -1839,6 +1825,12 @@ static int expr(struct sym * as) {
 	int type = logic_expr(as);
 	if (type != TYPE_NUM)
 	{
+		//if(accept)
+		int a = 2;
+		if (peek("]") && peekToken("=", spos - 1))
+		{
+			a = 3;
+		}
 		if (accept("="))
 		{
 			printf("HERE 1=\n");
@@ -1879,6 +1871,68 @@ static int expr(struct sym * as) {
 	}
 	return type;
 }
+
+
+
+
+static int expr_ex(struct sym * as) {
+
+	if (as == nullptr)
+	{
+		error(" expr s is null\n");
+	}
+
+	int type = logic_expr(as);
+	if (type != TYPE_NUM)
+	{
+		//if(accept)
+		int a = 2;
+		if (peek("]") && peekToken("=", spos - 1))
+		{
+			a = 3;
+		}
+		if (accept("="))
+		{
+			printf("HERE 1=\n");
+			if (as->faddr != 0)
+			{
+				sprintf(PDBsymble[binpos], "push %s's addr to stack", as->name);
+			}
+			gen_push();
+			struct sym lls;
+			expr(&lls);
+			if (type == TYPE_INTVAR)
+			{
+				if (as->faddr != 0)
+				{
+					sprintf(PDBsymble[binpos], "assign value %s to %s", lls.name, as->name);
+				}
+				emit(GEN_ASSIGN, GEN_ASSIGNSZ);
+				bin[binpos++] = opArray[pop_ebx_mov_mebx_eax].op;
+
+			}
+			else
+			{
+				emit(GEN_ASSIGN8, GEN_ASSIGN8SZ);
+
+
+			}
+			stack_pos = stack_pos - 1; // assume ASSIGN contains pop
+			type = TYPE_NUM;
+		}
+		else
+		{
+			if (as->faddr != 0)
+			{
+				sprintf(PDBsymble[binpos], "%s value to eax", as->name);
+			}
+			//gen_unref(type);
+		}
+	}
+	return type;
+}
+
+
 
 static void statement() {
 	lastIsReturn = 0;
