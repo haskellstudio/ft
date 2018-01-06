@@ -17,13 +17,13 @@ using namespace std;
 #define SFY(a) #a
 //static FILE *f;            /* input source file */
 static char* f  = "\
- int a ;\n\
- int b ;\n\
+int a={1,2,3}; \n\
+int b ={4,5,6};\n\
  int main ()\
 {\
-a=1;\
-b=2;\
-return a;\n\
+a[1] = 33;\
+a[3] = 99;\
+return b[0];\
 }\
 ";
 //static char f[] =SFY(                 //sp 02    03       04
@@ -319,6 +319,7 @@ static void emit(char *buf, size_t len)
 #define TYPE_NUM     0
 #define TYPE_CHARVAR 1
 #define TYPE_INTVAR  2
+#define TYPE_GLOBAL     3
 
 //
 
@@ -1284,7 +1285,7 @@ static int prim_expr(struct sym *as) {
              }
              else
                  gen_stack_addr(stack_pos - s->addr - 1);
-             
+             type = TYPE_INTVAR;
          }
          else {
              
@@ -1297,8 +1298,9 @@ static int prim_expr(struct sym *as) {
              
              // Other Symbols (Global)
              gen_sym_addr(s);
+             type = TYPE_GLOBAL;
          }
-         type = TYPE_INTVAR;
+         
      }
      else if (accept("(")) {
          struct sym lls;
@@ -1576,8 +1578,12 @@ static int binary(int type, int(*f)(struct sym * s), char *buf, size_t len, stru
 static int postfix_expr(struct sym *s) {
     int type = prim_expr(s);
     
-    if (type == TYPE_INTVAR && accept("[")) {
-        binary(type, expr_ex, GEN_ADD, GEN_ADDSZ, s, pop_ebx_add_eax_ebx);
+    if (
+        (type == TYPE_INTVAR  || type == TYPE_GLOBAL)&& accept("[")) {
+        if(type ==   TYPE_INTVAR )
+            binary(TYPE_INTVAR, expr_ex, GEN_ADD, GEN_ADDSZ, s, pop_ebx_add_eax_ebx);
+        if(type ==   TYPE_GLOBAL )
+            binary(TYPE_NUM, expr_ex, GEN_ADD, GEN_ADDSZ, s, pop_ebx_add_eax_ebx);
         //expr(s);
         expect(__LINE__, "]");
         type = TYPE_INTVAR;
