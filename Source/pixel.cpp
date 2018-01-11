@@ -66,6 +66,7 @@ pixel::pixel ()
 	_openGLContext.attachTo(*this);
 
 	resized();
+    startTimer(1000);
     //[/Constructor]
 }
 
@@ -89,6 +90,8 @@ void pixel::paint (Graphics& g)
 	//g.setColour(juce::Colours::green);
 	//g.setFont(Font(16.0f));
 	//g.drawText("opengl txt", getLocalBounds(), Justification::centred, true);
+    
+  
 	return;
     //[/UserPrePaint]
 

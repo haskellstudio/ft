@@ -1,0 +1,2953 @@
+// bytecode.cpp : Defines the entry point for the console application.
+//
+
+#include <iostream>
+//#include "boost/asio.hpp"
+//#include "vm.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdarg.h>
+#include <ctype.h>
+#include <string.h>
+#include <vector>
+using namespace std;
+
+#define SFY(a) #a
+//static FILE *f;            /* input source file */
+static char* f  = "\n\
+int a[2]; \n\
+int b[2];\n\
+//int b ={4,5,6};\n\
+ int main ()\n\
+{\n\
+a[2] = 33;\n\
+//a[3] = 99;\n\
+//return a[1];\n\
+return b[0];\n\
+}\n\
+";
+//static char f[] =SFY(                 //sp 02    03       04
+////                     int fun (int x, int y , int z)  // sp 000 is return address;
+////                     {
+////                         int zz = 7;  // sp 000     stack pos 0
+////                         int aa = 8;   //           stack pos 1
+////                         int cc = 9;   //           stack pos 2
+////                         int dd = 6;    //          stack pos 3   // gstackpos = 4
+////                         return z;
+////
+////                     }
+////                     int getItem(int a)
+////                     {
+////
+////                         return a[0];
+////                     }
+////
+//                      int a = {1, 2, 3, 3,3};
+//
+//                     int main()
+//                     {
+//                         return a;
+////                         int b ;
+////                         int a = "123";
+////
+////                         b = a;
+//////
+////                         return getItem(b);
+//                     }
+//                     );
+
+
+//int a = "123456";
+
+//int b = []
+//a[7];
+//    int b = 2;
+//int a = 32 >> !!2 ;
+
+
+//while (a < 120)
+//{
+//    a = a + 8;
+//
+//}
+//    return a;
+//int b = 2;
+//if (b == 1)
+//    a = 1;
+//else
+//{
+//    if (b == 3)
+//        a = 7;
+//    else
+//    {
+//        if (b == 2)
+//        {
+//            if (b == 2)
+//                a = 18;
+//            else
+//                a = 19;
+//        }
+//        a = 17;
+//    }
+//
+//}
+//if(b == 3)a = 3;
+//return a;
+
+//                     //                     int i;
+//                     //                     int c;
+//                     //                     int d;
+//                     //                     int k;
+//                     //
+//                     //sp 02    03       04
+//                     //                     int fun (int x, int y , int z)  // sp 000 is return address;
+//                     //                     {
+//                     //                         int zz = 7;  // sp 000     stack pos 0
+//                     //                         int aa = 8;   //           stack pos 1
+//                     //                         int cc = 9;   //           stack pos 2
+//                     //                         int dd = 6;    //          stack pos 3   // gstackpos = 4
+//                     //                         return z;
+//                     //
+//                     //                     }
+//
+//                     int add2(int x, int y)
+//                     {
+//                         return y*x;
+//                     }
+//
+//                     int main(char * argv, int argc)
+//                     {
+//                         //   int a = 2;
+//
+//                         //    int b = a =3 ;
+//                         int a = 2;
+//                         int b = add2(a,1);
+//
+//                         //  int c=4*a*a;
+//
+//                         // int d;
+//
+//                         // return d;
+//                         // b;
+//                         //  int d = fun(9, 10, 11);
+//                         //  a=b=2;
+//                         // return b;
+//                     }
+
+
+
+//
+// SYMBOLS
+//
+#define MAXSYMBOLS 4096
+#define MAXTOKSZ 256
+static struct sym {
+    char type;
+    int  addr;
+    char name[MAXTOKSZ];
+    int  nParams;
+    char params[64][64];
+    float faddr; // code address for fuction . ex: main = 29
+    int value;
+    sym()
+    {
+        addr = faddr = 0;
+        value = 0;
+        type = 0;
+    }
+} sym[MAXSYMBOLS];
+
+
+//
+#define MAXCODESZ 4096
+static char code[MAXCODESZ];
+static int codepos = 0;
+
+
+
+
+
+typedef struct {
+    char name[16];
+    int nargs;
+} VM_INSTRUCTION;
+
+static float bin[MAXCODESZ];
+static int binpos = 0;
+
+
+
+char PDBFunctionSymble[MAXCODESZ][256] = { 0 };
+char PDBsymble[MAXCODESZ][256] = { 0 };
+
+
+
+struct OP
+{
+    float op;
+    float nargs;
+    char name[64];
+    OP(float o, float a, char * n)
+    {
+        op = o;
+        nargs = a;
+        strcpy(name, n);
+    }
+};
+
+
+OP opArray[41] = {
+    OP(0.0, 0.0, "nop"),
+    OP(1.0, 1.0, "mov eax, "),
+    OP(2.0, 1.0, "jmp "),
+    OP(3.0, 1.0, "lea eax, [esp"),
+    OP(4.0, 0.0, "push eax"),
+    OP(5.0, 0.0, "mov eax, [eax]"),
+    OP(6.0, 0.0, "unused"),
+    OP(7.0, 0.0, "ret"),
+    OP(8.0, 0.0, "pop ebx; \n         mov [ebx], eax"),
+    OP(9.0, 1.0, "add esp ,"),
+    OP(10.0, 0.0, "pop ebx; \n         imul eax, ebx"),
+    OP(11.0, 0.0, "pop ebx; \n         add eax, ebx"),
+    OP(12.0, 0.0, "call eax"),
+    OP(13.0, 0.0, "halt"),
+    OP(14.0, 1.0, "jz "),
+    OP(15.0, 0.0, "pop ebx  \n         cmp eax, ebx"),
+    OP(16.0, 0.0, "pop ebx  \n         cmp eax, ebx    \n         not eax"),
+    OP(17.0, 1.0, "call "),
+    OP(18.0, 0.0, "pop ebx \n           cmp ebx, eax \n           jl xxx")    ,
+    OP(19.0, 0.0, "pop ebx \n           cmp ebx, eax \n           jg xxx") ,
+    OP(20.0, 0.0, "pop ebx \n           sub ebx, eax") ,
+    OP(21.0, 0.0, "pop ebx \n           fdiv ebx, eax") ,
+    OP(22.0, 0.0, "pop ebx \n           mod ebx, eax") ,
+    OP(23.0, 0.0, "pop ebx \n           logic_and ebx, eax") ,
+    OP(24.0, 0.0, "pop ebx \n           logic_or ebx, eax") ,
+    OP(25.0, 0.0, "pop ebx \n           bit_and ebx, eax") ,
+    OP(26.0, 0.0, "pop ebx \n           bit_or ebx, eax"),
+    OP(27.0, 0.0, "pop ebx \n           bit_xor ebx, eax"),
+    OP(28.0, 0.0, "pop ebx \n           shl ebx, eax"),
+    OP(29.0, 0.0, "pop ebx \n           shr ebx, eax"),
+    OP(30.0, 0.0, "neg eax"),   // -3  3 -3 3
+    OP(31.0, 0.0, "mov eax, [eax]\n           neg eax"),
+    OP(32.0, 0.0, "bit neg eax "),   // 3  ~3
+    OP(33.0, 0.0, "mov eax, [eax]\n           bit neg eax"),
+    OP(34.0, 0.0, "not eax"),        // 3 0 1 0 1
+    OP(35.0, 0.0, "mov eax, [eax]\n           not eax"),
+    
+    OP(36.0, 0.0, "pop ebx \n           cmp ebx, eax \n           jg xxx")    ,
+    OP(37.0, 0.0, "pop ebx \n           cmp ebx, eax \n           jl xxx") ,
+    OP(38.0, 0.0, "pop ebx \n           mov eax, [ebx+ \n") ,
+     OP(39.0, 0.0, ".data\n") ,
+     OP(40.0, 0.0, ".code\n")
+    
+};
+
+
+typedef enum {
+    NOOP = 0,
+    mov_eax_xxx = 1,
+    jmp = 2,
+    lea_eax_mesp_xx = 3,
+    push_eax = 4,
+    mov_eax_addr = 5,
+    mov_eax_byte_addr = 6,
+    ret = 7,
+    pop_ebx_mov_mebx_eax = 8,
+    add_esp_xx = 9,
+    pop_ebx_imul_eax_ebx = 10,
+    pop_ebx_add_eax_ebx = 11,
+    call_eax = 12,
+    halt = 13,
+    jz = 14,
+    pop_ebx_equal_eax_ebx = 15,
+    pop_ebx_not_equal_eax_ebx = 16,
+    call_addr = 17,
+    pop_ebx_ebx_less_than_ebx = 18,
+    pop_ebx_ebx_greate_than_ebx = 19,
+    pop_ebx_sub_ebx_eax = 20,
+    pop_ebx_fdiv_ebx_eax = 21,
+    pop_ebx_mod_ebx_eax = 22,
+    pop_ebx_logic_and_ebx_eax = 23,
+    pop_ebx_logic_or_ebx_eax = 24,
+    pop_ebx_bit_and_ebx_eax = 25,
+    pop_ebx_bit_or_ebx_eax = 26,
+    pop_ebx_bit_xor_ebx_eax = 27,
+    pop_ebx_shl_ebx_eax = 28,
+    pop_ebx_shr_ebx_eax = 29,
+    negative_eax = 30,
+    mov_eax_ValueAtEax_negative_eax = 31,
+    bit_negative_eax = 32,
+    mov_eax_ValueAtEax_bit_negative_eax = 33,
+    not_eax = 34,
+    mov_eax_ValueAtEax_not_eax = 35,
+    pop_ebx_ebx_greate_EQUAL_than_ebx = 36,
+    pop_ebx_ebx_less_EQUAL_than_ebx = 37,
+    pop_ebx_mov_mebx_eax_with_offset = 38,
+    
+    data_begin = 39,
+    
+    data_end = 40,
+    
+
+    
+} VM_CODE;
+
+
+/*
+ 
+ OP(30.0, 0.0, "neg eax"),   // -3  3 -3 3
+ OP(31.0, 0.0, "mov eax, [eax]\n           neg eax"),
+ OP(32.0, 0.0, "bit neg eax "),   // 3  ~3
+ OP(33.0, 0.0, "mov eax, [eax]\n           bit neg eax"),
+ OP(34.0, 0.0, "not eax"),        // 3 0 1 0 1
+ OP(35.0, 0.0, "mov eax, [eax]\n           not eax"),
+ 
+ */
+
+static void emit(char *buf, size_t len)
+{
+    char linebuf[100] = { 0 };
+    sprintf(linebuf, "%04x:        ", strlen(code));
+    memcpy(code + codepos, linebuf, strlen(linebuf));
+    codepos += strlen(linebuf);
+    
+    
+    memcpy(code + codepos, buf, len);
+    codepos += len;
+}
+
+#define TYPE_NUM     0
+#define TYPE_CHARVAR 1
+#define TYPE_INTVAR  2
+#define TYPE_GLOBAL     3
+
+//
+
+
+
+static int sympos = 0;
+int stack_pos = 0;
+
+
+//
+// LEXER
+//
+//static FILE *f;            /* input source file */
+static char tok[MAXTOKSZ]; /* current token */
+static int tokpos;         /* offset inside the current token */
+static int nextc;          /* next char to be pushed into token */
+static int linenum = 1;
+static int _debug = 0;
+static char context[MAXTOKSZ];
+static int genPreamble = 0;
+static int numPreambleVars = 0;
+static int numGlobalVars = 0;
+static int lastIsReturn = 0;
+static int flagScanGlobalVars = 1;
+static struct sym *currFunction = NULL;
+
+
+
+
+
+static struct sym *sym_find(char *s);
+
+
+
+
+
+static void emit(char *buf, size_t len);
+static void emits(char* s) {
+    emit(s, strlen(s));
+}
+
+
+//#define emits(s) emit(s, strlen(s))
+static void error(const char *fmt, ...);
+
+#define TYPE_NUM_SIZE 2
+static int mem_pos = 0;
+
+#define GEN_ADD   "pop B  \nA:=B+A \n"
+#define GEN_ADDSZ strlen(GEN_ADD)
+
+#define GEN_SUB   "pop B  \nA:=B-A \n"
+#define GEN_SUBSZ strlen(GEN_SUB)
+
+#define GEN_SHL   "pop B  \nA:=B<<A\n"
+#define GEN_SHLSZ strlen(GEN_SHL)
+
+#define GEN_SHR   "pop B  \nA:=B>>A\n"
+#define GEN_SHRSZ strlen(GEN_SHR)
+
+#define GEN_LESS  "pop B  \nA:=B<A \n"
+#define GEN_LESSSZ strlen(GEN_LESS)
+
+#define GEN_GREATE  "pop B  \nA:=B<A \n"
+#define GEN_GREATESZ strlen(GEN_LESS)
+
+
+
+#define GEN_LESS_EQUAL  "pop B  \nA:=B<A \n"
+#define GEN_LESS_EQUALSZ strlen(GEN_LESS)
+
+#define GEN_GREATE_EQUAL  "pop B  \nA:=B<A \n"
+#define GEN_GREATE_EQUALSZ strlen(GEN_LESS)
+
+
+
+
+
+#define GEN_EQ "pop B  \nA:=B==A\n"
+#define GEN_EQSZ strlen(GEN_EQ)
+#define GEN_NEQ  "pop B  \nA:=B!=A\n"
+#define GEN_NEQSZ strlen(GEN_NEQ)
+
+#define GEN_OR "pop B  \nA:=B|A \n"
+#define GEN_ORSZ strlen(GEN_OR)
+
+
+#define GEN_OR_OR "pop B  \nA:=B||A \n"
+#define GEN_OR_ORSZ strlen(GEN_OR_OR)
+
+
+#define GEN_AND  "pop B  \nA:=B&A \n"
+#define GEN_ANDSZ strlen(GEN_AND)
+
+#define GEN_AND_AND  "pop B  \nA:=B&A \n"
+#define GEN_AND_ANDSZ strlen(GEN_AND_AND)
+
+
+#define GEN_XOR "pop B  \nA:=B^A \n"
+#define GEN_XORSZ strlen(GEN_XOR)
+#define GEN_DIV "pop B  \nA:=B/A \n"
+#define GEN_DIVSZ strlen(GEN_DIV)
+#define GEN_MUL "pop B  \nA:=B*A \n"
+#define GEN_MULSZ strlen(GEN_MUL)
+#define GEN_MOD "pop B  \nA:=B%A \n"
+#define GEN_MODSZ strlen(GEN_MOD)
+
+#define GEN_ASSIGN "pop B  \nM[B]:=A\n"
+#define GEN_ASSIGNSZ strlen(GEN_ASSIGN)
+#define GEN_ASSIGN8 "pop B  \nm[B]:=A\n"
+#define GEN_ASSIGN8SZ strlen(GEN_ASSIGN8)
+
+#define GEN_JMP "jmp....\n"
+#define GEN_JMPSZ strlen(GEN_JMP)
+
+#define GEN_JZ "jmz....\n"
+#define GEN_JZSZ strlen(GEN_JZ)
+
+
+struct _imm_struct {
+    int nImm;
+    int v[5];
+};
+
+int fixme_offset = 0;
+int ffixme_offset = 0;
+int addrCnt = 0;
+
+static struct _imm_struct _load_immediate(int32_t v);
+
+static void gen_start(int nGlobalVars, vector<struct sym *> &gvector) {
+    char buf[100];
+    sprintf(buf, "GLOBALS %d\n", nGlobalVars);
+    strcat(buf, "---\n");
+    fixme_offset = strlen(buf) + 1 + 3;
+    strcat(buf, "JMP xxxx\n");
+    strcat(buf, "---\n");
+    emits(buf);
+    
+    bin[binpos++] = 0x0;   // code size
+    
+    bin[binpos++] = opArray[call_addr].op;
+    ffixme_offset = binpos;
+    bin[binpos++] = float(-1);
+    bin[binpos++] = halt;
+    
+    
+//    for (int i = 0; i < gvector.size(); i++)
+//    {
+//        struct sym * v = gvector[i];
+//        bin[binpos++] = v->value;
+//    }
+    
+    
+    
+}
+
+static void gen_finish() {
+    struct sym *funcmain = sym_find("_main");
+    char s[32];
+    if (NULL == funcmain) {
+        error("ERROR: could not find main function\n");
+    }
+    sprintf(s, "%04x", funcmain->addr);
+    memcpy(code + fixme_offset, s, 4);
+    printf("%s", code);
+    
+    
+    bin[ffixme_offset] = float(funcmain->faddr);
+    bin[0] = binpos;
+}
+
+// generate function pre-amble
+// nVars: number of variables to save in the stack frame
+static void gen_preamble(int nVars) {
+    return;
+    char buf[100];
+    sprintf(buf, "PREAMB %d\n", nVars);
+    emits(buf);
+    stack_pos = stack_pos + 1;
+}
+
+static void gen_postamble(int nVars) {
+    return;
+    char buf[100];
+    sprintf(buf, "POSTAMB %d\n", nVars);
+    emits(buf);
+    stack_pos = stack_pos + 1;
+}
+
+static void gen_call_cleanup(int nVars) {
+    
+    char buf[100];
+    sprintf(buf, "DO CLEAN %d\n", nVars);
+    emits(buf);
+}
+
+static void gen_ret(int nVars) {
+    gen_postamble(nVars);
+    emits("ret    \n");
+    stack_pos = stack_pos - 1;
+    
+    bin[binpos++] = opArray[ret].op;
+    
+}
+
+
+static void gen_halt() {
+    
+    emits("ret    \n");
+    // stack_pos = stack_pos - 1;
+    
+    bin[binpos++] = opArray[halt].op;
+    
+}
+static void gen_const(float n) {
+    char s[32];
+    sprintf(s, "A:=%04f\n", n);
+    emits(s);
+    
+    sprintf(PDBsymble[binpos], "%f is a constant", n);
+    bin[binpos++] = opArray[mov_eax_xxx].op;
+    bin[binpos++] = float(n);
+    
+}
+
+static void gen_sym(struct sym *sym) {
+    if (sym->type == 'G') {
+        sym->addr = mem_pos;
+        mem_pos = mem_pos + TYPE_NUM_SIZE;
+    }
+}
+
+static void gen_loop_start() {}
+
+static void gen_sym_addr(struct sym *sym) {
+    //   gen_const(sym->addr);
+    
+    int n = sym->addr;
+    
+    char s[32];
+    sprintf(s, "A:=%04x\n", n);
+    emits(s);
+    
+    
+    int fn = sym->faddr;
+    if (sym->type == 'F')
+    {
+        sprintf(PDBsymble[binpos], "function %s addr to eax", sym->name);
+    }
+    else if (sym->type == 'G')
+    {
+        sprintf(PDBsymble[binpos], "global %s addr to eax", sym->name);
+    }
+    
+    bin[binpos++] = opArray[mov_eax_xxx].op;
+    bin[binpos++] = float(fn);
+}
+
+static void gen_push() {
+    emits("push A \n");
+    stack_pos = stack_pos + 1;
+    
+    
+    
+    bin[binpos++] = opArray[push_eax].op;
+}
+
+static void gen_pop(int n) {
+    char s[32];
+    if (n > 0) {
+        sprintf(s, "pop%04x\n", n);
+        emits(s);
+        stack_pos = stack_pos - n;
+        
+        sprintf(PDBsymble[binpos], "free local variable stack space for %d space", n);
+        bin[binpos++] = opArray[add_esp_xx].op;
+        
+        bin[binpos++] = float(n);
+    }
+}
+
+static void gen_stack_addr(int addr) {
+    char s[32];
+    sprintf(s, "sp@%04x\n", addr);
+    emits(s);
+    
+    bin[binpos++] = opArray[lea_eax_mesp_xx].op;
+    
+    bin[binpos++] = float(addr);
+    
+    
+}
+
+static void gen_unref(int type) {
+    if (type == TYPE_INTVAR) {
+        emits("A:=M[A]\n");
+        
+        bin[binpos++] = opArray[mov_eax_addr].op;
+        
+        
+    }
+    else if (type == TYPE_CHARVAR) {
+        emits("A:=m[A]\n");
+        error("not implement!");
+    }
+}
+
+static void gen_call() {
+    emits("call A \n");
+    
+    bin[binpos++] = opArray[call_eax].op;
+}
+
+static void gen_array(vector<float> & ar) {
+    int n = ar.size();
+    for (int i = n - 1; i >= 0; i--)
+    {
+        gen_const(ar[i]);
+        gen_push();
+    }
+    gen_stack_addr(0);
+}
+static void gen_array(char *array, int size) {
+    int i = size;
+    char *tok = array;
+    /* put token on stack */
+    //    for (; i >= 0; i -= 2) {
+    //    gen_const((tok[i] << 8 | tok[i - 1]));
+    //    gen_push();
+    //}
+    
+    for (; i >= 0; i -= 1) {
+        gen_const(tok[i]);
+        gen_push();
+    }
+    /* put token address on stack */
+    gen_stack_addr(0);
+}
+
+
+static void gen_patch(char *op, int value) {
+    char s[32];
+    sprintf(s, "%04x", value);
+    memcpy(op - 5, s, 4);
+}
+
+static struct _imm_struct _load_immediate(int32_t v)
+{
+    int      flag = (v < 0) ? 1 : 0;
+    uint32_t tmp = v;
+    int      nOnes = 0;
+    int      nImm = 0;
+    int      ii;
+    int      vals[5];
+    struct _imm_struct _ret;
+    
+    if (flag)
+    {
+        for (ii = 0; ii < 32; ii++)
+        {
+            if (0x80000000 == (tmp & 0x80000000))
+            {
+                (tmp <<= 1);
+                nOnes++;
+            }
+            else
+            {
+                break;
+            }
+        }
+        
+        if ((nOnes >= 1) && (nOnes <= 4))
+        {
+            nImm = 5;
+        }
+        if ((nOnes >= 5) && (nOnes <= 11))
+        {
+            nImm = 4;
+        }
+        
+        if ((nOnes >= 12) && (nOnes <= 18))
+        {
+            nImm = 3;
+        }
+        if ((nOnes >= 19) && (nOnes <= 25))
+        {
+            nImm = 2;
+        }
+        if ((nOnes >= 26) && (nOnes <= 32))
+        {
+            nImm = 1;
+        }
+        
+        
+    }
+    else
+    {
+        while (1)
+        {
+            if (0 == tmp) break;
+            tmp >>= 7;
+            nImm++;
+        }
+        if (0 == nImm)
+            nImm++;
+    }
+    tmp = v;
+    for (ii = 0; ii < nImm; ii++)
+    {
+        vals[ii] = tmp & 0x7f;
+        tmp >>= 7;
+    }
+    
+    _ret.nImm = nImm;
+    for (ii = 0; ii < nImm; ii++)
+    {
+        _ret.v[ii] = 0x80 | vals[nImm - ii - 1];
+        //printf("0x%02x IM %d\n", 0x80 | vals[nImm-ii-1], vals[nImm-ii-1]);
+    }
+    return _ret;
+}
+
+
+
+
+
+
+/* print fatal error message and exit */
+static void error(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    vfprintf(stderr, fmt, args);
+    va_end(args);
+    exit(1);
+}
+
+
+
+
+
+
+
+
+
+int ptokpos;
+int pnextc;
+int ppos;
+char ptok[MAXTOKSZ];
+
+int pfgetc(char * f)
+{
+    if (ppos < strlen(f))
+    {
+        char c = f[ppos];
+        ppos++;
+        return c;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+
+void preadchr() {
+    if (ptokpos == MAXTOKSZ - 1) {
+        ptok[ptokpos] = '\0';
+        error("[line %d] Token too long: %s\n", linenum, tok);
+    }
+    ptok[ptokpos++] = pnextc;
+    pnextc = pfgetc(f);
+    
+}
+
+bool peekToken(char * sToCompare, int apos)
+{
+    ppos = apos;
+    pnextc = pfgetc(f);
+    for (;;) {
+        /* skip spaces */
+        while (isspace(pnextc)) {
+            pnextc = pfgetc(f);
+        }
+        /* try to read a literal token */
+        ptokpos = 0;
+        while (isalnum(pnextc) || pnextc == '_') {
+            preadchr();
+        }
+        /* if it's not a literal token */
+        if (ptokpos == 0) {
+            while (pnextc == '<' || pnextc == '=' || pnextc == '>' || pnextc == '!' || pnextc == '&' || pnextc == '|') {
+                preadchr();
+            }
+        }
+        /* if it's not special chars that looks like an operator */
+        if (ptokpos == 0) {
+            /* try strings and chars inside quotes */
+            if (pnextc == '\'' || pnextc == '"') {
+                char c = pnextc;
+                preadchr();
+                while (pnextc != c) {
+                    preadchr();
+                }
+                preadchr();
+            }
+            else if (pnextc == '/') { // skip comments
+                preadchr();
+                if (pnextc == '*') {      // support comments of the form '/**/'
+                    pnextc = pfgetc(f);
+                    
+                    while (pnextc != '/') {
+                        while (pnextc != '*') {
+                            pnextc = pfgetc(f);
+                            
+                        }
+                        pnextc = pfgetc(f);
+                        
+                    }
+                    pnextc = pfgetc(f);
+                    
+                    continue;
+                }
+                else if (pnextc == '/') { // support comments of the form '//'
+                    while (pnextc != '\n') {
+                        pnextc = pfgetc(f);
+                        
+                    }
+                    pnextc = pfgetc(f);
+                    
+                    continue;
+                }
+            }
+            else if (nextc != EOF) {
+                /* otherwise it looks like a single-char symbol, like '+', '-' etc */
+                preadchr();
+            }
+        }
+        break;
+    }
+    ptok[ptokpos] = '\0';
+    if (_debug) {
+        printf("peek TOKEN: %s\n", ptok);
+    }
+    if (strcmp(ptok, sToCompare) == 0)
+    {
+        return true;
+    }
+    else
+        return false;
+}
+
+
+int spos = 0;
+
+int fgetc(char *buf)
+{
+    if (spos < strlen(buf))
+    {
+        char c = buf[spos];
+        spos++;
+        return c;
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+
+/* read next char */
+void readchr() {
+    if (tokpos == MAXTOKSZ - 1) {
+        tok[tokpos] = '\0';
+        error("[line %d] Token too long: %s\n", linenum, tok);
+    }
+    tok[tokpos++] = nextc;
+    nextc = fgetc(f);
+    if ('\n' == nextc) { linenum++; }
+}
+bool wrong(int a, int b)
+{
+    if (a == '!' && b == '!')
+    {
+        return true;
+    }
+    if (a == '<' && b == '!')
+    {
+        return true;
+    }
+    if (a == '<' && b == '&')
+    {
+        return true;
+    }
+    if (a == '<' && b == '|')
+    {
+        return true;
+    }
+    if (a == '=' && b == '>')
+    {
+        return true;
+    }
+    if (a == '=' && b == '!')
+    {
+        return true;
+    }
+    if (a == '=' && b == '&')
+    {
+        return true;
+    }
+    if (a == '=' && b == '|')
+    {
+        return true;
+    }
+    if (a == '>' && b == '|')
+    {
+        return true;
+    }
+    if (a == '>' && b == '&')
+    {
+        return true;
+    }
+    if (a == '>' && b == '|')
+    {
+        return true;
+    }
+    if (a == '!' && b == '&')
+    {
+        return true;
+    }
+    if (a == '!' && b == '|')
+    {
+        return true;
+    }
+    if (a == '&' && b == '|')
+    {
+        return true;
+    }
+    return false;
+}
+/* read single token */
+void readtok() {
+    for (;;) {
+        /* skip spaces */
+        while (isspace(nextc)) {
+            nextc = fgetc(f);
+            if ('\n' == nextc) { linenum++; }
+        }
+        /* try to read a literal token */
+        tokpos = 0;
+        while (isalnum(nextc) || nextc == '_') {
+            readchr();
+        }
+        /* if it's not a literal token */
+        if (tokpos == 0) {
+            int oldc = nextc;
+            while (nextc == '<' || nextc == '=' || nextc == '>' || nextc == '!' || nextc == '&' || nextc == '|') {
+                
+                readchr();
+                if (wrong(oldc, nextc))
+                    break;
+                
+            }
+        }
+        /* if it's not special chars that looks like an operator */
+        if (tokpos == 0) {
+            /* try strings and chars inside quotes */
+            if (nextc == '\'' || nextc == '"') {
+                char c = nextc;
+                readchr();
+                while (nextc != c) {
+                    readchr();
+                }
+                readchr();
+            }
+            else if (nextc == '/') { // skip comments
+                readchr();
+                if (nextc == '*') {      // support comments of the form '/**/'
+                    nextc = fgetc(f);
+                    if ('\n' == nextc) { linenum++; }
+                    while (nextc != '/') {
+                        while (nextc != '*') {
+                            nextc = fgetc(f);
+                            if ('\n' == nextc) { linenum++; }
+                        }
+                        nextc = fgetc(f);
+                        if ('\n' == nextc) { linenum++; }
+                    }
+                    nextc = fgetc(f);
+                    if ('\n' == nextc) { linenum++; }
+                    continue;
+                }
+                else if (nextc == '/') { // support comments of the form '//'
+                    while (nextc != '\n') {
+                        nextc = fgetc(f);
+                        if ('\n' == nextc) { linenum++; }
+                    }
+                    nextc = fgetc(f);
+                    if ('\n' == nextc) { linenum++; }
+                    continue;
+                }
+            }
+            else if (nextc != EOF) {
+                /* otherwise it looks like a single-char symbol, like '+', '-' etc */
+                readchr();
+            }
+        }
+        break;
+    }
+    tok[tokpos] = '\0';
+    if (_debug) {
+        printf("TOKEN: %s\n", tok);
+    }
+}
+
+/* check if the current token machtes the string */
+int peek(char *s) {
+    return (strcmp(tok, s) == 0);
+}
+
+/* read the next token if the current token machtes the string */
+int accept(char *s) {
+    if (peek(s)) {
+        readtok();
+        return 1;
+    }
+    return 0;
+}
+
+/* throw fatal error if the current token doesn't match the string */
+void expect(int srclinenum, char *s) {
+    if (accept(s) == 0) {
+        if (_debug) {
+            error("[line %d ; srcline %d] Error: expected '%s', but found: %s\n", linenum, srclinenum, s, tok);
+        }
+        else {
+            error("[line %d] Error: expected '%s', but found: %s\n", linenum, s, tok);
+        }
+    }
+}
+
+static struct sym *sym_find(char *s) {
+    int i;
+    struct sym *symbol = NULL;
+    
+    for (i = 0; i < sympos; i++) {
+        if (strcmp(sym[i].name, s) == 0) {
+            symbol = &sym[i];
+        }
+    }
+    return symbol;
+}
+
+
+static struct sym *sym_find_name(int addr, char type)
+{
+    int i;
+    struct sym *symbol = NULL;
+    
+    for (i = 0; i < sympos; i++) {
+        if (int(sym[i].faddr) == addr  && sym[i].type == type) {
+            symbol = &sym[i];
+            break;
+        }
+    }
+    return symbol;
+}
+
+// ctx:  context
+// name: symbol name
+// type: symbol type
+//       L - local symbol
+//       F - function
+//       G - global
+//       U - undefined
+// addr: symbol address
+static struct sym *sym_declare(char *ctx, char *name, char type, int addr) {
+    char sName[MAXTOKSZ];
+    int  ii;
+    
+    strcpy(sName, ctx);
+    strcat(sName, "_");
+    strcat(sName, name);
+    
+    for (ii = 0; ii < sympos; ii++) {
+        if (0 == strcmp(sym[ii].name, sName)) {
+            error("[line %d] variable redefined '%s'\n", linenum, name);
+        }
+    }
+    
+    strncpy(sym[sympos].name, sName, MAXTOKSZ);
+    sym[sympos].addr = addr;
+    sym[sympos].type = type;
+    sympos++;
+    if (sympos > MAXSYMBOLS) {
+        error("[line %d] Too many symbols\n", linenum);
+    }
+    return &sym[sympos - 1];
+}
+
+/*
+ * BACKEND
+ */
+
+/*
+ * PARSER AND COMPILER
+ */
+
+static int expr(struct sym * as);
+static int expr_ex(struct sym * as);
+
+// read type name:
+//   int, char and pointers (int* char*) are supported
+//   void is skipped (as if nothing was there)
+//   NOTE: void * is not supported
+static int typename_() {
+    if (peek("int") || peek("char")) {
+        readtok();
+        while (accept("*"));
+        return 1;
+    }
+    if (peek("void")) {  // skip 'void' token
+        readtok();
+    }
+    return 0;
+}
+
+static float parse_immediate_value() {
+    int currentTokLen = strlen(tok);
+    int curGlobalPos = spos;
+    
+    char* currentParsePos = f + curGlobalPos - currentTokLen - 1;
+    //strtof("3.141592", nullptr)
+    char * stop;
+    
+    float a = strtof(currentParsePos, &stop);
+    
+    
+    if (stop == currentParsePos)
+        error("[line %d] Invalid symbol: %s\n", linenum, currentParsePos);
+    else
+    {
+        spos = stop - f;
+        nextc = fgetc(f);
+    }
+    
+    return a;
+    
+    //if (stop != nullptr)
+    //    if (stop[0] != 0)
+    //        error("[line %d] Invalid symbol: %s\n", linenum, tok);
+    //return a;
+    /*
+     
+     if (tok[0] == '0') {
+     if (tok[1] == 0) return 0;
+     if (strlen(tok) < 3) {
+     int a = strtol(tok + 1, &stop, 16);
+     if (stop != nullptr)
+     if (stop[0] != 0)
+     error("[line %d] Invalid symbol: %s\n", linenum, tok);
+     return a;
+     }
+     if ((tok[1] == 'x') || (tok[1] == 'X')) {
+     return strtol(tok + 2, &stop, 16);
+     }
+     else
+     if ((tok[1] == 'o') || (tok[1] == 'o')) {
+     return strtol(tok + 2, &stop, 8);
+     }
+     else
+     if ((tok[1] == 'b') || (tok[1] == 'b')) {
+     return strtol(tok + 2, &stop, 2);
+     }
+     else {
+     int a = strtol(tok + 1, &stop, 10);
+     if (stop != nullptr)
+     {
+     if (stop[0] != 0)
+     {
+     error("[line %d] Invalid symbol: %s\n", linenum, tok);
+     }
+     }
+     
+     return a;
+     
+     }
+     }
+     else {
+     return strtol(tok, &stop, 10);
+     }
+     
+     error("error : [line %d]   %s\n", linenum, tok);
+     return 0;*/
+}
+
+static int prim_expr(struct sym *as) {
+    int type = TYPE_NUM;
+    
+    peekToken("what erver", spos - 1);
+    
+    
+    /*    if (tok[0] == '^')
+     {
+     
+     }
+     else if (tok[0] == '!')
+     {
+     
+     }
+     else if (tok[0] == '-' && isalpha(ptok[0]))
+     {
+     
+     }
+     else*/ if (isdigit(tok[0])  /*|| tok[0] == '-'*/) {
+         float n = parse_immediate_value();
+         gen_const(n);
+         
+         as->value = n;
+         as->type = 'C';
+         strcpy(as->name, tok);
+         
+     }
+     else if (isalpha(tok[0])) {
+         char symName[MAXTOKSZ];
+         struct sym *s;
+         
+         strcpy(symName, context);
+         strcat(symName, "_");
+         strcat(symName, tok);
+         
+         
+         s = sym_find(symName);  // find symbol in local context..
+         if (s == NULL) {
+             strcpy(symName, "_");
+             strcat(symName, tok);
+             s = sym_find(symName);  // find symbol in global context..
+             if (s == NULL) {
+                 // symbol not found... this is an error...
+                 error("[line %d] Undeclared symbol: %s\n", linenum, tok);
+             }
+         }
+         
+         printf("SYM: %s\n", symName);
+         if (s->type == 'L') {
+             // Local Symbol
+             // *as = *s;
+             as->faddr = s->faddr;
+             as->addr = s->addr;
+             as->type = s->type;
+             strcpy(as->name, s->name);
+             sprintf(PDBsymble[binpos], "%s addr to eax", s->name);
+             if (s->addr < 0)
+             {
+                 if (currFunction == nullptr)
+                 {
+                     error("arg cannot compute");
+                 }
+                 int i = -currFunction->nParams;
+                 i = i - 3;
+                 i = i - s->addr;                   // adjuct stack order .
+                 gen_stack_addr(stack_pos - i - 1);
+             }
+             else
+                 gen_stack_addr(stack_pos - s->addr - 1);
+             type = TYPE_INTVAR;
+         }
+         else {
+             
+             as->faddr = s->faddr;
+             as->addr = s->addr;
+             as->type = s->type;
+             
+             strcpy(as->name, s->name);
+             
+             
+             // Other Symbols (Global)
+             gen_sym_addr(s);
+             type = TYPE_GLOBAL;
+         }
+         
+     }
+     else if (accept("(")) {
+         struct sym lls;
+         type = expr(&lls);
+         expect(__LINE__, ")");
+         return type;
+     }
+     else if (tok[0] == '{')
+     {
+         
+         if (accept("{"))
+         {
+             int arrNum = 0;
+             vector<float> ar;
+             for (;;) {
+                 
+                 char * stop;
+                 float a = strtof(tok, &stop);
+                 if (stop == tok)
+                     error("[line %d] Invalid symbol: %s\n", linenum, tok);
+                 /*gen_const(a);
+                  gen_push();*/
+                 arrNum++;
+                 ar.push_back(a);
+                 readtok();
+                 if (accept("}")) {
+                     gen_array(ar);
+                     as->faddr = 0;
+                     as->addr = 0;
+                     as->type = 'A';  // array
+                     type = TYPE_NUM;
+                     return type;
+                 }
+                 expect(__LINE__, ",");
+             }
+         }
+     }
+     else if (tok[0] == '"') {
+         char nameTok[201] = { 0 };
+         
+         strncpy(nameTok, tok, 200);
+         
+         int i, j;
+         i = 0; j = 1;
+         while (tok[j] != '"') {
+             if (tok[j] == '\\' && tok[j + 1] == 'x') {
+                 char s[3] = { tok[j + 2], tok[j + 3], 0 };
+                 uint8_t n = strtol(s, NULL, 16);
+                 tok[i++] = n;
+                 j += 4;
+             }
+             else {
+                 tok[i++] = tok[j++];
+             }
+         }
+         tok[i] = 0;
+         //if (i % 2 == 0) {
+         //    i++;
+         //    tok[i] = 0;
+         //}
+         gen_array(tok, i);
+         type = TYPE_NUM;
+         
+         
+         as->faddr = 0;
+         as->addr = 0;
+         as->type = 'A';  // array
+         
+         strcpy(as->name, "addr of array ");
+         strcat(as->name, nameTok);
+         
+     }
+    
+     else {
+         error("[line %d] Unexpected primary expression: %s\n", linenum, tok);
+     }
+    readtok();
+    return type;
+}
+
+static int binary(int type, int(*f)(struct sym * s), char *buf, size_t len, struct sym *s, int binaryOp = -1) {
+    if (type != TYPE_NUM) {
+
+            gen_unref(type);
+    }
+    
+    sprintf(PDBsymble[binpos], "push %s to stack", s->name);
+    
+    gen_push();
+    
+    
+    struct sym lss;
+    type = f(&lss);
+    
+    if (type != TYPE_NUM) {
+        sprintf(PDBsymble[binpos], "%s value to eax", lss.name);
+        gen_unref(type);
+    }
+    
+    if (binaryOp == pop_ebx_imul_eax_ebx)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s * %s ", s->name, lss.name, s->name);
+        
+        bin[binpos++] = pop_ebx_imul_eax_ebx;
+        
+        strcat(s->name, "*");
+        strcat(s->name, lss.name);
+    }
+    else if (binaryOp == pop_ebx_fdiv_ebx_eax)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s / %s ", s->name, s->name, lss.name);
+        
+        bin[binpos++] = pop_ebx_fdiv_ebx_eax;
+        
+        strcat(s->name, "/");
+        strcat(s->name, lss.name);
+    }
+    else if (binaryOp == pop_ebx_mod_ebx_eax)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s % %s ", s->name, s->name, lss.name);
+        
+        bin[binpos++] = pop_ebx_mod_ebx_eax;
+        
+        strcat(s->name, "%");
+        strcat(s->name, lss.name);
+    }
+    else if (binaryOp == pop_ebx_logic_and_ebx_eax)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s && %s ", s->name, s->name, lss.name);
+        
+        bin[binpos++] = pop_ebx_logic_and_ebx_eax;
+        
+        strcat(s->name, "&&");
+        strcat(s->name, lss.name);
+    }
+    else if (binaryOp == pop_ebx_logic_or_ebx_eax)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s || %s ", s->name, s->name, lss.name);
+        
+        bin[binpos++] = pop_ebx_logic_or_ebx_eax;
+        
+        strcat(s->name, "||");
+        strcat(s->name, lss.name);
+    }
+    else if (binaryOp == pop_ebx_bit_and_ebx_eax)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s & %s ", s->name, s->name, lss.name);
+        
+        bin[binpos++] = pop_ebx_bit_and_ebx_eax;
+        
+        strcat(s->name, "&");
+        strcat(s->name, lss.name);
+    }
+    else if (binaryOp == pop_ebx_bit_or_ebx_eax)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s | %s ", s->name, s->name, lss.name);
+        
+        bin[binpos++] = pop_ebx_bit_or_ebx_eax;
+        
+        strcat(s->name, "|");
+        strcat(s->name, lss.name);
+    }
+    else if (binaryOp == pop_ebx_bit_xor_ebx_eax)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s xor %s ", s->name, s->name, lss.name);
+        
+        bin[binpos++] = pop_ebx_bit_xor_ebx_eax;
+        
+        strcat(s->name, "xor");
+        strcat(s->name, lss.name);
+    }
+    else if (binaryOp == pop_ebx_shl_ebx_eax)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s shl %s ", s->name, s->name, lss.name);
+        
+        bin[binpos++] = pop_ebx_shl_ebx_eax;
+        
+        strcat(s->name, "shl");
+        strcat(s->name, lss.name);
+    }
+    else if (binaryOp == pop_ebx_shr_ebx_eax)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s shr %s ", s->name, s->name, lss.name);
+        
+        bin[binpos++] = pop_ebx_shr_ebx_eax;
+        
+        strcat(s->name, "shr");
+        strcat(s->name, lss.name);
+    }
+    
+    else if (binaryOp == pop_ebx_add_eax_ebx)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s + %s ", s->name, lss.name, s->name);
+        
+        bin[binpos++] = pop_ebx_add_eax_ebx;
+        
+        strcat(s->name, "+");
+        strcat(s->name, lss.name);
+    }
+    else if (binaryOp == pop_ebx_sub_ebx_eax)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s - %s ", s->name, lss.name, s->name);
+        
+        bin[binpos++] = pop_ebx_sub_ebx_eax;
+        
+        strcat(s->name, "-");
+        strcat(s->name, lss.name);
+    }
+    
+    else if (binaryOp == pop_ebx_equal_eax_ebx)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s == %s ", s->name, lss.name, s->name);
+        
+        bin[binpos++] = pop_ebx_equal_eax_ebx;
+        
+        strcat(s->name, " == ");
+        strcat(s->name, lss.name);
+    }
+    
+    
+    else if (binaryOp == pop_ebx_not_equal_eax_ebx)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s != %s ", s->name, lss.name, s->name);
+        
+        bin[binpos++] = pop_ebx_not_equal_eax_ebx;
+        
+        strcat(s->name, " != ");
+        strcat(s->name, lss.name);
+    }
+    else if (binaryOp == pop_ebx_ebx_less_than_ebx)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s < %s ", s->name, lss.name, s->name);
+        
+        bin[binpos++] = pop_ebx_ebx_less_than_ebx;
+        
+        strcat(s->name, " < ");
+        strcat(s->name, lss.name);
+    }
+    else if (binaryOp == pop_ebx_ebx_greate_than_ebx)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s > %s ", s->name, lss.name, s->name);
+        
+        bin[binpos++] = pop_ebx_ebx_greate_than_ebx;
+        
+        strcat(s->name, " > ");
+        strcat(s->name, lss.name);
+    }
+    else if (binaryOp == pop_ebx_ebx_greate_EQUAL_than_ebx)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s >= %s ", s->name, lss.name, s->name);
+        
+        bin[binpos++] = pop_ebx_ebx_greate_EQUAL_than_ebx;
+        
+        strcat(s->name, " >= ");
+        strcat(s->name, lss.name);
+    }
+    else if (binaryOp == pop_ebx_ebx_less_EQUAL_than_ebx)
+    {
+        sprintf(PDBsymble[binpos], "pop %s to ebx,  eax = %s >= %s ", s->name, lss.name, s->name);
+        
+        bin[binpos++] = pop_ebx_ebx_less_EQUAL_than_ebx;
+        
+        strcat(s->name, " <= ");
+        strcat(s->name, lss.name);
+    }
+    else
+    {
+        error(" %s not implement, the stack can not balence\n", buf);
+    }
+    emit(buf, len);
+    stack_pos = stack_pos - 1; /* assume that buffer contains a "pop" */
+    return TYPE_NUM;
+}
+
+static int postfix_expr(struct sym *s) {
+    int type = prim_expr(s);
+    
+    if (
+        (type == TYPE_INTVAR  || type == TYPE_GLOBAL)&& accept("[")) {
+        if(type ==   TYPE_INTVAR )
+            binary(TYPE_INTVAR, expr_ex, GEN_ADD, GEN_ADDSZ, s, pop_ebx_add_eax_ebx);
+        if(type ==   TYPE_GLOBAL )
+            binary(TYPE_NUM, expr_ex, GEN_ADD, GEN_ADDSZ, s, pop_ebx_add_eax_ebx);
+        //expr(s);
+        expect(__LINE__, "]");
+        type = TYPE_INTVAR;
+    }
+    else if (accept("(")) {
+        int prev_stack_pos = stack_pos;
+        sprintf(PDBsymble[binpos], "store function %s addr to stack", s->name);
+        gen_push(); /* store function address */
+        int call_addr = stack_pos - 1;
+        if (accept(")") == 0) {
+            struct sym lls;
+            expr(&lls);
+            int argnum = 1;
+            sprintf(PDBsymble[binpos], "arg%d %s to stack", argnum, lls.name);
+            gen_push();
+            while (accept(",")) {
+                struct sym lls2;
+                expr(&lls2);
+                argnum++;
+                sprintf(PDBsymble[binpos], "arg%d %s to stack", argnum, lls2.name);
+                gen_push();
+            }
+            expect(__LINE__, ")");
+        }
+        type = TYPE_NUM;
+        
+        sprintf(PDBsymble[binpos], "function %s addr to eax", s->name);
+        gen_stack_addr(stack_pos - call_addr - 1);
+        gen_unref(TYPE_INTVAR);
+        
+        sprintf(PDBsymble[binpos], "call %s ", s->name);
+        gen_call();
+        
+        if (currFunction) {
+            //            sprintf(PDBsymble[binpos], "free %d args stack space for function %s", currFunction->nParams, s->name);
+            //
+            //            bin[binpos++] = opArray[add_esp_xx].op;
+            //
+            //            bin[binpos++] = float(currFunction->nParams);
+            
+            
+            gen_call_cleanup(currFunction->nParams);
+        }
+        else {
+            error("[line %d] Error: unexpected function exit\n", linenum);
+        }
+        /* remove function address and args */
+        
+        sprintf(PDBsymble[binpos], "free %d args stack space and 1 ( store function addr to eax )for function %s", currFunction->nParams, s->name);
+        bin[binpos++] = opArray[add_esp_xx].op;
+        bin[binpos++] = float(stack_pos - prev_stack_pos);
+        
+        
+        // gen_pop(stack_pos - prev_stack_pos);
+        stack_pos = prev_stack_pos;
+    }
+    return type;
+}
+
+
+static int prefix_expr(struct sym *s)
+{
+    int type;
+    
+    while (peek("-") || peek("~") || peek("!"))
+    {
+        if (accept("-"))
+        {
+            type = prefix_expr(s);
+            if (type == TYPE_NUM)
+            {
+                bin[binpos++] = opArray[negative_eax].op;
+            }
+            else
+            {
+                bin[binpos++] = opArray[mov_eax_ValueAtEax_negative_eax].op;
+            }
+            type = TYPE_NUM;
+            return type;
+        }
+        
+        else if (accept("~"))
+        {
+            type = prefix_expr(s);
+            if (type == TYPE_NUM)
+            {
+                bin[binpos++] = opArray[bit_negative_eax].op;
+            }
+            else
+            {
+                bin[binpos++] = opArray[mov_eax_ValueAtEax_bit_negative_eax].op;
+            }
+            type = TYPE_NUM;
+            return type;
+        }
+        else if (accept("!"))
+        {
+            type = prefix_expr(s);
+            if (type == TYPE_NUM)
+            {
+                bin[binpos++] = opArray[not_eax].op;
+            }
+            else
+            {
+                bin[binpos++] = opArray[mov_eax_ValueAtEax_not_eax].op;
+            }
+            type = TYPE_NUM;
+            return type;
+        }
+        
+    }
+    type = postfix_expr(s);
+    
+    return type;
+    
+    //if (type != TYPE_NUM) {
+    //    gen_unref(type);
+    //}
+    
+    //if (tok[0] == '^')
+    //{
+    
+    //}
+    //else if (tok[0] == '!')
+    //{
+    
+    //}
+    //else if (tok[0] == '-' && isalpha(ptok[0]))
+    //{
+    
+    //}
+    //else if (isdigit(tok[0]) || tok[0] == '-') {
+    //    float n = parse_immediate_value();
+    //    gen_const(n);
+    
+    //    as->value = n;
+    //    as->type = 'C';
+    //    strcpy(as->name, tok);
+    
+    //}
+    
+    
+}
+
+static int arithmetic_multi_divide_mod_expr(struct sym * s)
+{
+    int type = prefix_expr(s);
+    
+    while (peek("/") || peek("*") || peek("%"))
+    {
+        if (accept("/")) { // expression '/'
+            type = binary(type, postfix_expr, GEN_DIV, GEN_DIVSZ, s, pop_ebx_fdiv_ebx_eax);
+        }
+        else if (accept("*")) { // expression '*'
+            type = binary(type, postfix_expr, GEN_MUL, GEN_MULSZ, s, pop_ebx_imul_eax_ebx);
+        }
+        else if (accept("%")) { // expression '%'
+            type = binary(type, postfix_expr, GEN_MOD, GEN_MODSZ, s, pop_ebx_mod_ebx_eax);
+        }
+    }
+    return type;
+}
+
+
+static int add_expr(struct sym *s) {
+    int type = arithmetic_multi_divide_mod_expr(s);
+    while (peek("+") || peek("-")) {
+        if (accept("+")) {
+            type = binary(type, arithmetic_multi_divide_mod_expr, GEN_ADD, GEN_ADDSZ, s, pop_ebx_add_eax_ebx);
+        }
+        else if (accept("-")) {
+            type = binary(type, arithmetic_multi_divide_mod_expr, GEN_SUB, GEN_SUBSZ, s, pop_ebx_sub_ebx_eax);
+        }
+    }
+    return type;
+}
+
+static int shift_expr(struct sym *s) {
+    int type = add_expr(s);
+    while (peek("<<") || peek(">>")) {
+        if (accept("<<")) {
+            type = binary(type, add_expr, GEN_SHL, GEN_SHLSZ, s, pop_ebx_shl_ebx_eax);   // 1
+        }
+        else if (accept(">>")) {
+            type = binary(type, add_expr, GEN_SHR, GEN_SHRSZ, s, pop_ebx_shr_ebx_eax);   //2
+        }
+    }
+    return type;
+}
+
+static int rel_expr(struct sym *s) {
+    int type = shift_expr(s);
+    while (peek("<")) {
+        if (accept("<")) {
+            type = binary(type, shift_expr, GEN_LESS, GEN_LESSSZ, s, pop_ebx_ebx_less_than_ebx);
+        }
+    }
+    
+    while (peek(">")) {
+        if (accept(">")) {
+            type = binary(type, shift_expr, GEN_GREATE, GEN_GREATESZ, s, pop_ebx_ebx_greate_than_ebx);
+        }
+    }
+    
+    while (peek(">=") || peek("<=")) {
+        
+        if (accept(">=")) {
+            type = binary(type, rel_expr, GEN_GREATE_EQUAL, GEN_GREATE_EQUALSZ, s, pop_ebx_ebx_greate_EQUAL_than_ebx);
+        }
+        else if (accept("<=")) {
+            type = binary(type, rel_expr, GEN_LESS_EQUAL, GEN_LESS_EQUALSZ, s, pop_ebx_ebx_less_EQUAL_than_ebx);
+        }
+    }
+    
+    return type;
+}
+
+static int eq_expr(struct sym *s) {
+    int type = rel_expr(s);
+    while (peek("==") || peek("!=")) {
+        if (accept("==")) {
+            type = binary(type, rel_expr, GEN_EQ, GEN_EQSZ, s, pop_ebx_equal_eax_ebx);
+        }
+        else if (accept("!=")) {
+            type = binary(type, rel_expr, GEN_NEQ, GEN_NEQSZ, s, pop_ebx_not_equal_eax_ebx);
+        }
+    }
+    return type;
+}
+
+
+
+
+static int bitwise_expr(struct sym * s) {
+    int type = eq_expr(s);
+    
+    while (peek("|") || peek("&") || peek("^") /*|| peek("/") || peek("*") || peek("%")*/) {
+        if (accept("|")) {        // expression '|'
+            type = binary(type, eq_expr, GEN_OR, GEN_ORSZ, s, pop_ebx_bit_or_ebx_eax);  // 3
+        }
+        else if (accept("&")) { // expression '&'
+            type = binary(type, eq_expr, GEN_AND, GEN_ANDSZ, s, pop_ebx_bit_and_ebx_eax); // 4
+        }
+        else if (accept("^")) { // expression '^'
+            type = binary(type, eq_expr, GEN_XOR, GEN_XORSZ, s, pop_ebx_bit_xor_ebx_eax); // 5
+        }
+    }
+    return type;
+}
+
+
+
+
+static int logic_expr(struct sym * s) {
+    int type = bitwise_expr(s);
+    
+    while (peek("||") || peek("&&")  /*|| peek("/") || peek("*") || peek("%")*/) {
+        if (accept("||")) {        // expression '|'
+            type = binary(type, bitwise_expr, GEN_OR_OR, GEN_OR_ORSZ, s, pop_ebx_logic_or_ebx_eax);  // 6
+        }
+        else if (accept("&&")) { // expression '&'
+            type = binary(type, bitwise_expr, GEN_AND_AND, GEN_AND_ANDSZ, s, pop_ebx_logic_and_ebx_eax);  // 7
+        }
+        
+    }
+    return type;
+}
+
+static int expr(struct sym * as) {
+    
+    if (as == nullptr)
+    {
+        error(" expr s is null\n");
+    }
+    
+    int type = logic_expr(as);
+    if (type != TYPE_NUM)
+    {
+        //if(accept)
+        //int a = 2;
+        //if (peek("]") && peekToken("=", spos - 1))
+        //{
+        //    a = 3;
+        //}
+        if (accept("="))
+        {
+            printf("HERE 1=\n");
+            if (as->faddr != 0)
+            {
+                sprintf(PDBsymble[binpos], "push %s's addr to stack", as->name);
+            }
+            gen_push();
+            struct sym lls;
+            expr(&lls);
+            if (type == TYPE_INTVAR)
+            {
+                if (as->faddr != 0)
+                {
+                    sprintf(PDBsymble[binpos], "assign value %s to %s", lls.name, as->name);
+                }
+                emit(GEN_ASSIGN, GEN_ASSIGNSZ);
+                bin[binpos++] = opArray[pop_ebx_mov_mebx_eax].op;
+                
+            }
+            else
+            {
+                emit(GEN_ASSIGN8, GEN_ASSIGN8SZ);
+                
+                
+            }
+            stack_pos = stack_pos - 1; // assume ASSIGN contains pop
+            type = TYPE_NUM;
+        }
+        else
+        {
+            if (as->faddr != 0)
+            {
+                sprintf(PDBsymble[binpos], "%s value to eax", as->name);
+            }
+            gen_unref(type);
+        }
+    }
+    return type;
+}
+
+
+
+
+static int expr_ex(struct sym * as) {
+    
+    if (as == nullptr)
+    {
+        error(" expr s is null\n");
+    }
+    
+    int type = logic_expr(as);
+    if (type != TYPE_NUM)
+    {
+        //if(accept)
+        int a = 2;
+        if (peek("]") && peekToken("=", spos - 1))
+        {
+            a = 3;
+        }
+        if (accept("="))
+        {
+            printf("HERE 1=\n");
+            if (as->faddr != 0)
+            {
+                sprintf(PDBsymble[binpos], "push %s's addr to stack", as->name);
+            }
+            gen_push();
+            struct sym lls;
+            expr(&lls);
+            if (type == TYPE_INTVAR)
+            {
+                if (as->faddr != 0)
+                {
+                    sprintf(PDBsymble[binpos], "assign value %s to %s", lls.name, as->name);
+                }
+                emit(GEN_ASSIGN, GEN_ASSIGNSZ);
+                bin[binpos++] = opArray[pop_ebx_mov_mebx_eax].op;
+                
+            }
+            else
+            {
+                emit(GEN_ASSIGN8, GEN_ASSIGN8SZ);
+                
+                
+            }
+            stack_pos = stack_pos - 1; // assume ASSIGN contains pop
+            type = TYPE_NUM;
+        }
+        else
+        {
+            if (as->faddr != 0)
+            {
+                sprintf(PDBsymble[binpos], "%s value to eax", as->name);
+            }
+            //gen_unref(type);
+        }
+    }
+    return type;
+}
+
+
+
+static void statement() {
+    lastIsReturn = 0;
+    if (accept("{")) {
+        int prev_stack_pos = stack_pos;
+        while (accept("}") == 0) {
+            statement();
+        }
+        gen_pop(stack_pos - prev_stack_pos);
+        stack_pos = prev_stack_pos;
+        strcpy(context, "");
+        genPreamble = 0;
+        numPreambleVars = 0;
+        return;
+    }
+    if (typename_()) {
+        struct sym *var = sym_declare(context, tok, 'L', stack_pos);
+        printf("GENERATE_VAR %s_%s\n", context, tok);
+        
+        
+        //        readtok();
+        //        if (accept("=")) {
+        //            printf("HERE 2=\n");
+        //            expr(nullptr);
+        //        }
+        numPreambleVars++;
+        
+        //        var->faddr = binpos;
+        //        var->addr = stack_pos;
+        //        sprintf(PDBsymble[binpos], "alloc %s  space on stack, stack_pos : %d",var->name, var->addr);
+        //        gen_push();
+        
+        
+        
+        
+        
+        
+        
+        //if (peekToken(";", spos - 1))
+        //{
+        //    var->faddr = binpos;
+        //    var->addr = stack_pos;
+        //    sprintf(PDBsymble[binpos], "alloc %s   on stack, stack_pos : %d", var->name, var->addr);
+        //    gen_push();
+        
+        //    readtok();  // int a ;
+        //}
+        //else
+        if (peekToken("[", spos - 1))   // int a[10];
+        {
+            readtok();
+            if (accept("["))
+            {
+                char * stop = nullptr;
+                int nItem = std::strtof(tok, &stop);
+                
+                if (nItem < 1)
+                {
+                    error("[line %d] array number must great than 0: %s\n", linenum, tok);
+                }
+                
+                if (stop == tok)
+                    error("[line %d] array number is invalid: %s\n", linenum, tok);
+                else
+                {
+                    for (int i = 0; i < nItem; i++)
+                    {
+                        gen_const(-1);
+                        gen_push();
+                    }
+                    /* put token address on stack */
+                    //gen_stack_addr(0);
+                    
+                    
+                }
+                readtok();
+                expect(__LINE__, "]");
+                var->faddr = binpos;
+                var->addr = stack_pos - nItem;
+                
+            }
+        }
+        
+        /*
+         else if (peekToken("=", spos - 1))    // int a = {1,2};
+         {
+         
+         peekToken("what ever", ppos - 1);
+         
+         if (ptok[0] == '{')
+         {
+         readtok();
+         readtok();
+         if (accept("{"))
+         {
+         int arrNum = 0;
+         for (;;) {
+         
+         char * stop;
+         float a = strtof(tok, &stop);
+         if (stop == tok)
+         error("[line %d] Invalid symbol: %s\n", linenum, tok);
+         gen_const(a);
+         gen_push();
+         arrNum++;
+         readtok();
+         if (accept("}")) {
+         gen_stack_addr(0);
+         gen_push();
+         
+         var->addr = stack_pos - 1;
+         var->faddr = binpos;
+         
+         break;
+         }
+         expect(__LINE__, ",");
+         }
+         }
+         }
+         */
+        //else if (isdigit(ptok[0]) && 0)  // a = 2;
+        //{
+        
+        //    readtok();
+        //    readtok();
+        
+        //    struct sym s;
+        //    expr(&s);// int a = 2;
+        
+        
+        //    var->faddr = binpos;
+        //    var->addr = stack_pos;
+        
+        //    if (s.type == 'C')
+        //        sprintf(PDBsymble[binpos], "alloc %s = %d  on stack, stack_pos : %d", var->name, s.value, var->addr);
+        //    gen_push();
+        //}
+        
+        else  // can not be a = {0 0 0 } , because i only in initialize an array and
+        {
+            var->faddr = binpos;
+            
+            sprintf(PDBsymble[binpos], "alloc %s   on stack, stack_pos : %d", var->name, var->addr);
+            readtok();
+            if (accept("="))
+            {
+                struct sym lls;
+                expr(&lls);   // int a = b ....
+            }
+            gen_push();
+            var->addr = stack_pos - 1;
+            
+        }
+        
+        
+        
+        
+        
+        
+        expect(__LINE__, ";");
+        return;
+    }
+    // if we arrive here, we can generate the preamble
+    if (genPreamble) {
+        genPreamble = 0;
+        printf("Generate Preamble (nvars = %d)\n", numPreambleVars);
+        gen_preamble(numPreambleVars);
+    }
+    
+    if (accept("if")) {
+        expect(__LINE__, "(");
+        struct sym lls3;
+        expr(&lls3);
+        emit(GEN_JZ, GEN_JZSZ);
+        
+        
+        sprintf(PDBsymble[binpos], "if eax == 0  then jump to begin of else block");
+        bin[binpos++] = opArray[jz].op;
+        bin[binpos++] = float(-1);
+        
+        int patch_if_jz = binpos - 1;
+        
+        
+        int p1 = codepos;
+        expect(__LINE__, ")");
+        int prev_stack_pos = stack_pos;
+        
+        //statement();
+        sprintf(PDBsymble[binpos], "begin of if block");
+        if (accept("{")) {
+            while (accept("}") == 0) {
+                statement();
+            }
+        }
+        else
+        {
+            statement();
+        }
+        
+        
+        emit(GEN_JMP, GEN_JMPSZ);
+        int p2 = codepos;
+        gen_patch(code + p1, codepos);
+        
+        
+        sprintf(PDBsymble[binpos], "end of if block, jump to else block end");
+        bin[binpos++] = opArray[jmp].op;
+        bin[binpos++] = float(-1);
+        int patch_esle_block_end = binpos - 1;
+        bin[patch_if_jz] = binpos;
+        
+        
+        
+        if (accept("else")) {
+            stack_pos = prev_stack_pos;  // the local var alloc in if {} block will not keep .
+            sprintf(PDBsymble[binpos], "begin of else block");
+            if (accept("{")) {
+                while (accept("}") == 0) {
+                    statement();
+                }
+            }
+            else
+            {
+                statement();
+            }
+            
+            
+            
+            //statement();
+        }
+        
+        
+        
+        stack_pos = prev_stack_pos;   // the local var alloc in if {}  or  else {} block will not keep .
+        gen_patch(code + p2, codepos);
+        bin[patch_esle_block_end] = binpos;
+        return;
+    }
+    if (accept("while")) {
+        expect(__LINE__, "(");
+        int p1 = codepos;
+        float jmp_from_while_end = binpos;
+        
+        gen_loop_start();
+        struct sym lls4;
+        expr(&lls4);
+        emit(GEN_JZ, GEN_JZSZ);
+        
+        
+        
+        
+        sprintf(PDBsymble[binpos], "while eval to false , then jmp");
+        
+        bin[binpos++] = opArray[jz].op;
+        bin[binpos++] = float(-1);
+        int here_need_jmp_to_while_end = binpos - 1;
+        
+        int p2 = codepos;
+        
+        
+        expect(__LINE__, ")");
+        
+        
+        int prev_stack_pos = stack_pos;
+        
+        
+        if (accept("{")) {
+            while (accept("}") == 0) {
+                statement();
+            }
+        }
+        else
+        {
+            statement();
+        }
+        
+        stack_pos = prev_stack_pos;
+        
+        emit(GEN_JMP, GEN_JMPSZ);
+        
+        sprintf(PDBsymble[binpos], "jump to start of while");
+        bin[binpos++] = opArray[jmp].op;
+        bin[binpos++] = jmp_from_while_end;
+        
+        gen_patch(code + codepos, p1);
+        gen_patch(code + p2, codepos);
+        
+        bin[here_need_jmp_to_while_end] = binpos;
+        return;
+    }
+    if (accept("return")) {
+        if (peek(";") == 0) {
+            struct sym lls5;
+            expr(&lls5);
+        }
+        expect(__LINE__, ";");
+        gen_pop(stack_pos); // remove all locals from stack (except return address)
+        lastIsReturn = 1;
+        if (currFunction == nullptr)
+            error("why there is ret when no funtion");
+        //else if (strcmp("_main", currFunction->name) == 0)
+        //{
+        //    gen_halt();
+        //}
+        //else
+        gen_ret(numPreambleVars);
+        return;
+    }
+    // we should process an expression...
+    struct sym lls6;
+    expr(&lls6);
+    expect(__LINE__, ";");
+}
+
+static void compile() {
+    
+    vector<struct sym *> gvector;
+    gen_start(numGlobalVars, gvector);
+    
+    bin[binpos++] = data_begin;
+    
+
+    while (tok[0] != 0) { // until EOF
+        if (typename_() == 0) {
+            error("[line %d] Error: type name expected\n", linenum);
+        }
+        struct sym *var = sym_declare(context, tok, 'U', 0);
+        readtok();
+        if(accept("["))
+        {
+                sprintf(PDBsymble[binpos], "%s  is a global array like a[xx]", var->name);
+            
+                float gf = parse_immediate_value();
+                
+                var->type = 'G';
+                var->addr = binpos;
+                var->faddr = binpos;
+            for(int i =0; i < (int)gf; i++)
+            {
+                bin[binpos++] = gf;
+            }
+            readtok();
+            expect(__LINE__, "]");
+                expect(__LINE__, ";");
+                continue;
+        }
+        else if(accept("="))
+        {
+            if(tok[0] == '-')   // a = -1.2
+            {
+                sprintf(PDBsymble[binpos], "%s is a global negative value", var->name);
+                readtok();
+                float gf = parse_immediate_value();
+                var->type = 'G';
+                var->addr = binpos;
+                var->faddr = binpos;
+                bin[binpos++] = gf;
+                readtok();
+                expect(__LINE__, ";");
+                continue;
+            }
+            else if(isdigit(tok[0]))
+            {
+                sprintf(PDBsymble[binpos], "%s  is a global value", var->name);
+                float gf = parse_immediate_value();
+                
+                var->type = 'G';
+                var->addr = binpos;
+                var->faddr = binpos;
+                bin[binpos++] = gf;
+                readtok();
+                expect(__LINE__, ";");
+                continue;
+                
+            }
+            else if(accept("{"))  // a = {1,2}
+            {
+                sprintf(PDBsymble[binpos], "%s  is a global array like a = {x,x,x}", var->name);
+                var->type = 'G';
+                var->addr = binpos;
+                var->faddr = binpos;
+                    for (;;) {
+                        
+                        char * stop;
+                        float a = strtof(tok, &stop);
+                        if (stop == tok)
+                            error("[line %d] Invalid symbol: %s\n", linenum, tok);
+                      
+                        bin[binpos++] = a;
+                        readtok();
+                        if (accept("}")) {
+                            expect(__LINE__, ";");
+                            break;
+                        }
+                        else
+                            expect(__LINE__, ",");
+                    }
+                continue;
+            }
+            else if(tok[0] == '\"')  // a = "123"
+            {
+                sprintf(PDBsymble[binpos], "%s : %s is a global string", var->name, tok);
+                var->type = 'G';
+                var->addr = binpos;
+                var->faddr = binpos;
+//                const int array_len = 1024*64;
+//                if(strlen(tok) > array_len)
+//                    error("string is too long , please ajust array buf");
+//
+//                char nameTok[array_len] = { 0 };
+//
+//                strncpy(nameTok, tok, array_len);
+                
+                int i, j;
+                i = 0; j = 1;  // tok[0] is "  , so j is start with 1
+                while (tok[j] != '"') {
+                    if (tok[j] == '\\' && tok[j + 1] == 'x') {
+                        char s[3] = { tok[j + 2], tok[j + 3], 0 };
+                        uint8_t n = strtol(s, NULL, 16);
+                        tok[i++] = n;
+                        j += 4;
+                    }
+                    else {
+                        tok[i++] = tok[j++];
+                    }
+                }
+                tok[i] = 0;
+                
+                for( i =0 ; i < strlen(tok); i++)
+                {
+                    bin[binpos++] = tok[i];
+                }
+                bin[binpos++] = 0;
+                readtok();
+                 expect(__LINE__, ";");
+                continue;
+            }
+
+        }
+        else if (accept(";")) {
+            if (1 == flagScanGlobalVars) {
+                sprintf(PDBsymble[binpos], "%s is a global value with unintial, set to zero", var->name);
+ 
+                var->type = 'G';
+                var->addr = binpos;
+                bin[binpos++] = 0;
+                var->faddr = binpos;
+                continue;
+            }
+            else {
+                error("[line %d] Error: unexpected global variable declaration\n", linenum);
+            }
+        }
+        
+        bin[binpos++] = data_end;
+        
+        if (1 == flagScanGlobalVars) {
+//            gen_start(numGlobalVars, gvector);
+            flagScanGlobalVars = 0;
+        }
+        expect(__LINE__, "(");
+        int argc = 0;
+        for (;;) {
+            argc++;
+            if (typename_() == 0) {
+                break;
+            }
+            printf("GEN_PARM_VAR %s_%s\n", var->name, tok);
+            struct sym * s = sym_declare(var->name, tok, 'L', -argc - 1);
+            
+            sprintf(var->params[argc - 1], "%s", /*s->name*/ tok);
+            
+            readtok();
+            if (peek(")")) {
+                break;
+            }
+            expect(__LINE__, ",");
+        }
+        expect(__LINE__, ")");
+        if (accept(";") == 0) {
+            if (strcmp(context, "") != 0) {
+                error("");
+            }
+            stack_pos = 0;
+            var->addr = codepos;
+            var->type = 'F';
+            var->nParams = argc;
+            var->faddr = binpos;
+            
+            sprintf(PDBFunctionSymble[binpos], "function: %s ", var->name);
+            if (var->nParams == 0)
+            {
+                strcat(PDBFunctionSymble[binpos], "(void)");
+            }
+            else
+            {
+                for (int i = 0; i < var->nParams; i++)
+                {
+                    if (i == 0)
+                    {
+                        strcat(PDBFunctionSymble[binpos], "( ");
+                    }
+                    
+                    
+                    strcat(PDBFunctionSymble[binpos], var->params[i]);
+                    
+                    if (i == var->nParams - 1)
+                    {
+                        strcat(PDBFunctionSymble[binpos], " )");
+                    }
+                    else
+                    {
+                        strcat(PDBFunctionSymble[binpos], ", ");
+                    }
+                }
+            }
+            
+            
+            gen_sym(var);
+            printf("FUNCTION: %s with %d params\n", var->name, argc);
+            strcpy(context, var->name);
+            genPreamble = 1;
+            numPreambleVars = 0;
+            currFunction = var;
+            statement(); // function body
+            if (!lastIsReturn) {
+                gen_ret(numPreambleVars);   // issue a ret if user forgets to put 'return'
+            }
+        }
+    }
+}
+
+const int stackSize = 1024;
+float stack[stackSize];
+
+int pc = 0;
+
+int esp = stackSize; // no value
+int op = 0;
+float eax = 0;
+float ebx = 0;
+
+void printstatus()
+{
+    printf("eax = %f \nebx = %f \nesp = %d \neip = %d\n", eax, ebx, esp, pc);
+    printf("stack begin: \n");
+    for (int i = esp; i < stackSize; i++)
+    {
+        printf("%d       %f\n", i, stack[i]);
+    }
+    printf("stack end: \n\n");
+}
+
+
+void vm(float bytecode[])
+{
+    //float bytecode[4096] =
+    //{
+    
+    ////    42.000000, 2.000000, 12.000000, 3.000000, 1.000000, 5.000000, 4.000000, 3.000000, 3.000000, 5.000000, 11.000000, 7.000000, 1.000000, 2.000000, 4.000000, 4.000000, 3.000000, 0.000000, 4.000000, 1.000000, 3.000000, 4.000000, 3.000000, 3.000000, 5.000000, 4.000000, 1.000000, 1.000000, 4.000000, 3.000000, 2.000000, 5.000000, 12.000000, 9.000000, 3.000000, 8.000000, 3.000000, 0.000000, 5.000000, 9.000000, 2.000000, 13.000000
+    //
+    //    28.000000, 2.000000, 3.000000, 4.000000, 1.000000, 1.000000, 14.000000, 16.000000, 3.000000, 0.000000, 4.000000, 1.000000, 1.000000, 8.000000, 2.000000, 22.000000, 3.000000, 0.000000, 4.000000, 1.000000, 0.000000, 8.000000, 3.000000, 0.000000, 5.000000, 9.000000, 1.000000, 13.000000
+    //
+    //};
+    
+    
+    
+    ///int codeSize = bytecode[0];
+    int codeSize = bytecode[0];
+    
+    
+    for (pc = 1; pc < codeSize; )
+    {
+        printstatus();
+        op = bytecode[pc++];
+        // int args = opArray[op].nargs;
+        
+        if (op == mov_eax_xxx)
+        {
+            eax = bytecode[pc++];
+        }
+        else if (op == jmp)
+        {
+            pc = bytecode[pc];
+        }
+        else if (op == jz)
+        {
+            int targetPc = bytecode[pc++];
+            if (eax == 0)
+            {
+                printf("\n eax == 0 jump to %d\n", targetPc);
+                pc = targetPc;
+            }
+            else
+            {
+                printf("\n eax != 0 do not jump\n");
+                //do nothing
+            }
+        }
+        else if (op == lea_eax_mesp_xx)
+        {
+            eax = esp + bytecode[pc++];
+        }
+        else if (op == push_eax)
+        {
+            stack[--esp] = eax;
+        }
+        else if (op == mov_eax_addr)
+        {
+            eax = stack[(int)eax];
+        }
+        else if (op == mov_eax_byte_addr)
+        {
+            
+        }
+        else if (op == ret)
+        {
+            pc = stack[esp];
+            esp++;
+        }
+        else if (op == pop_ebx_mov_mebx_eax)
+        {
+            ebx = stack[esp++];
+            stack[(int)ebx] = eax;
+        }
+        else if (op == add_esp_xx)
+        {
+            esp += bytecode[pc++];
+        }
+        else if (op == pop_ebx_imul_eax_ebx)
+        {
+            ebx = stack[esp++];
+            eax = eax * ebx;
+        }
+        else if (op == pop_ebx_fdiv_ebx_eax)
+        {
+            ebx = stack[esp++];
+            eax = ebx / eax;
+        }
+        else if (op == pop_ebx_mod_ebx_eax)
+        {
+            ebx = stack[esp++];
+            eax = (int)ebx % (int)eax;
+        }
+        else if (op == pop_ebx_logic_and_ebx_eax)
+        {
+            ebx = stack[esp++];
+            if (eax != 0 && ebx != 0)
+                eax = 1;
+            else
+                eax = 0;
+        }
+        else if (op == pop_ebx_logic_or_ebx_eax)
+        {
+            ebx = stack[esp++];
+            if (eax == 0 && ebx == 0)
+                eax = 0;
+            else
+                eax = 1;
+        }
+        else if (op == pop_ebx_bit_and_ebx_eax)
+        {
+            ebx = stack[esp++];
+            eax = (int)eax & (int)ebx;
+        }
+        else if (op == pop_ebx_bit_or_ebx_eax)
+        {
+            ebx = stack[esp++];
+            eax = (int)eax | (int)ebx;
+        }
+        else if (op == pop_ebx_bit_xor_ebx_eax)
+        {
+            ebx = stack[esp++];
+            eax = (int)eax ^ (int)ebx;
+        }
+        else if (op == pop_ebx_shl_ebx_eax)
+        {
+            ebx = stack[esp++];
+            eax = (int)ebx << (int)eax;
+        }
+        else if (op == pop_ebx_shr_ebx_eax)
+        {
+            ebx = stack[esp++];
+            eax = (int)ebx >> (int)eax;
+        }
+        else if (op == pop_ebx_add_eax_ebx)
+        {
+            ebx = stack[esp++];
+            eax = eax + ebx;
+        }
+        else if (op == pop_ebx_sub_ebx_eax)
+        {
+            ebx = stack[esp++];
+            eax = ebx - eax;
+        }
+        else if (op == pop_ebx_equal_eax_ebx)
+        {
+            ebx = stack[esp++];
+            if (eax == ebx)
+            {
+                eax = 1;
+            }
+            else
+                eax = 0;
+        }
+        else if (op == pop_ebx_not_equal_eax_ebx)
+        {
+            ebx = stack[esp++];
+            if (eax != ebx)
+            {
+                eax = 1;
+            }
+            else
+                eax = 0;
+        }
+        else if (op == pop_ebx_ebx_less_than_ebx)
+        {
+            ebx = stack[esp++];
+            if (ebx < eax)
+            {
+                eax = 1;
+            }
+            else
+                eax = 0;
+        }
+        else if (op == pop_ebx_ebx_greate_than_ebx)
+        {
+            ebx = stack[esp++];
+            if (ebx > eax)
+            {
+                eax = 1;
+            }
+            else
+                eax = 0;
+        }
+        else if (op == pop_ebx_ebx_greate_EQUAL_than_ebx)
+        {
+            ebx = stack[esp++];
+            if (ebx >= eax)
+            {
+                eax = 1;
+            }
+            else
+                eax = 0;
+        }
+        else if (op == pop_ebx_ebx_less_EQUAL_than_ebx)
+        {
+            ebx = stack[esp++];
+            if (ebx <= eax)
+            {
+                eax = 1;
+            }
+            else
+                eax = 0;
+        }
+        
+        else if (op == call_eax)
+        {
+            stack[--esp] = pc;
+            pc = eax;
+            
+        }
+        else if (op == halt)
+        {
+            printf("virtual machine exit with return value is %f\n", eax);
+            break;
+        }
+        else if (op == call_addr)
+        {
+            
+            stack[--esp] = pc + 1; // + 1 because call has 1 argument
+            
+            pc = bin[pc];
+        }
+        else if (op == negative_eax)
+        {
+            eax = -eax;
+        }
+        else if (op == mov_eax_ValueAtEax_negative_eax)
+        {
+            eax = stack[(int)eax];
+            eax = -eax;
+        }
+        else if (op == bit_negative_eax)
+        {
+            eax = ~(int)eax;
+        }
+        else if (op == not_eax)
+        {
+            eax = !eax;
+        }
+        else if (op == mov_eax_ValueAtEax_bit_negative_eax)
+        {
+            eax = stack[(int)eax];
+            eax = ~(int)eax;
+        }
+        else if (op == mov_eax_ValueAtEax_not_eax)
+        {
+            eax = stack[(int)eax];
+            eax = !eax;
+        }
+        
+    }
+}
+
+
+
+
+
+int main(int argc, const char * argv[]) {
+    
+    /**/
+    //
+    //int a = - 1;
+    //printf("%d \n", ~~~(3+1+a) );
+    //return 0;  //  !  ~
+    
+    
+    //float ff = 99999999;
+    //int ii = *(int*)&ff;//99999999;
+    //printf("%d \n", ii);
+    //return 0;
+    
+    
+    int ii;
+    strcpy(context, "");
+    
+    _debug = 1;
+    nextc = fgetc(f);
+    if ('\n' == nextc) { linenum++; }
+    readtok();
+    compile();
+    //_load_immediate(0xffaaba94); printf("\n");
+    //_load_immediate(0x000aba94); printf("\n");
+    //_load_immediate(0xcd0);      printf("\n");
+    
+    if (_debug) {
+        printf("\n");
+        printf("****************\n");
+        printf("* Symbol Table *\n");
+        printf("****************\n");
+        printf("NAME\t\tADDR\t\tTYPE\n");
+        for (ii = 0; ii < sympos; ii++) {
+            printf("%s\t\t0x%08x\t\t%c\n", sym[ii].name, sym[ii].addr, sym[ii].type);
+        }
+        printf("\n");
+    }
+    printf("**********\n");
+    printf("* Output *\n");
+    printf("**********\n");
+    printf("\n");
+    gen_finish();
+    
+    
+    printf("\n");
+    
+    // char * currentContextName = nullptr;
+    bool isData = false;
+    
+    for (int i = 1; i < binpos; )
+    {
+        
+        
+        
+        //  struct sym * s =  sym_find_name(i, 'F');
+        // if(s)
+        {
+            //    printf("%s:\n", s->name);
+            //     currentContextName = s->name;
+        }
+        
+        int codeaddr = i;
+        
+        
+        
+        
+        if (PDBFunctionSymble[codeaddr][0] != 0)
+        {
+            printf("\n\n\n%s:\n", PDBFunctionSymble[codeaddr]);
+        }
+        if (PDBsymble[codeaddr][0] != 0)
+        {
+            printf("                                 %s\n", PDBsymble[codeaddr]);
+        }
+        
+        
+        printf("%4i:    ", i);
+        
+
+        
+        float op = bin[i++];
+        
+
+        
+      
+        
+        if(op == data_begin)
+            isData = true;
+        if(op == data_end)
+            isData = false;
+        
+        
+        if(isData)
+        {
+            printf("%4f\n", bin[codeaddr]);
+            continue;
+        }
+        
+        
+          printf("%s", opArray[int(op)].name);
+        for (int j = 0; j < opArray[int(op)].nargs; j++)
+        {
+            if (int(op) == lea_eax_mesp_xx)
+            {
+                if (bin[i + j] == 0.0)
+                {
+                    printf("]");
+                }
+                else
+                {
+                    printf(" + %.1f]", bin[i + j]);
+                }
+            }
+            else if (int(op) == jmp)
+            {
+                printf("%.0f", bin[i + j]);
+                
+                int targetAddr = bin[i + j];
+                
+                struct sym * s = sym_find_name(targetAddr, 'F');
+                if (s)
+                {
+                    printf("                   %s", s->name);
+                }
+            }
+            //            else if(int(op) == add_esp_xx)
+            //            {
+            //
+            //            }
+            else
+            {
+                printf("%f ", bin[i + j]);
+            }
+            
+        }
+        
+        if (int(op) == ret)
+        {
+            printf("\n\n");
+        }
+        
+        
+        i = i + opArray[int(op)].nargs;
+        
+        
+        
+        printf("\n");
+    }
+    
+    vm(bin);
+    printf("vm is over return %f\n", eax);
+    return 0;
+    
+    //for (int i = 0; i < binpos; i++)
+    //{
+    //    if (i == binpos - 1)
+    //    {
+    //        printf(" %f", bin[i]);
+    //    }
+    //    else
+    //        printf(" %f,", bin[i]);
+    
+    //}
+    
+    printf("\n");
+    return 0;
+    
+    
+}

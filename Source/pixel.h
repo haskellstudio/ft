@@ -1,4 +1,4 @@
-﻿/*
+/*
   ==============================================================================
 
   This is an automatically generated GUI class created by the Projucer!
@@ -137,7 +137,7 @@ public:
 			{
 				//	msg(_compileResult);
 				//l->setText(_compileResult, dontSendNotification);
-				overLay->setTxt(juce::String(fps.fps));
+				
 			}
 			
 		}
@@ -254,6 +254,7 @@ public:
 
 	void timerCallback() override
 	{
+          overLay->setTxt(juce::String(fps.fps));
 		//stopTimer();
 	}
 	void codeDocumentTextInserted(const String& /*newText*/, int /*insertIndex*/) override
