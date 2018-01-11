@@ -42,6 +42,7 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
+	int _clientOrServer{ 0 };
     //[/UserMethods]
 
     void paint (Graphics& g) override;
@@ -51,6 +52,7 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
+	
     //[/UserVariables]
 
     //==============================================================================

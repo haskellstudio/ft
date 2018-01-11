@@ -25,6 +25,17 @@
 
 //[MiscUserDefs] You can add your own user definitions and misc code here...
 #include "CompList.h"
+
+
+//https://github.com/WeAreROLI/JUCE/blob/master/examples/Demo/Source/Demos/DialogsDemo.cpp
+static void alertBoxResultChosen(int result, midi* m)
+{
+	//AlertWindow::showMessageBoxAsync(AlertWindow::InfoIcon,
+	//	"Alert Box",
+	//	"Result code: " + String(result));
+
+	m->_clientOrServer = result;
+}
 //[/MiscUserDefs]
 
 //==============================================================================
@@ -41,6 +52,16 @@ midi::midi ()
 
 
     //[Constructor] You can add your own custom stuff here..
+
+	AlertWindow::showOkCancelBox(AlertWindow::QuestionIcon,
+		"OPTION",
+		"this program run as server or client.",
+		String("server"),
+		String("client"),
+		0,
+		ModalCallbackFunction::forComponent(alertBoxResultChosen, this));
+
+
     //[/Constructor]
 }
 
