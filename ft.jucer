@@ -6,6 +6,15 @@
               jucerVersion="5.0.1" cppLanguageStandard="14" companyCopyright="">
   <MAINGROUP id="Cyewot" name="ft">
     <GROUP id="{BD5485AD-6B1E-43BE-0E99-E70CC9D1D4F4}" name="Source">
+      <GROUP id="{65888FAA-A1C0-9EDA-F886-A9E9FC6EE511}" name="Dock">
+        <FILE id="hGxOQc" name="JAdvancedDock.cpp" compile="1" resource="0"
+              file="Source/JAdvancedDock.cpp"/>
+        <FILE id="NI8pd8" name="JAdvancedDock.h" compile="0" resource="0" file="Source/JAdvancedDock.h"/>
+        <FILE id="TwaTg0" name="JDockableWindows.cpp" compile="1" resource="0"
+              file="Source/JDockableWindows.cpp"/>
+        <FILE id="KoeFpS" name="JDockableWindows.h" compile="0" resource="0"
+              file="Source/JDockableWindows.h"/>
+      </GROUP>
       <GROUP id="{82EE3388-CF70-2E38-81E7-D5ACBF7BCD47}" name="commonShader">
         <FILE id="uilMuE" name="Attributes.h" compile="0" resource="0" file="Source/Attributes.h"/>
         <FILE id="MUSxN3" name="shaderPreset.h" compile="0" resource="0" file="Source/shaderPreset.h"/>
@@ -20,6 +29,21 @@
       </GROUP>
       <GROUP id="{5ADEB8FD-A07C-1A05-C6EB-F313F1A95E05}" name="mainComp">
         <GROUP id="{EFD49AB4-D413-3BC0-8BC7-6A74502B36ED}" name="subComp">
+          <GROUP id="{0EDD0826-FE48-C78E-50C7-69AB2CD210BB}" name="pipeComp">
+            <FILE id="hbUSQ2" name="asm.cpp" compile="1" resource="0" file="Source/asm.cpp"/>
+            <FILE id="qhWFq1" name="asm.h" compile="0" resource="0" file="Source/asm.h"/>
+            <FILE id="XzNh4R" name="code.cpp" compile="1" resource="0" file="Source/code.cpp"/>
+            <FILE id="GH737G" name="code.h" compile="0" resource="0" file="Source/code.h"/>
+            <FILE id="WHc1ST" name="fragmentShader.cpp" compile="1" resource="0"
+                  file="Source/fragmentShader.cpp"/>
+            <FILE id="lQ8BOR" name="fragmentShader.h" compile="0" resource="0"
+                  file="Source/fragmentShader.h"/>
+            <FILE id="QXIDiH" name="shaderSource.cpp" compile="1" resource="0"
+                  file="Source/shaderSource.cpp"/>
+            <FILE id="OYwvFV" name="shaderSource.h" compile="0" resource="0" file="Source/shaderSource.h"/>
+          </GROUP>
+          <FILE id="IeHlWl" name="pipe.cpp" compile="1" resource="0" file="Source/pipe.cpp"/>
+          <FILE id="iUS3uA" name="pipe.h" compile="0" resource="0" file="Source/pipe.h"/>
           <GROUP id="{F54923B2-D986-8736-2951-206B0FFD05C1}" name="pixel_overlay">
             <FILE id="ksXPRo" name="overlay.cpp" compile="1" resource="0" file="Source/overlay.cpp"/>
             <FILE id="tPw1yc" name="overlay.h" compile="0" resource="0" file="Source/overlay.h"/>
@@ -38,6 +62,7 @@
         <FILE id="m5bmDi" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       </GROUP>
       <GROUP id="{0C259F8E-4B0E-8A6A-6696-F723FEC497F4}" name="common">
+        <FILE id="z8BH1u" name="compiler.h" compile="0" resource="0" file="Source/compiler.h"/>
         <FILE id="kF8apk" name="data.h" compile="0" resource="0" file="Source/data.h"/>
         <FILE id="rDdtdg" name="util.h" compile="0" resource="0" file="Source/util.h"/>
         <FILE id="FgDwcv" name="CompList.h" compile="0" resource="0" file="Source/CompList.h"/>
