@@ -33,15 +33,44 @@
     Describe your class and how it works here!
                                                                     //[/Comments]
 */
-class asm_  : public Component
+class asm_  : public Component,
+              public juce::ValueTree::Listener
 {
 public:
     //==============================================================================
-    asm_ ();
+    asm_ (juce::ValueTree& tree);
     ~asm_();
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
+
+
+
+
+	void valueTreePropertyChanged(juce::ValueTree &treeWhosePropertyHasChanged, const juce::Identifier &_property) override
+	{
+		if (asmOpCodeTree == treeWhosePropertyHasChanged)
+		{
+			if (asmOpCodeTree.hasProperty("asmOpCode"))
+			{
+				textEditor->setText(asmOpCodeTree.getProperty("asmOpCode"));
+				//AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::InfoIcon, "source txt", _cSourceTree.getProperty("cSource"));
+			}
+		}
+	}
+
+
+	void valueTreeChildAdded(juce::ValueTree &parentTree, juce::ValueTree &childWhichHasBeenAdded) override {}
+	void valueTreeChildRemoved(juce::ValueTree &parentTree, juce::ValueTree &childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override {}
+	void valueTreeChildOrderChanged(juce::ValueTree &parentTreeWhoseChildrenHaveMoved, int oldIndex, int newIndex) override {}
+	void valueTreeParentChanged(juce::ValueTree &treeWhoseParentHasChanged) override {}
+	void valueTreeRedirected(juce::ValueTree &treeWhichHasBeenChanged) override {}
+
+
+
+
+
+
     //[/UserMethods]
 
     void paint (Graphics& g) override;
@@ -51,9 +80,12 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
+	juce::ValueTree _tree;
+	juce::ValueTree asmOpCodeTree;
     //[/UserVariables]
 
     //==============================================================================
+    ScopedPointer<TextEditor> textEditor;
 
 
     //==============================================================================

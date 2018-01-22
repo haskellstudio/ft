@@ -18,6 +18,7 @@
 */
 
 //[Headers] You can add your own extra header files here...
+#include "compiler.h"
 //[/Headers]
 
 #include "pipe.h"
@@ -26,14 +27,18 @@
 //[MiscUserDefs] You can add your own user definitions and misc code here...
 
 #include "CompList.h"
+
 #include "code.h"
 #include "asm.h"
 #include "shaderSource.h"
 #include "fragmentShader.h"
+
+
 //[/MiscUserDefs]
 
 //==============================================================================
 pipe::pipe ()
+    : _compiler(_tree)
 {
     //[Constructor_pre] You can add your own custom stuff here..
     //[/Constructor_pre]
@@ -50,11 +55,11 @@ pipe::pipe ()
 
 	addAndMakeVisible(advancedDock);
 
-	advancedDock.addComponentToNewRow(pshaderSource = new shaderSource(), 0);
-	advancedDock.addComponentToDock(pfragmentShader = new fragmentShader(), 0);
+	advancedDock.addComponentToNewRow(pshaderSource = new shaderSource(_tree), 0);
+	advancedDock.addComponentToDock(pfragmentShader = new fragmentShader(_tree), 0);
 
-	advancedDock.addComponentToNewRow(pcode = new code(), 1);
-	advancedDock.addComponentToDock(pasm_ = new asm_(), 1);
+	advancedDock.addComponentToNewRow(pcode = new code(_tree), 1);
+	advancedDock.addComponentToDock(pasm_ = new asm_(_tree), 1);
 
 	//advancedDock.addComponentToNewRow(new fragmentShader(), 2);
 
@@ -65,6 +70,7 @@ pipe::~pipe()
 {
     //[Destructor_pre]. You can add your own custom destruction code here..
     //[/Destructor_pre]
+
 
 
     //[Destructor]. You can add your own custom destruction code here..
@@ -118,9 +124,9 @@ static ComponentList<pipe> td((const String)("pipe"), 4);
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="pipe" componentName="" parentClasses="public Component"
-                 constructorParams="" variableInitialisers="" snapPixels="8" snapActive="1"
-                 snapShown="1" overlayOpacity="0.330" fixedSize="0" initialWidth="600"
-                 initialHeight="400">
+                 constructorParams="" variableInitialisers="_compiler(_tree)"
+                 snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
+                 fixedSize="0" initialWidth="600" initialHeight="400">
   <BACKGROUND backgroundColour="ff323e44"/>
 </JUCER_COMPONENT>
 

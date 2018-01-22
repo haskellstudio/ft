@@ -33,15 +33,45 @@
     Describe your class and how it works here!
                                                                     //[/Comments]
 */
-class code  : public Component
+class code  : public Component,
+              public TextEditor::Listener,
+              private Timer
 {
 public:
     //==============================================================================
-    code ();
+    code (juce::ValueTree& tree);
     ~code();
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
+
+
+	virtual void textEditorTextChanged(TextEditor& e) override
+	{
+		stopTimer();
+		startTimer(3000);
+
+	}
+
+
+	virtual void timerCallback() override
+	{
+		stopTimer();
+		if (_cSourceTree.isValid())
+		{
+			_cSourceTree.setProperty("cSource", textEditor->getText(), nullptr);
+		}
+	}
+	/** Called when the user presses the return key. */
+	virtual void textEditorReturnKeyPressed(TextEditor&) override {}
+
+	/** Called when the user presses the escape key. */
+	virtual void textEditorEscapeKeyPressed(TextEditor&) override {}
+
+	/** Called when the text editor loses focus. */
+	virtual void textEditorFocusLost(TextEditor&) override {}
+
+
     //[/UserMethods]
 
     void paint (Graphics& g) override;
@@ -51,9 +81,12 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
+    juce::ValueTree _tree;
+	juce::ValueTree _cSourceTree;
     //[/UserVariables]
 
     //==============================================================================
+    ScopedPointer<TextEditor> textEditor;
 
 
     //==============================================================================

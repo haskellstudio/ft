@@ -37,7 +37,7 @@ class fragmentShader  : public Component
 {
 public:
     //==============================================================================
-    fragmentShader ();
+    fragmentShader (juce::ValueTree& tree);
     ~fragmentShader();
 
     //==============================================================================
@@ -51,6 +51,7 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
+    juce::ValueTree _tree;
     //[/UserVariables]
 
     //==============================================================================

@@ -27,7 +27,8 @@
 //[/MiscUserDefs]
 
 //==============================================================================
-fragmentShader::fragmentShader ()
+fragmentShader::fragmentShader (juce::ValueTree& tree)
+    : _tree(tree)
 {
     //[Constructor_pre] You can add your own custom stuff here..
     //[/Constructor_pre]
@@ -92,9 +93,10 @@ void fragmentShader::resized()
 BEGIN_JUCER_METADATA
 
 <JUCER_COMPONENT documentType="Component" className="fragmentShader" componentName=""
-                 parentClasses="public Component" constructorParams="" variableInitialisers=""
-                 snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
-                 fixedSize="0" initialWidth="600" initialHeight="400">
+                 parentClasses="public Component" constructorParams="juce::ValueTree&amp; tree"
+                 variableInitialisers="_tree(tree)" snapPixels="8" snapActive="1"
+                 snapShown="1" overlayOpacity="0.330" fixedSize="0" initialWidth="600"
+                 initialHeight="400">
   <BACKGROUND backgroundColour="ff323e44"/>
 </JUCER_COMPONENT>
 

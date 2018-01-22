@@ -37,7 +37,7 @@ class shaderSource  : public Component
 {
 public:
     //==============================================================================
-    shaderSource ();
+    shaderSource (juce::ValueTree& tree);
     ~shaderSource();
 
     //==============================================================================
@@ -51,6 +51,7 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
+    juce::ValueTree _tree;
     //[/UserVariables]
 
     //==============================================================================

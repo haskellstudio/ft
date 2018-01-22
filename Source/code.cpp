@@ -27,10 +27,22 @@
 //[/MiscUserDefs]
 
 //==============================================================================
-code::code ()
+code::code (juce::ValueTree& tree)
+    : _tree(tree)
 {
     //[Constructor_pre] You can add your own custom stuff here..
     //[/Constructor_pre]
+
+    addAndMakeVisible (textEditor = new TextEditor ("new text editor"));
+    textEditor->setMultiLine (true);
+    textEditor->setReturnKeyStartsNewLine (true);
+    textEditor->setReadOnly (false);
+    textEditor->setScrollbarsShown (true);
+    textEditor->setCaretVisible (true);
+    textEditor->setPopupMenuEnabled (true);
+    textEditor->setText (TRANS("1\n"
+    "2\n"
+    "3\n"));
 
 
     //[UserPreSize]
@@ -41,6 +53,12 @@ code::code ()
 
     //[Constructor] You can add your own custom stuff here..
 	Component::setName("code");
+
+
+	_cSourceTree = tree.getOrCreateChildWithName("cSource", nullptr);
+
+	textEditor->addListener(this);
+
     //[/Constructor]
 }
 
@@ -49,6 +67,7 @@ code::~code()
     //[Destructor_pre]. You can add your own custom destruction code here..
     //[/Destructor_pre]
 
+    textEditor = nullptr;
 
 
     //[Destructor]. You can add your own custom destruction code here..
@@ -72,7 +91,13 @@ void code::resized()
     //[UserPreResize] Add your own custom resize code here..
     //[/UserPreResize]
 
+    textEditor->setBounds (40, 8, 280, 264);
     //[UserResized] Add your own custom resize handling here..
+
+    auto area = getLocalBounds();
+	textEditor->setBounds(area.reduced(4));
+
+
     //[/UserResized]
 }
 
@@ -91,11 +116,15 @@ void code::resized()
 
 BEGIN_JUCER_METADATA
 
-<JUCER_COMPONENT documentType="Component" className="code" componentName="" parentClasses="public Component"
-                 constructorParams="" variableInitialisers="" snapPixels="8" snapActive="1"
-                 snapShown="1" overlayOpacity="0.330" fixedSize="0" initialWidth="600"
-                 initialHeight="400">
+<JUCER_COMPONENT documentType="Component" className="code" componentName="" parentClasses="public Component, public TextEditor::Listener, private Timer"
+                 constructorParams="juce::ValueTree&amp; tree" variableInitialisers="_tree(tree)"
+                 snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
+                 fixedSize="0" initialWidth="600" initialHeight="400">
   <BACKGROUND backgroundColour="ff323e44"/>
+  <TEXTEDITOR name="new text editor" id="40a926f4a47423e9" memberName="textEditor"
+              virtualName="" explicitFocusOrder="0" pos="40 8 280 264" initialText="1&#10;2&#10;3&#10;"
+              multiline="1" retKeyStartsLine="1" readonly="0" scrollbars="1"
+              caret="1" popupmenu="1"/>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA

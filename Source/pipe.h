@@ -53,6 +53,9 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
+	ValueTree _tree{ "main" };
+
+	compiler _compiler;
 
 	DockableWindowManager dockManager;
 	JAdvancedDock advancedDock{ dockManager };
