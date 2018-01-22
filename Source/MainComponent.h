@@ -99,9 +99,7 @@ public:
 
 	ScopedPointer<Component> _curSubComp;
 
-	int curSubCompIndex = 3;
-
-
+	int curSubCompIndex{ 4 };
 
 private:
     //==============================================================================
