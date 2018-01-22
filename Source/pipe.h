@@ -56,6 +56,10 @@ private:
 
 	DockableWindowManager dockManager;
 	JAdvancedDock advancedDock{ dockManager };
+	ScopedPointer<Component> pshaderSource;
+	ScopedPointer<Component> pfragmentShader;
+	ScopedPointer<Component> pcode;
+	ScopedPointer<Component> pasm_;
     //[/UserVariables]
 
     //==============================================================================

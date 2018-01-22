@@ -50,11 +50,11 @@ pipe::pipe ()
 
 	addAndMakeVisible(advancedDock);
 
-	advancedDock.addComponentToNewRow(new shaderSource(), 0);
-	advancedDock.addComponentToDock(new fragmentShader());
+	advancedDock.addComponentToNewRow(pshaderSource = new shaderSource(), 0);
+	advancedDock.addComponentToDock(pfragmentShader = new fragmentShader(), 0);
 
-	advancedDock.addComponentToNewRow(new code(), 1);
-	advancedDock.addComponentToDock(new asm_(), 1);
+	advancedDock.addComponentToNewRow(pcode = new code(), 1);
+	advancedDock.addComponentToDock(pasm_ = new asm_(), 1);
 
 	//advancedDock.addComponentToNewRow(new fragmentShader(), 2);
 
@@ -67,8 +67,11 @@ pipe::~pipe()
     //[/Destructor_pre]
 
 
-
     //[Destructor]. You can add your own custom destruction code here..
+	pasm_ = nullptr;
+	pcode = nullptr;
+	pfragmentShader = nullptr;
+	pshaderSource = nullptr;
     //[/Destructor]
 }
 
