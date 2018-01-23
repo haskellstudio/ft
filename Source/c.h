@@ -160,7 +160,36 @@ public:
 			{
 				float arg;
 				bin.readFloat(arg);
-				asmStr += String(arg) + " ";
+
+				if (int(op) == lea_eax_mesp_xx)
+				{
+					if (arg == 0.0)
+					{
+						asmStr += String("]");
+					}
+					else
+					{
+						asmStr += String(arg) + "]";
+					}
+
+				}
+				else if (int(op) == jmp)
+				{
+					asmStr += String(arg);
+	/*				 
+					struct sym * s = sym_find_name(arg, 'F');
+					if (s)
+					{
+						asmStr += s->name;
+					}
+					
+					*/
+				}
+				else
+				{
+					asmStr += String(arg) + " ";
+				}
+				
 			}
 
 			asmStr += "\n";
