@@ -49,14 +49,45 @@ public:
 
 	void valueTreePropertyChanged(juce::ValueTree &treeWhosePropertyHasChanged, const juce::Identifier &_property) override
 	{
-		if (asmOpCodeTree == treeWhosePropertyHasChanged)
+		if (_asmStrCodeTree == treeWhosePropertyHasChanged)
 		{
-			if (asmOpCodeTree.hasProperty("asmOpCode"))
+			if (_asmStrCodeTree.hasProperty("property_asmStrCode") && _property == juce::Identifier("property_asmStrCode"))
 			{
-				textEditor->setText(asmOpCodeTree.getProperty("asmOpCode"));
+				textEditor->setText(_asmStrCodeTree.getProperty("property_asmStrCode"));
 				//AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::InfoIcon, "source txt", _cSourceTree.getProperty("cSource"));
 			}
 		}
+
+		else if (_asmOpCodeTree == treeWhosePropertyHasChanged)
+		{
+			if (_asmOpCodeTree.hasProperty("property_asmOpCode") && _property == juce::Identifier("property_asmOpCode") )
+			{
+				var v = _asmOpCodeTree.getProperty("property_asmOpCode");
+				textEditor->moveCaretToEndOfLine(true);
+				textEditor->setText(textEditor->getText() + "\n\n\nop code is:\n" + v.toString());
+				
+				auto a = v.getArray();
+				if (a)
+				{
+					for (auto &i : *a)
+					{
+						textEditor->setText(textEditor->getText() + "\n" + i.toString());
+					}
+				}
+			}
+			else if (_asmOpCodeTree.hasProperty("property_compileReslutString") && _property == juce::Identifier("property_compileReslutString"))
+			{
+				var v = _asmOpCodeTree.getProperty("property_compileReslutString");
+				textEditor->setText(textEditor->getText() + "\ncompile info:" + v.toString());
+			}
+			else if (_asmOpCodeTree.hasProperty("property_compileResultBool") && _property == juce::Identifier("property_compileResultBool"))
+			{
+				var v = _asmOpCodeTree.getProperty("property_compileResultBool");
+				textEditor->setText(textEditor->getText() + "\ncompile Result:" + v.toString());
+			}
+
+		}
+		
 	}
 
 
@@ -81,7 +112,10 @@ public:
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
 	juce::ValueTree _tree;
-	juce::ValueTree asmOpCodeTree;
+	juce::ValueTree _asmStrCodeTree;
+	juce::ValueTree _asmOpCodeTree;
+
+
     //[/UserVariables]
 
     //==============================================================================

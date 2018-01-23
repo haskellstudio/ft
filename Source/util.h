@@ -9,15 +9,16 @@
 */
 
 #pragma once
-
+enum SEEK_ORIGIN
+{
+	SO_BEGINNING = 0,
+	SO_CURRENT = 1,
+	SO_END = 2
+};
 class CMemoryStream
 {
-	enum SEEK_ORIGIN
-	{
-		SO_BEGINNING = 0,
-		SO_CURRENT = 1,
-		SO_END = 2
-	};
+public:
+
 public:
 
 	explicit CMemoryStream(int nMemoryDelta = DEFAULT_MEMORY_DELTA) :m_nCapacity(0), m_pMemory(NULL), m_nSize(0), m_nPosition(0)
@@ -238,6 +239,16 @@ public:
 	{
 		int a = 0;
 		Write(&a, 1);
+	}
+
+	int writeFloat(float  a)
+	{
+		return Write(&a, 4);
+	}
+
+	bool  readFloat(float& a)
+	{
+		return ReadBuffer(&a, 4);
 	}
 };
 

@@ -55,8 +55,13 @@ asm_::asm_ (juce::ValueTree& tree)
 	Component::setName("asm");
 
 
-	asmOpCodeTree = tree.getOrCreateChildWithName("asmOpCode", nullptr);
-	asmOpCodeTree.addListener(this);
+	_asmStrCodeTree = tree.getOrCreateChildWithName("property_asmStrCode", nullptr);
+	_asmStrCodeTree.addListener(this);
+
+	_asmOpCodeTree = tree.getOrCreateChildWithName("property_asmOpCode", nullptr);
+	_asmOpCodeTree.addListener(this);
+
+	
     //[/Constructor]
 }
 
