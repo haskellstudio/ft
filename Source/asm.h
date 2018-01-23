@@ -68,7 +68,7 @@ public:
 		{
 			if (_asmOpCodeTree.hasProperty("property_asmOpCode") && _property == juce::Identifier("property_asmOpCode") )
 			{
-				opArrayStr = "";
+				opArrayStr = "\nopcode:\n";
 				var v = _asmOpCodeTree.getProperty("property_asmOpCode");
 			//	textEditor->moveCaretToEndOfLine(true);
 

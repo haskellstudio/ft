@@ -26,7 +26,7 @@ struct OP
 };
 
 
-OP opArray[41] = {
+OP opArray[39] = {
 	OP(0.0, 0.0, "nop"),
 	OP(1.0, 1.0, "mov eax, "),
 	OP(2.0, 1.0, "jmp "),
@@ -67,8 +67,6 @@ OP opArray[41] = {
 	OP(36.0, 0.0, "pop ebx \n           cmp ebx, eax \n           jg xxx")    ,
 	OP(37.0, 0.0, "pop ebx \n           cmp ebx, eax \n           jl xxx") ,
 	OP(38.0, 0.0, "pop ebx \n           mov eax, [ebx+ \n") ,
-	OP(39.0, 0.0, ".data\n") ,
-	OP(40.0, 0.0, ".code\n")
 
 };
 
@@ -114,9 +112,6 @@ typedef enum {
 	pop_ebx_ebx_less_EQUAL_than_ebx = 37,
 	pop_ebx_mov_mebx_eax_with_offset = 38,
 
-	data_begin = 39,
-
-	data_end = 40,
 
 
 
@@ -144,7 +139,7 @@ public:
 
 	void getAsmStrAndBin(juce::Array<float> &opRes, String &asmStr)
 	{
-		asmStr = "to do convert asm to asm string ";
+		asmStr = "asm code: \n";
 
 		bin.Seek(0, SEEK_ORIGIN::SO_BEGINNING);
 		float op;
@@ -152,6 +147,54 @@ public:
 		{
 			opRes.add(op);
 		}
+
+		bin.Seek(0, SEEK_ORIGIN::SO_BEGINNING);
+		bin.readFloat(op); // skip bin size
+		bool isData = false;
+		while (bin.readFloat(op))
+		{
+			int codeaddr = bin.GetPosition()/4-1;
+			
+			asmStr += opArray[int(op)].name;
+			for (int j = 0; j < opArray[int(op)].nargs; j++)
+			{
+				float arg;
+				bin.readFloat(arg);
+				asmStr += String(arg) + " ";
+			}
+
+			asmStr += "\n";
+			if (int(op) == ret)
+			{
+				asmStr += "\n\n";
+			}
+/*			if (int(op) == lea_eax_mesp_xx)
+			{
+				if (bin[i + j] == 0.0)
+				{
+					printf("]");
+				}
+				else
+				{
+					printf(" + %.1f]", bin[i + j]);
+				}
+			}
+			else if (int(op) == jmp)
+			{
+				printf("%.0f", bin[i + j]);
+
+				int targetAddr = bin[i + j];
+
+				struct sym * s = sym_find_name(targetAddr, 'F');
+				if (s)
+				{
+					printf("                   %s", s->name);
+				}
+			}*/
+
+		}
+
+
 	}
 
 	bool compile(juce::String &Src, juce::Array<float> &opRes, String & compileResult, String & asmStr )
