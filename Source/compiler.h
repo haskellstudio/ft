@@ -47,6 +47,7 @@ public:
 				}
 				else
 				{
+					setOpCode(opCodeArray, asmStr);
 					SetCompileResult(compileResult, false);
 				}
 
