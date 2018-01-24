@@ -403,6 +403,9 @@
     <ClCompile Include="..\..\Source\shaderSource.cpp">
       <Filter>ft\Source\mainComp\subComp\pipeComp</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\vmComTest.cpp">
+      <Filter>ft\Source\mainComp\subComp\pipeComp</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\pipe.cpp">
       <Filter>ft\Source\mainComp\subComp</Filter>
     </ClCompile>
@@ -423,6 +426,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Source\MainComponent.cpp">
       <Filter>ft\Source\mainComp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\c.cpp">
+      <Filter>ft\Source\common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\Main.cpp">
       <Filter>ft\Source</Filter>
@@ -2154,6 +2160,9 @@
     <ClInclude Include="..\..\Source\shaderSource.h">
       <Filter>ft\Source\mainComp\subComp\pipeComp</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\vmComTest.h">
+      <Filter>ft\Source\mainComp\subComp\pipeComp</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\pipe.h">
       <Filter>ft\Source\mainComp\subComp</Filter>
     </ClInclude>
@@ -2174,6 +2183,15 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\MainComponent.h">
       <Filter>ft\Source\mainComp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\asmType.h">
+      <Filter>ft\Source\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\vm.h">
+      <Filter>ft\Source\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\c.h">
+      <Filter>ft\Source\common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\compiler.h">
       <Filter>ft\Source\common</Filter>

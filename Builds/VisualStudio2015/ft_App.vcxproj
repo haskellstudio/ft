@@ -148,6 +148,7 @@
     <ClCompile Include="..\..\Source\code.cpp"/>
     <ClCompile Include="..\..\Source\fragmentShader.cpp"/>
     <ClCompile Include="..\..\Source\shaderSource.cpp"/>
+    <ClCompile Include="..\..\Source\vmComTest.cpp"/>
     <ClCompile Include="..\..\Source\pipe.cpp"/>
     <ClCompile Include="..\..\Source\overlay.cpp"/>
     <ClCompile Include="..\..\Source\pixel.cpp"/>
@@ -155,6 +156,7 @@
     <ClCompile Include="..\..\Source\shaderEdt.cpp"/>
     <ClCompile Include="..\..\Source\midi.cpp"/>
     <ClCompile Include="..\..\Source\MainComponent.cpp"/>
+    <ClCompile Include="..\..\Source\c.cpp"/>
     <ClCompile Include="..\..\Source\Main.cpp"/>
     <ClCompile Include="..\..\..\JUCE\modules\juce_audio_basics\buffers\juce_AudioChannelSet.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
@@ -1727,6 +1729,7 @@
     <ClInclude Include="..\..\Source\code.h"/>
     <ClInclude Include="..\..\Source\fragmentShader.h"/>
     <ClInclude Include="..\..\Source\shaderSource.h"/>
+    <ClInclude Include="..\..\Source\vmComTest.h"/>
     <ClInclude Include="..\..\Source\pipe.h"/>
     <ClInclude Include="..\..\Source\overlay.h"/>
     <ClInclude Include="..\..\Source\pixel.h"/>
@@ -1734,6 +1737,9 @@
     <ClInclude Include="..\..\Source\shaderEdt.h"/>
     <ClInclude Include="..\..\Source\midi.h"/>
     <ClInclude Include="..\..\Source\MainComponent.h"/>
+    <ClInclude Include="..\..\Source\asmType.h"/>
+    <ClInclude Include="..\..\Source\vm.h"/>
+    <ClInclude Include="..\..\Source\c.h"/>
     <ClInclude Include="..\..\Source\compiler.h"/>
     <ClInclude Include="..\..\Source\data.h"/>
     <ClInclude Include="..\..\Source\util.h"/>

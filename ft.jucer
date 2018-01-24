@@ -41,6 +41,8 @@
             <FILE id="QXIDiH" name="shaderSource.cpp" compile="1" resource="0"
                   file="Source/shaderSource.cpp"/>
             <FILE id="OYwvFV" name="shaderSource.h" compile="0" resource="0" file="Source/shaderSource.h"/>
+            <FILE id="tWSMHc" name="vmComTest.cpp" compile="1" resource="0" file="Source/vmComTest.cpp"/>
+            <FILE id="QxewXM" name="vmComTest.h" compile="0" resource="0" file="Source/vmComTest.h"/>
           </GROUP>
           <FILE id="IeHlWl" name="pipe.cpp" compile="1" resource="0" file="Source/pipe.cpp"/>
           <FILE id="iUS3uA" name="pipe.h" compile="0" resource="0" file="Source/pipe.h"/>
@@ -62,6 +64,10 @@
         <FILE id="m5bmDi" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       </GROUP>
       <GROUP id="{0C259F8E-4B0E-8A6A-6696-F723FEC497F4}" name="common">
+        <FILE id="Zjkdyy" name="asmType.h" compile="0" resource="0" file="Source/asmType.h"/>
+        <FILE id="MMIUW1" name="c.cpp" compile="1" resource="0" file="Source/c.cpp"/>
+        <FILE id="bPWNBX" name="vm.h" compile="0" resource="0" file="Source/vm.h"/>
+        <FILE id="xGdOj9" name="c.h" compile="0" resource="0" file="Source/c.h"/>
         <FILE id="z8BH1u" name="compiler.h" compile="0" resource="0" file="Source/compiler.h"/>
         <FILE id="kF8apk" name="data.h" compile="0" resource="0" file="Source/data.h"/>
         <FILE id="rDdtdg" name="util.h" compile="0" resource="0" file="Source/util.h"/>
