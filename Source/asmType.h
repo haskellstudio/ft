@@ -54,7 +54,7 @@ typedef enum {
 	pop_ebx_ebx_greate_EQUAL_than_ebx = 36,
 	pop_ebx_ebx_less_EQUAL_than_ebx = 37,
 	pop_ebx_mov_mebx_eax_with_offset = 38,
-
+	call_api = 39,
 
 
 

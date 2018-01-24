@@ -4,8 +4,8 @@
 #include "asmType.h"
 #include <stdio.h>
 
-extern OP opArray[39];
-
+extern OP opArray[40];
+extern void msg(juce::String s);
 
 const int stackSize = 1024;
 
@@ -267,6 +267,21 @@ inline float vm(float bytecode[])
 		{
 			eax = stack[(int)eax];
 			eax = !eax;
+		}
+		else if (op == call_api)
+		{
+			 int index = (int) bytecode[pc++];
+			if (index == 0)
+			{
+				//int arg1 = stack[esp];
+				msg(juce::String(stack[esp + 3]) + " "   + juce::String(stack[esp+2]) + " " + juce::String(stack[esp + 1]) + " " + juce::String(stack[esp + 0]));
+				
+			}
+			else if (index == 1)
+			{
+				int arg1 = stack[esp];
+				juce::Thread::sleep(arg1);
+			}
 		}
 
 	}

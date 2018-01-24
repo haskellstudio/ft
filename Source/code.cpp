@@ -42,6 +42,7 @@ code::code (juce::ValueTree& tree)
     textEditor->setPopupMenuEnabled (true);
     textEditor->setText (TRANS("int main()\n"
     "{\n"
+    "  MessageBox(2,2);\n"
     "   return 1+1;\n"
     "}"));
 
@@ -123,7 +124,7 @@ BEGIN_JUCER_METADATA
                  fixedSize="0" initialWidth="600" initialHeight="400">
   <BACKGROUND backgroundColour="ff323e44"/>
   <TEXTEDITOR name="new text editor" id="40a926f4a47423e9" memberName="textEditor"
-              virtualName="" explicitFocusOrder="0" pos="40 8 280 264" initialText="int main()&#10;{&#10;   return 1+1;&#10;}"
+              virtualName="" explicitFocusOrder="0" pos="40 8 280 264" initialText="int main()&#10;{&#10;  MessageBox(2,2);&#10;   return 1+1;&#10;}"
               multiline="1" retKeyStartsLine="1" readonly="0" scrollbars="1"
               caret="1" popupmenu="1"/>
 </JUCER_COMPONENT>

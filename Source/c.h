@@ -17,7 +17,7 @@
 #include "util.h"
 using namespace std;
 
-extern OP opArray[39];
+extern OP opArray[40];
 #define MAXSYMBOLS 4096
 #define MAXTOKSZ 256
 
@@ -29,6 +29,10 @@ extern OP opArray[39];
 #define TYPE_INTVAR  2
 #define TYPE_GLOBAL     3
 
+#define TYPE_FUN 4
+
+#define TYPE_API 5
+
 
 static struct sym {
 	char type;
@@ -38,6 +42,7 @@ static struct sym {
 	float stackAddr;  // local var address    or   function arg address
 	float faddr; // code address for fuction . ex: main = 29
 	int value;
+	int apiIndex;
 	sym()
 	{
 		stackAddr = faddr = 0;
@@ -174,6 +179,17 @@ public:
 						asmStr += s->name;
 					}
 					*/
+				}
+				else if (int(op) == call_api)
+				{
+					if (arg == 0.0)
+					{
+						asmStr += "	MessageBox";
+					}
+					if (arg == 1.0)
+					{
+						asmStr += "	sleep";
+					}
 				}
 				else
 				{
@@ -597,8 +613,11 @@ public:
 	  void gen_call() {
 		 bin.writeFloat(opArray[call_eax].op);
 	 }
-
-
+	  void gen_call_API(int apiIndex) {
+		  bin.writeFloat(opArray[call_api].op);
+		  bin.writeFloat(apiIndex);
+	  }
+	  
 
 	 void gen_unref(int type) {
 		 if (type == TYPE_INTVAR || type == TYPE_GLOBAL) {
@@ -629,6 +648,11 @@ public:
 		 else if (sym->type == 'G')
 		 {
 			 sprintf(PDBsymble[bin.getFloatPos()], "global %s addr to eax", sym->name);
+		 }
+		 else if (sym->type == 'A')
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "API index %s addr to eax", sym->name);
+			 fn = sym->apiIndex;
 		 }
 
 		// bin[binpos++] = opArray[mov_eax_xxx].op;
@@ -735,13 +759,18 @@ public:
 				 as->faddr = s->faddr;
 				 as->stackAddr = s->stackAddr;
 				 as->type = s->type;
-
+				 as->apiIndex = s->apiIndex;
 				 strcpy(as->name, s->name);
 
 
 				 // Other Symbols (Global)
 				 gen_sym_addr(s);
-				 type = TYPE_GLOBAL;
+				 if (s->type == 'F')
+					 type = TYPE_FUN;
+				 else if (s->type == 'A') // api 
+					 type = TYPE_API;
+				 else
+					 type = TYPE_GLOBAL;
 			 }
 
 		 }
@@ -857,38 +886,74 @@ public:
 				 }
 				 expect(__LINE__, ")");
 			 }
+			
+			 // type = TYPE_NUM;
+
+			 if (type == TYPE_FUN)
+			 {
+				 sprintf(PDBsymble[bin.getFloatPos()], "function %s addr to eax", s->name);
+				 gen_stack_addr(stack_pos - call_addr - 1);
+				 gen_unref(TYPE_INTVAR);
+
+				 sprintf(PDBsymble[bin.getFloatPos()], "call %s ", s->name);
+				 gen_call();
+
+				 if (currFunction) {
+					 //            sprintf(PDBsymble[binpos], "free %d args stack space for function %s", currFunction->nParams, s->name);
+					 //
+					 //            bin[binpos++] = opArray[add_esp_xx].op;
+					 //
+					 //            bin[binpos++] = float(currFunction->nParams);
+
+
+					 // gen_call_cleanup(currFunction->nParams);
+				 }
+				 else {
+					 error("[line %d] Error: unexpected function exit\n", linenum);
+				 }
+				 /* remove function address and args */
+
+				 sprintf(PDBsymble[bin.getFloatPos()], "free %d args stack space and 1 ( store function addr to eax )for function %s", currFunction->nParams, s->name);
+				 //bin[binpos++] = opArray[add_esp_xx].op;
+				 bin.writeFloat(opArray[add_esp_xx].op);
+				 // bin[binpos++] = float(stack_pos - prev_stack_pos);
+				 bin.writeFloat(float(stack_pos - prev_stack_pos));
+
+				 // gen_pop(stack_pos - prev_stack_pos);
+				 stack_pos = prev_stack_pos;
+			 }
+			 else if (type == TYPE_API)
+			 {
+				// sprintf(PDBsymble[bin.getFloatPos()], "function %s addr to eax", s->name);
+				// gen_stack_addr(stack_pos - call_addr - 1);
+				// gen_unref(TYPE_INTVAR);
+
+				 sprintf(PDBsymble[bin.getFloatPos()], "call API %s ", s->name);
+				 gen_call_API(s->apiIndex);
+
+				 if (currFunction) {
+
+				 }
+				 else {
+					 error("[line %d] Error: unexpected function exit\n", linenum);
+				 }
+				 /* remove function address and args */
+
+				 sprintf(PDBsymble[bin.getFloatPos()], "free %d args stack space and 1 ( store function addr to eax )for function %s", currFunction->nParams, s->name);
+				 //bin[binpos++] = opArray[add_esp_xx].op;
+				 bin.writeFloat(opArray[add_esp_xx].op);
+				 // bin[binpos++] = float(stack_pos - prev_stack_pos);
+				 bin.writeFloat(float(stack_pos - prev_stack_pos));
+
+				 // gen_pop(stack_pos - prev_stack_pos);
+				 stack_pos = prev_stack_pos;
+			 }
+			 else
+			 {
+				 error("what the type of the primary exp???");
+			 }
+			
 			 type = TYPE_NUM;
-
-			 sprintf(PDBsymble[bin.getFloatPos()], "function %s addr to eax", s->name);
-			 gen_stack_addr(stack_pos - call_addr - 1);
-			 gen_unref(TYPE_INTVAR);
-
-			 sprintf(PDBsymble[bin.getFloatPos()], "call %s ", s->name);
-			 gen_call();
-
-			 if (currFunction) {
-				 //            sprintf(PDBsymble[binpos], "free %d args stack space for function %s", currFunction->nParams, s->name);
-				 //
-				 //            bin[binpos++] = opArray[add_esp_xx].op;
-				 //
-				 //            bin[binpos++] = float(currFunction->nParams);
-
-
-				// gen_call_cleanup(currFunction->nParams);
-			 }
-			 else {
-				 error("[line %d] Error: unexpected function exit\n", linenum);
-			 }
-			 /* remove function address and args */
-
-			 sprintf(PDBsymble[bin.getFloatPos()], "free %d args stack space and 1 ( store function addr to eax )for function %s", currFunction->nParams, s->name);
-			 //bin[binpos++] = opArray[add_esp_xx].op;
-			 bin.writeFloat(opArray[add_esp_xx].op);
-			// bin[binpos++] = float(stack_pos - prev_stack_pos);
-			 bin.writeFloat(float(stack_pos - prev_stack_pos));
-
-			 // gen_pop(stack_pos - prev_stack_pos);
-			 stack_pos = prev_stack_pos;
 		 }
 		 return type;
 	 }
@@ -1596,6 +1661,16 @@ public:
 		 expr(&lls6);
 		 expect(__LINE__, ";");
 	 }
+
+	 void declareApi()
+	 {
+		 struct sym *var = sym_declare(context, "MessageBox", 'A');
+		 var->apiIndex = 0;
+
+		 var = sym_declare(context, "sleep", 'A');
+		 var->apiIndex = 1;
+	 }
+
 	void compile()
 	{
 		genStart();
@@ -1609,7 +1684,7 @@ public:
 		readtok();
 
 		juce::String res;
-		
+		declareApi();
 
 		while (tok[0] != 0) {
 			if (typename_() == 0) {
