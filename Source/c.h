@@ -353,7 +353,7 @@ public:
 				if (_nextc == '\'' || _nextc == '"') {
 					char c = _nextc;
 					readchr(tokpos);
-					while (_nextc != c) {
+					while (_nextc != c && _nextc != -1) {
 						readchr(tokpos);
 					}
 					readchr(tokpos);
@@ -363,8 +363,8 @@ public:
 					if (_nextc == '*') {      // support comments of the form '/**/'
 						_nextc = fgetc();
 						if ('\n' == _nextc) { linenum++; }
-						while (_nextc != '/') {
-							while (_nextc != '*') {
+						while (_nextc != '/' && _nextc != -1) {
+							while (_nextc != '*' && _nextc != -1) {
 								_nextc = fgetc();
 								if ('\n' == _nextc) { linenum++; }
 							}
@@ -376,7 +376,7 @@ public:
 						continue;
 					}
 					else if (_nextc == '/') { // support comments of the form '//'
-						while (_nextc != '\n') {
+						while (_nextc != '\n' &&  _nextc != -1) {
 							_nextc = fgetc();
 							if ('\n' == _nextc) { linenum++; }
 						}
