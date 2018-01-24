@@ -49,7 +49,7 @@ public:
 	virtual void textEditorTextChanged(TextEditor& e) override
 	{
 		stopTimer();
-		startTimer(2000);
+		startTimer(200);
 
 	}
 

@@ -654,8 +654,9 @@ public:
 	void gen_sym(struct sym *sym) {
 		if (sym->type == 'G') {
 			//sym->faddr = (bin.GetPosition()/4)-1;
+			error("how on earth can arrive here? what the sym->faddr");
 		}
-		error("how on earth can arrive here? what the sym->faddr");
+		
 	}
 	 void gen_ret() {
 	
@@ -675,15 +676,15 @@ public:
 
 	 void gen_const(float n) {
 		snprintf(PDBsymble[bin.GetPosition()/4], 512-1, "%f is a constant", n);
-		bin.readFloat(opArray[mov_eax_xxx].op);
-		bin.readFloat(n);
+		bin.writeFloat(opArray[mov_eax_xxx].op);
+		bin.writeFloat(n);
 	}
 
 	 void gen_push() {
 		
 		 stack_pos = stack_pos + 1;
 
-		 bin.readFloat(opArray[push_eax].op);
+		 bin.writeFloat(opArray[push_eax].op);
 	 }
 
 	  void gen_call() {
