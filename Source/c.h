@@ -127,6 +127,13 @@ typedef enum {
 
 #define MAXCODESZ 4096
 
+
+#define TYPE_NUM     0
+
+#define TYPE_INTVAR  2
+#define TYPE_GLOBAL     3
+
+
 static struct sym {
 	char type;
 	char name[MAXTOKSZ];
@@ -162,6 +169,11 @@ public:
 	 int _srcPos;
 	 int _sympos;
 
+	 int ptokpos;
+	 int pnextc;
+	 int ppos;
+	 char ptok[MAXTOKSZ];
+
 	 char PDBsymble[MAXCODESZ][512] ;
 	 char PDBFunctionSymble[MAXCODESZ][512] = { 0 };
 public:
@@ -188,6 +200,10 @@ public:
 		{
 			PDBsymble[i][0] = 0;
 		}
+
+		ptokpos = 0;
+		pnextc = -1;
+		ppos = 0;
 
 	}
 	bool genStart()
@@ -285,6 +301,20 @@ public:
 		}
 	}
 
+
+	int pfgetc()
+	{
+		if (ppos < strlen(_srcbuf))
+		{
+			char c = _srcbuf[ppos];
+			ppos++;
+			return c;
+		}
+		else
+		{
+			return -1;
+		}
+	}
 
 
 	 void error(const char *fmt, ...) {
@@ -445,6 +475,93 @@ public:
 		}
 	}
 
+	void preadchr() {
+		if (ptokpos == MAXTOKSZ - 1) {
+			ptok[ptokpos] = '\0';
+			error("[line %d] Token too long: %s\n", linenum, tok);
+		}
+		ptok[ptokpos++] = pnextc;
+		pnextc = pfgetc();
+
+	}
+
+
+	bool peekToken(char * sToCompare, int apos)
+	{
+		ppos = apos;
+		pnextc = pfgetc();
+		for (;;) {
+			/* skip spaces */
+			while (isspace(pnextc)) {
+				pnextc = pfgetc();
+			}
+			/* try to read a literal token */
+			ptokpos = 0;
+			while (isalnum(pnextc) || pnextc == '_') {
+				preadchr();
+			}
+			/* if it's not a literal token */
+			if (ptokpos == 0) {
+				while (pnextc == '<' || pnextc == '=' || pnextc == '>' || pnextc == '!' || pnextc == '&' || pnextc == '|') {
+					preadchr();
+				}
+			}
+			/* if it's not special chars that looks like an operator */
+			if (ptokpos == 0) {
+				/* try strings and chars inside quotes */
+				if (pnextc == '\'' || pnextc == '"') {
+					char c = pnextc;
+					preadchr();
+					while (pnextc != c) {
+						preadchr();
+					}
+					preadchr();
+				}
+				else if (pnextc == '/') { // skip comments
+					preadchr();
+					if (pnextc == '*') {      // support comments of the form '/**/'
+						pnextc = pfgetc();
+
+						while (pnextc != '/') {
+							while (pnextc != '*') {
+								pnextc = pfgetc();
+
+							}
+							pnextc = pfgetc();
+
+						}
+						pnextc = pfgetc();
+
+						continue;
+					}
+					else if (pnextc == '/') { // support comments of the form '//'
+						while (pnextc != '\n') {
+							pnextc = pfgetc();
+
+						}
+						pnextc = pfgetc();
+
+						continue;
+					}
+				}
+				else if (pnextc != EOF) {
+					/* otherwise it looks like a single-char symbol, like '+', '-' etc */
+					preadchr();
+				}
+			}
+			break;
+		}
+		ptok[ptokpos] = '\0';
+		if (_debug) {
+			printf("peek TOKEN: %s\n", ptok);
+		}
+		if (strcmp(ptok, sToCompare) == 0)
+		{
+			return true;
+		}
+		else
+			return false;
+	}
 
 	int peek(char *s) {
 		return (strcmp(tok, s) == 0);
@@ -547,6 +664,815 @@ public:
 		bin.writeFloat(opArray[ret].op);
 	}
 
+	void gen_pop(int n) {
+		 if (n > 0) {
+			 stack_pos = stack_pos - n;
+			 snprintf(PDBsymble[bin.GetPosition()/4], 512-1, "free local variable stack space for %d space", n);
+			 bin.writeFloat(add_esp_xx);
+			 bin.writeFloat(float(n));
+		 }
+	}
+
+	 void gen_const(float n) {
+		snprintf(PDBsymble[bin.GetPosition()/4], 512-1, "%f is a constant", n);
+		bin.readFloat(opArray[mov_eax_xxx].op);
+		bin.readFloat(n);
+	}
+
+	 void gen_push() {
+		
+		 stack_pos = stack_pos + 1;
+
+		 bin.readFloat(opArray[push_eax].op);
+	 }
+
+	  void gen_call() {
+		 bin.writeFloat(opArray[call_eax].op);
+	 }
+
+
+
+	 void gen_unref(int type) {
+		 if (type == TYPE_INTVAR) {
+			 bin.writeFloat(opArray[mov_eax_addr].op);
+		 }
+		 else  {
+			 error("not implement in gen_unref function!");
+		 }
+	 }
+
+	 void gen_stack_addr(int addr) {
+		 bin.writeFloat(opArray[lea_eax_mesp_xx].op);
+		 bin.writeFloat( float(addr));
+	 }
+
+
+	 void gen_sym_addr(struct sym *sym) {
+		
+		 int n = sym->stackAddr;
+
+		
+
+		 int fn = sym->faddr;
+		 if (sym->type == 'F')
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "function %s addr to eax", sym->name);
+		 }
+		 else if (sym->type == 'G')
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "global %s addr to eax", sym->name);
+		 }
+
+		// bin[binpos++] = opArray[mov_eax_xxx].op;
+		 bin.writeFloat(opArray[mov_eax_xxx].op);
+		// bin[binpos++] = float(fn);
+		 bin.writeFloat(float(fn));
+	 }
+
+
+	 void gen_array(vector<float> & ar) {
+		 int n = ar.size();
+		 for (int i = n - 1; i >= 0; i--)
+		 {
+			 gen_const(ar[i]);
+			 gen_push();
+		 }
+		 gen_stack_addr(0);
+	 }
+	 void gen_array(char *array, int size) {
+		 int i = size;
+		 char *tok = array;
+		
+		 for (; i >= 0; i -= 1) {
+			 gen_const(tok[i]);
+			 gen_push();
+		 }
+		 /* put token address on stack */
+		 gen_stack_addr(0);
+	 }
+
+	 struct sym *sym_find(char *s) {
+		 int i;
+		 struct sym *symbol = NULL;
+
+		 for (i = 0; i < _sympos; i++) {
+			 if (strcmp(sym[i].name, s) == 0) {
+				 symbol = &sym[i];
+			 }
+		 }
+		 return symbol;
+	 }
+
+
+	 int prim_expr(struct sym *as) {
+		 int type = TYPE_NUM;
+
+		 peekToken("what erver", _srcPos - 1);
+
+		 if (isdigit(tok[0])  /*|| tok[0] == '-'*/) {
+			 float n = parse_immediate_value();
+			 gen_const(n);
+
+			 as->value = n;
+			 as->type = 'C';
+			 strcpy(as->name, tok);
+
+		 }
+		 else if (isalpha(tok[0])) {
+			 char symName[MAXTOKSZ];
+			 struct sym *s;
+
+			 strcpy(symName, context);
+			 strcat(symName, "_");
+			 strcat(symName, tok);
+
+
+			 s = sym_find(symName);  // find symbol in local context..
+			 if (s == NULL) {
+				 strcpy(symName, "_");
+				 strcat(symName, tok);
+				 s = sym_find(symName);  // find symbol in global context..
+				 if (s == NULL) {
+					 // symbol not found... this is an error...
+					 error("[line %d] Undeclared symbol: %s\n", linenum, tok);
+				 }
+			 }
+
+			 printf("SYM: %s\n", symName);
+			 if (s->type == 'L') {
+				 // Local Symbol
+				 // *as = *s;
+				 as->faddr = s->faddr;
+				 as->stackAddr = s->stackAddr;
+				 as->type = s->type;
+				 strcpy(as->name, s->name);
+				 sprintf(PDBsymble[bin.getFloatPos()], "%s addr to eax", s->name);
+				 if (s->stackAddr < 0)
+				 {
+					 if (currFunction == nullptr)
+					 {
+						 error("arg cannot compute");
+					 }
+					 int i = -currFunction->nParams;
+					 i = i - 3;
+					 i = i - s->stackAddr;                   // adjuct stack order .
+					 gen_stack_addr(stack_pos - i - 1);
+				 }
+				 else
+					 gen_stack_addr(stack_pos - s->stackAddr - 1);
+				 type = TYPE_INTVAR;
+			 }
+			 else {
+
+				 as->faddr = s->faddr;
+				 as->stackAddr = s->stackAddr;
+				 as->type = s->type;
+
+				 strcpy(as->name, s->name);
+
+
+				 // Other Symbols (Global)
+				 gen_sym_addr(s);
+				 type = TYPE_GLOBAL;
+			 }
+
+		 }
+		 else if (accept("(")) {
+			 struct sym lls;
+			 type = expr(&lls);
+			 expect(__LINE__, ")");
+			 return type;
+		 }
+		 else if (tok[0] == '{')
+		 {
+
+			 if (accept("{"))
+			 {
+				 int arrNum = 0;
+				 vector<float> ar;
+				 for (;;) {
+
+					 char * stop;
+					 float a = strtof(tok, &stop);
+					 if (stop == tok)
+						 error("[line %d] Invalid symbol: %s\n", linenum, tok);
+					 /*gen_const(a);
+					 gen_push();*/
+					 arrNum++;
+					 ar.push_back(a);
+					 readtok();
+					 if (accept("}")) {
+						 gen_array(ar);
+						 as->faddr = 0;
+						 as->stackAddr = 0;
+						 as->type = 'A';  // array
+						 type = TYPE_NUM;
+						 return type;
+					 }
+					 expect(__LINE__, ",");
+				 }
+			 }
+		 }
+		 else if (tok[0] == '"') {
+			 char nameTok[201] = { 0 };
+
+			 strncpy(nameTok, tok, 200);
+
+			 int i, j;
+			 i = 0; j = 1;
+			 while (tok[j] != '"') {
+				 if (tok[j] == '\\' && tok[j + 1] == 'x') {
+					 char s[3] = { tok[j + 2], tok[j + 3], 0 };
+					 uint8_t n = strtol(s, NULL, 16);
+					 tok[i++] = n;
+					 j += 4;
+				 }
+				 else {
+					 tok[i++] = tok[j++];
+				 }
+			 }
+			 tok[i] = 0;
+			 //if (i % 2 == 0) {
+			 //    i++;
+			 //    tok[i] = 0;
+			 //}
+			 gen_array(tok, i);
+			 type = TYPE_NUM;
+
+
+			 as->faddr = 0;
+			 as->stackAddr = 0;
+			 as->type = 'A';  // array
+
+			 strcpy(as->name, "addr of array ");
+			 strcat(as->name, nameTok);
+
+		 }
+
+		 else {
+			 error("[line %d] Unexpected primary expression: %s\n", linenum, tok);
+		 }
+		 readtok();
+		 return type;
+	 }
+
+	 int postfix_expr(struct sym *s) {
+		 int type = prim_expr(s);
+
+		 if (
+			 (type == TYPE_INTVAR || type == TYPE_GLOBAL) && accept("[")) {
+			 if (type == TYPE_INTVAR)
+				 binary(TYPE_INTVAR, &Lan::expr_ex,  s, pop_ebx_add_eax_ebx);
+			 if (type == TYPE_GLOBAL)
+				 binary(TYPE_NUM, &Lan::expr_ex,  s, pop_ebx_add_eax_ebx);
+			 //expr(s);
+			 expect(__LINE__, "]");
+			 type = TYPE_INTVAR;
+		 }
+		 else if (accept("(")) {
+			 int prev_stack_pos = stack_pos;
+			 sprintf(PDBsymble[bin.getFloatPos()], "store function %s addr to stack", s->name);
+			 gen_push(); /* store function address */
+			 int call_addr = stack_pos - 1;
+			 if (accept(")") == 0) {
+				 struct sym lls;
+				 expr(&lls);
+				 int argnum = 1;
+				 sprintf(PDBsymble[bin.getFloatPos()], "arg%d %s to stack", argnum, lls.name);
+				 gen_push();
+				 while (accept(",")) {
+					 struct sym lls2;
+					 expr(&lls2);
+					 argnum++;
+					 sprintf(PDBsymble[bin.getFloatPos()], "arg%d %s to stack", argnum, lls2.name);
+					 gen_push();
+				 }
+				 expect(__LINE__, ")");
+			 }
+			 type = TYPE_NUM;
+
+			 sprintf(PDBsymble[bin.getFloatPos()], "function %s addr to eax", s->name);
+			 gen_stack_addr(stack_pos - call_addr - 1);
+			 gen_unref(TYPE_INTVAR);
+
+			 sprintf(PDBsymble[bin.getFloatPos()], "call %s ", s->name);
+			 gen_call();
+
+			 if (currFunction) {
+				 //            sprintf(PDBsymble[binpos], "free %d args stack space for function %s", currFunction->nParams, s->name);
+				 //
+				 //            bin[binpos++] = opArray[add_esp_xx].op;
+				 //
+				 //            bin[binpos++] = float(currFunction->nParams);
+
+
+				// gen_call_cleanup(currFunction->nParams);
+			 }
+			 else {
+				 error("[line %d] Error: unexpected function exit\n", linenum);
+			 }
+			 /* remove function address and args */
+
+			 sprintf(PDBsymble[bin.getFloatPos()], "free %d args stack space and 1 ( store function addr to eax )for function %s", currFunction->nParams, s->name);
+			 //bin[binpos++] = opArray[add_esp_xx].op;
+			 bin.writeFloat(opArray[add_esp_xx].op);
+			// bin[binpos++] = float(stack_pos - prev_stack_pos);
+			 bin.writeFloat(float(stack_pos - prev_stack_pos));
+
+			 // gen_pop(stack_pos - prev_stack_pos);
+			 stack_pos = prev_stack_pos;
+		 }
+		 return type;
+	 }
+
+
+	 int prefix_expr(struct sym *s)
+	 {
+		 int type;
+
+		 while (peek("-") || peek("~") || peek("!"))
+		 {
+			 if (accept("-"))
+			 {
+				 type = prefix_expr(s);
+				 if (type == TYPE_NUM)
+				 {
+					// bin[binpos++] = opArray[negative_eax].op;
+					 bin.writeFloat(opArray[negative_eax].op);
+				 }
+				 else
+				 {
+					
+					 bin.writeFloat(opArray[mov_eax_ValueAtEax_negative_eax].op);
+				 }
+				 type = TYPE_NUM;
+				 return type;
+			 }
+
+			 else if (accept("~"))
+			 {
+				 type = prefix_expr(s);
+				 if (type == TYPE_NUM)
+				 {					
+					 bin.writeFloat(opArray[bit_negative_eax].op);
+				 }
+				 else
+				 {
+					 bin.writeFloat(opArray[mov_eax_ValueAtEax_bit_negative_eax].op);
+				 }
+				 type = TYPE_NUM;
+				 return type;
+			 }
+			 else if (accept("!"))
+			 {
+				 type = prefix_expr(s);
+				 if (type == TYPE_NUM)
+				 {
+					
+					 bin.writeFloat(opArray[not_eax].op);
+				 }
+				 else
+				 {
+					 bin.writeFloat(opArray[mov_eax_ValueAtEax_not_eax].op);
+				 }
+				 type = TYPE_NUM;
+				 return type;
+			 }
+
+		 }
+		 type = postfix_expr(s);
+
+		 return type;
+	 }
+
+	 int arithmetic_multi_divide_mod_expr(struct sym * s)
+	 {
+		 int type = prefix_expr(s);
+
+		 while (peek("/") || peek("*") || peek("%"))
+		 {
+			 if (accept("/")) { // expression '/'
+				 type = binary(type, &Lan::postfix_expr,   s, pop_ebx_fdiv_ebx_eax);
+			 }
+			 else if (accept("*")) { // expression '*'
+				 type = binary(type, &Lan::postfix_expr,   s, pop_ebx_imul_eax_ebx);
+			 }
+			 else if (accept("%")) { // expression '%'
+				 type = binary(type, &Lan::postfix_expr,  s, pop_ebx_mod_ebx_eax);
+			 }
+		 }
+		 return type;
+	 }
+
+
+	  int add_expr(struct sym *s) {
+		 int type = arithmetic_multi_divide_mod_expr(s);
+		 while (peek("+") || peek("-")) {
+			 if (accept("+")) {
+				 type = binary(type, &Lan::arithmetic_multi_divide_mod_expr,  s, pop_ebx_add_eax_ebx);
+			 }
+			 else if (accept("-")) {
+				 type = binary(type, &Lan::arithmetic_multi_divide_mod_expr,  s, pop_ebx_sub_ebx_eax);
+			 }
+		 }
+		 return type;
+	 }
+	  int shift_expr(struct sym *s) {
+		 int type = add_expr(s);
+		 while (peek("<<") || peek(">>")) {
+			 if (accept("<<")) {
+				 type = binary(type, &Lan::add_expr, s, pop_ebx_shl_ebx_eax);   // 1
+			 }
+			 else if (accept(">>")) {
+				 type = binary(type, &Lan::add_expr,   s, pop_ebx_shr_ebx_eax);   //2
+			 }
+		 }
+		 return type;
+	 }
+
+	  int rel_expr(struct sym *s) {
+		 int type = shift_expr(s);
+		 while (peek("<")) {
+			 if (accept("<")) {
+				 type = binary(type, &Lan::shift_expr,   s, pop_ebx_ebx_less_than_ebx);
+			 }
+		 }
+
+		 while (peek(">")) {
+			 if (accept(">")) {
+				 type = binary(type, &Lan::shift_expr,   s, pop_ebx_ebx_greate_than_ebx);
+			 }
+		 }
+
+		 while (peek(">=") || peek("<=")) {
+			 if (accept(">=")) {
+				 type = binary(type, &Lan::rel_expr,   s, pop_ebx_ebx_greate_EQUAL_than_ebx);
+			 }
+			 else if (accept("<=")) {
+				 type = binary(type, &Lan::rel_expr,   s, pop_ebx_ebx_less_EQUAL_than_ebx);
+			 }
+		 }
+		 return type;
+	 }
+
+	 int eq_expr(struct sym *s) {
+		 int type = rel_expr(s);
+		 while (peek("==") || peek("!=")) {
+			 if (accept("==")) {
+				 type = binary(type, &Lan::rel_expr, s, pop_ebx_equal_eax_ebx);
+			 }
+			 else if (accept("!=")) {
+				 type = binary(type, &Lan::rel_expr, s, pop_ebx_not_equal_eax_ebx);
+			 }
+		 }
+		 return type;
+	 }
+
+
+	 int bitwise_expr(struct sym * s) {
+		 int type = eq_expr(s);
+
+		 while (peek("|") || peek("&") || peek("^") /*|| peek("/") || peek("*") || peek("%")*/) {
+			 if (accept("|")) {        // expression '|'
+				 type = binary(type, &Lan::eq_expr,   s, pop_ebx_bit_or_ebx_eax);  // 3
+			 }
+			 else if (accept("&")) { // expression '&'
+				 type = binary(type, &Lan::eq_expr,   s, pop_ebx_bit_and_ebx_eax); // 4
+			 }
+			 else if (accept("^")) { // expression '^'
+				 type = binary(type, &Lan::eq_expr,   s, pop_ebx_bit_xor_ebx_eax); // 5
+			 }
+		 }
+		 return type;
+	 }
+
+	// typedef int (Lan::*pClassFun)(struct sym * s);
+
+	 int binary(int type, int(Lan::*f)(struct sym * s)/*pClassFun f*/,   struct sym *s, int binaryOp = -1) {
+		 if (type != TYPE_NUM) {
+
+			 gen_unref(type);
+		 }
+
+		 sprintf(PDBsymble[bin.getFloatPos()], "push %s to stack", s->name);
+
+		 gen_push();
+
+
+		 struct sym lss;
+		 type = (this->*f)(&lss);
+
+		 if (type != TYPE_NUM) {
+			 sprintf(PDBsymble[bin.getFloatPos()], "%s value to eax", lss.name);
+			 gen_unref(type);
+		 }
+
+		 if (binaryOp == pop_ebx_imul_eax_ebx)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s * %s ", s->name, lss.name, s->name);
+
+			// bin[binpos++] = pop_ebx_imul_eax_ebx;
+			 bin.writeFloat(pop_ebx_imul_eax_ebx);
+			 strcat(s->name, "*");
+			 strcat(s->name, lss.name);
+		 }
+		 else if (binaryOp == pop_ebx_fdiv_ebx_eax)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s / %s ", s->name, s->name, lss.name);
+
+			// bin[binpos++] = pop_ebx_fdiv_ebx_eax;
+			 bin.writeFloat(pop_ebx_fdiv_ebx_eax);
+			 strcat(s->name, "/");
+			 strcat(s->name, lss.name);
+		 }
+		 else if (binaryOp == pop_ebx_mod_ebx_eax)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s % %s ", s->name, s->name, lss.name);
+
+			// bin[binpos++] = pop_ebx_mod_ebx_eax;
+			 bin.writeFloat(pop_ebx_mod_ebx_eax);
+			 strcat(s->name, "%");
+			 strcat(s->name, lss.name);
+		 }
+		 else if (binaryOp == pop_ebx_logic_and_ebx_eax)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s && %s ", s->name, s->name, lss.name);
+
+			// bin[binpos++] = pop_ebx_logic_and_ebx_eax;
+			 bin.writeFloat(pop_ebx_logic_and_ebx_eax);
+			 strcat(s->name, "&&");
+			 strcat(s->name, lss.name);
+		 }
+		 else if (binaryOp == pop_ebx_logic_or_ebx_eax)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s || %s ", s->name, s->name, lss.name);
+
+			// bin[binpos++] = pop_ebx_logic_or_ebx_eax;
+			 bin.writeFloat(pop_ebx_logic_or_ebx_eax);
+			 strcat(s->name, "||");
+			 strcat(s->name, lss.name);
+		 }
+		 else if (binaryOp == pop_ebx_bit_and_ebx_eax)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s & %s ", s->name, s->name, lss.name);
+
+			// bin[binpos++] = pop_ebx_bit_and_ebx_eax;
+			 bin.writeFloat(pop_ebx_bit_and_ebx_eax);
+
+			 strcat(s->name, "&");
+			 strcat(s->name, lss.name);
+		 }
+		 else if (binaryOp == pop_ebx_bit_or_ebx_eax)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s | %s ", s->name, s->name, lss.name);
+
+			// bin[binpos++] = pop_ebx_bit_or_ebx_eax;
+			 bin.writeFloat(pop_ebx_bit_or_ebx_eax);
+			 strcat(s->name, "|");
+			 strcat(s->name, lss.name);
+		 }
+		 else if (binaryOp == pop_ebx_bit_xor_ebx_eax)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s xor %s ", s->name, s->name, lss.name);
+
+			// bin[binpos++] = pop_ebx_bit_xor_ebx_eax;
+			 bin.writeFloat(pop_ebx_bit_xor_ebx_eax);
+			 strcat(s->name, "xor");
+			 strcat(s->name, lss.name);
+		 }
+		 else if (binaryOp == pop_ebx_shl_ebx_eax)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s shl %s ", s->name, s->name, lss.name);
+
+			// bin[binpos++] = pop_ebx_shl_ebx_eax;
+			 bin.writeFloat(pop_ebx_shl_ebx_eax);
+			 strcat(s->name, "shl");
+			 strcat(s->name, lss.name);
+		 }
+		 else if (binaryOp == pop_ebx_shr_ebx_eax)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s shr %s ", s->name, s->name, lss.name);
+
+		//	 bin[binpos++] = pop_ebx_shr_ebx_eax;
+			 bin.writeFloat(pop_ebx_shr_ebx_eax);
+			 strcat(s->name, "shr");
+			 strcat(s->name, lss.name);
+		 }
+
+		 else if (binaryOp == pop_ebx_add_eax_ebx)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s + %s ", s->name, lss.name, s->name);
+
+			// bin[binpos++] = pop_ebx_add_eax_ebx;
+			 bin.writeFloat(pop_ebx_add_eax_ebx);
+			 strcat(s->name, "+");
+			 strcat(s->name, lss.name);
+		 }
+		 else if (binaryOp == pop_ebx_sub_ebx_eax)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s - %s ", s->name, lss.name, s->name);
+
+		//	 bin[binpos++] = pop_ebx_sub_ebx_eax;
+			 bin.writeFloat(pop_ebx_sub_ebx_eax);
+			 strcat(s->name, "-");
+			 strcat(s->name, lss.name);
+		 }
+
+		 else if (binaryOp == pop_ebx_equal_eax_ebx)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s == %s ", s->name, lss.name, s->name);
+
+		//	 bin[binpos++] = pop_ebx_equal_eax_ebx;
+			 bin.writeFloat(pop_ebx_equal_eax_ebx);
+			 strcat(s->name, " == ");
+			 strcat(s->name, lss.name);
+		 }
+
+
+		 else if (binaryOp == pop_ebx_not_equal_eax_ebx)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s != %s ", s->name, lss.name, s->name);
+
+			// bin[binpos++] = pop_ebx_not_equal_eax_ebx;
+			 bin.writeFloat(pop_ebx_not_equal_eax_ebx);
+			 strcat(s->name, " != ");
+			 strcat(s->name, lss.name);
+		 }
+		 else if (binaryOp == pop_ebx_ebx_less_than_ebx)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s < %s ", s->name, lss.name, s->name);
+
+			// bin[binpos++] = pop_ebx_ebx_less_than_ebx;
+			 bin.writeFloat(pop_ebx_ebx_less_than_ebx);
+			 strcat(s->name, " < ");
+			 strcat(s->name, lss.name);
+		 }
+		 else if (binaryOp == pop_ebx_ebx_greate_than_ebx)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s > %s ", s->name, lss.name, s->name);
+
+			// bin[binpos++] = pop_ebx_ebx_greate_than_ebx;
+			 bin.writeFloat(pop_ebx_ebx_greate_than_ebx);
+			 strcat(s->name, " > ");
+			 strcat(s->name, lss.name);
+		 }
+		 else if (binaryOp == pop_ebx_ebx_greate_EQUAL_than_ebx)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s >= %s ", s->name, lss.name, s->name);
+
+			// bin[binpos++] = pop_ebx_ebx_greate_EQUAL_than_ebx;
+			 bin.writeFloat(pop_ebx_ebx_greate_EQUAL_than_ebx);
+			 strcat(s->name, " >= ");
+			 strcat(s->name, lss.name);
+		 }
+		 else if (binaryOp == pop_ebx_ebx_less_EQUAL_than_ebx)
+		 {
+			 sprintf(PDBsymble[bin.getFloatPos()], "pop %s to ebx,  eax = %s >= %s ", s->name, lss.name, s->name);
+
+			// bin[binpos++] = pop_ebx_ebx_less_EQUAL_than_ebx;
+			 bin.writeFloat(pop_ebx_ebx_less_EQUAL_than_ebx);
+			 strcat(s->name, " <= ");
+			 strcat(s->name, lss.name);
+		 }
+		 else
+		 {
+			 error(" %s not implement, the stack can not balence in function binary\n");
+		 }
+		 
+		 stack_pos = stack_pos - 1; /* assume that buffer contains a "pop" */
+		 return TYPE_NUM;
+	 }
+
+	 int logic_expr(struct sym * s) {
+		 int type = bitwise_expr(s);
+
+		 while (peek("||") || peek("&&")  /*|| peek("/") || peek("*") || peek("%")*/) {
+			 if (accept("||")) {        // expression '|'
+				 type = binary(type, &Lan::bitwise_expr,   s, pop_ebx_logic_or_ebx_eax);  // 6
+			 }
+			 else if (accept("&&")) { // expression '&'
+				 type = binary(type, &Lan::bitwise_expr,  s, pop_ebx_logic_and_ebx_eax);  // 7
+			 }
+
+		 }
+		 return type;
+	 }
+
+	 int expr_ex(struct sym * as) {
+
+		 if (as == nullptr)
+		 {
+			 error(" expr s is null\n");
+		 }
+
+		 int type = logic_expr(as);
+		 if (type != TYPE_NUM)
+		 {
+			 //if(accept)
+			 //int a = 2;
+			 //if (peek("]") && peekToken("=", spos - 1))
+			 //{
+				// a = 3;
+			 //}
+			 if (accept("="))
+			 {
+				 printf("HERE 1=\n");
+				 if (as->faddr != 0)
+				 {
+					 sprintf(PDBsymble[bin.getFloatPos()], "push %s's addr to stack", as->name);
+				 }
+				 gen_push();
+				 struct sym lls;
+				 expr(&lls);
+				 if (type == TYPE_INTVAR)
+				 {
+					 if (as->faddr != 0)
+					 {
+						 sprintf(PDBsymble[bin.getFloatPos()], "assign value %s to %s", lls.name, as->name);
+					 }
+					
+				//	 bin[binpos++] = opArray[pop_ebx_mov_mebx_eax].op;
+					 bin.writeFloat(opArray[pop_ebx_mov_mebx_eax].op);
+
+				 }
+				 else
+				 {
+					 error("can not arrive here in expr_ex function");
+
+
+				 }
+				 stack_pos = stack_pos - 1; // assume ASSIGN contains pop
+				 type = TYPE_NUM;
+			 }
+			 else
+			 {
+				 if (as->faddr != 0)
+				 {
+					 sprintf(PDBsymble[bin.getFloatPos()], "%s value to eax", as->name);
+				 }
+				 //gen_unref(type);
+			 }
+		 }
+		 return type;
+	 }
+
+
+
+	 int expr(struct sym * as) {
+
+		 if (as == nullptr)
+		 {
+			 error(" expr s is null\n");
+		 }
+
+		 int type = logic_expr(as);
+		 if (type != TYPE_NUM)
+		 {
+			 //if(accept)
+			 //int a = 2;
+			 //if (peek("]") && peekToken("=", spos - 1))
+			 //{
+			 //    a = 3;
+			 //}
+			 if (accept("="))
+			 {
+				 printf("HERE 1=\n");
+				 if (as->faddr != 0)
+				 {
+					 sprintf(PDBsymble[bin.GetPosition()/4], "push %s's addr to stack", as->name);
+				 }
+				 gen_push();
+				 struct sym lls;
+				 expr(&lls);
+				 if (type == TYPE_INTVAR)
+				 {
+					 if (as->faddr != 0)
+					 {
+						 sprintf(PDBsymble[bin.GetPosition()/4], "assign value %s to %s", lls.name, as->name);
+					 }
+					
+					 bin.writeFloat(opArray[pop_ebx_mov_mebx_eax].op);
+					
+
+				 }
+				 else
+				 {
+					 error("can not arrive here in expr function");
+				 }
+				 stack_pos = stack_pos - 1; // assume ASSIGN contains pop
+				 type = TYPE_NUM;
+			 }
+			 else
+			 {
+				 if (as->faddr != 0)
+				 {
+					 sprintf(PDBsymble[bin.GetPosition()/4], "%s value to eax", as->name);
+				 }
+				 gen_unref(type);
+			 }
+		 }
+		 return type;
+	 }
 
 
 
@@ -560,14 +1486,13 @@ public:
 			 gen_pop(stack_pos - prev_stack_pos);
 			 stack_pos = prev_stack_pos;
 			 strcpy(context, "");
-
 			 return;
 		 }
 		 if (typename_()) {
 			 struct sym *var = sym_declare(context, tok, 'L', stack_pos);
 			 printf("GENERATE_VAR %s_%s\n", context, tok);
 		
-			 if (peekToken("[", spos - 1))   // int a[10];
+			 if (peekToken("[", _srcPos - 1))   // int a[10];
 			 {
 				 readtok();
 				 if (accept("["))
@@ -596,16 +1521,16 @@ public:
 					 }
 					 readtok();
 					 expect(__LINE__, "]");
-					 var->faddr = binpos;
-					 var->addr = stack_pos - nItem;
+					 var->faddr = bin.GetPosition()/4;
+					 var->stackAddr = stack_pos - nItem;
 
 				 }
 			 }
 			 else  // can not be a = {0 0 0 } , because i only in initialize an array and
 			 {
-				 var->faddr = binpos;
+				 var->faddr = bin.GetPosition() / 4;
 
-				 sprintf(PDBsymble[binpos], "alloc %s   on stack, stack_pos : %d", var->name, var->addr);
+				 sprintf(PDBsymble[bin.GetPosition() / 4], "alloc %s   on stack, stack_pos : %d", var->name, var->stackAddr);
 				 readtok();
 				 if (accept("="))
 				 {
@@ -613,7 +1538,7 @@ public:
 					 expr(&lls);   // int a = b ....
 				 }
 				 gen_push();
-				 var->addr = stack_pos - 1;
+				 var->stackAddr = stack_pos - 1;
 
 			 }
 			 expect(__LINE__, ";");
@@ -624,22 +1549,24 @@ public:
 			 expect(__LINE__, "(");
 			 struct sym lls3;
 			 expr(&lls3);
-			 emit(GEN_JZ, GEN_JZSZ);
+		
 
 
-			 sprintf(PDBsymble[binpos], "if eax == 0  then jump to begin of else block");
-			 bin[binpos++] = opArray[jz].op;
-			 bin[binpos++] = float(-1);
+			 sprintf(PDBsymble[bin.GetPosition()/4], "if eax == 0  then jump to begin of else block");
+		
+			 bin.writeFloat(opArray[jz].op);
+			
+			 bin.writeFloat(-1.0);
 
-			 int patch_if_jz = binpos - 1;
+			 int patch_if_jz = bin.GetPosition()/4 - 1;
 
 
-			 int p1 = codepos;
+			 int p1 = bin.GetPosition()/4;
 			 expect(__LINE__, ")");
 			 int prev_stack_pos = stack_pos;
 
 			 //statement();
-			 sprintf(PDBsymble[binpos], "begin of if block");
+			 sprintf(PDBsymble[bin.GetPosition() / 4], "begin of if block");
 			 if (accept("{")) {
 				 while (accept("}") == 0) {
 					 statement();
@@ -651,22 +1578,23 @@ public:
 			 }
 
 
-			 emit(GEN_JMP, GEN_JMPSZ);
-			 int p2 = codepos;
-			 gen_patch(code + p1, codepos);
+			  
+			 int p2 = bin.GetPosition() / 4;
+			   
+			 sprintf(PDBsymble[bin.GetPosition() / 4], "end of if block, jump to else block end");
+			 
+			 bin.writeFloat(opArray[jmp].op);
+			 bin.writeFloat(float(-1));
+			 int patch_esle_block_end = bin.GetPosition() / 4 - 1;
+			// bin[patch_if_jz] = binpos;
 
-
-			 sprintf(PDBsymble[binpos], "end of if block, jump to else block end");
-			 bin[binpos++] = opArray[jmp].op;
-			 bin[binpos++] = float(-1);
-			 int patch_esle_block_end = binpos - 1;
-			 bin[patch_if_jz] = binpos;
-
-
+			 bin.writeFloatInPos(bin.GetPosition() / 4, patch_if_jz);
+			 *((float*)bin.GetMemory() + patch_if_jz) = bin.GetPosition()/4;
+			
 
 			 if (accept("else")) {
 				 stack_pos = prev_stack_pos;  // the local var alloc in if {} block will not keep .
-				 sprintf(PDBsymble[binpos], "begin of else block");
+				 sprintf(PDBsymble[bin.GetPosition() / 4], "begin of else block");
 				 if (accept("{")) {
 					 while (accept("}") == 0) {
 						 statement();
@@ -681,30 +1609,32 @@ public:
 
 
 			 stack_pos = prev_stack_pos;   // the local var alloc in if {}  or  else {} block will not keep .
-			 gen_patch(code + p2, codepos);
-			 bin[patch_esle_block_end] = binpos;
+			 
+			// bin[patch_esle_block_end] = bin.GetPosition() / 4;
+			 bin.writeFloatInPos(bin.GetPosition() / 4, patch_esle_block_end);
 			 return;
 		 }
 		 if (accept("while")) {
 			 expect(__LINE__, "(");
-			 int p1 = codepos;
-			 float jmp_from_while_end = binpos;
+			 int p1 = bin.GetPosition() / 4;
+			 float jmp_from_while_end = bin.GetPosition() / 4;
 
-			 gen_loop_start();
+			
 			 struct sym lls4;
 			 expr(&lls4);
-			 emit(GEN_JZ, GEN_JZSZ);
+			
 
 
 
 
-			 sprintf(PDBsymble[binpos], "while eval to false , then jmp");
+			 sprintf(PDBsymble[bin.GetPosition() / 4], "while eval to false , then jmp");
+			 
+			 bin.writeFloat(opArray[jz].op);
+			
+			 bin.writeFloat(-1);
+			 int here_need_jmp_to_while_end = bin.GetPosition() / 4 - 1;
 
-			 bin[binpos++] = opArray[jz].op;
-			 bin[binpos++] = float(-1);
-			 int here_need_jmp_to_while_end = binpos - 1;
-
-			 int p2 = codepos;
+			 int p2 = bin.GetPosition() / 4;
 
 
 			 expect(__LINE__, ")");
@@ -725,16 +1655,19 @@ public:
 
 			 stack_pos = prev_stack_pos;
 
-			 emit(GEN_JMP, GEN_JMPSZ);
+			 
 
-			 sprintf(PDBsymble[binpos], "jump to start of while");
-			 bin[binpos++] = opArray[jmp].op;
-			 bin[binpos++] = jmp_from_while_end;
+			 sprintf(PDBsymble[bin.GetPosition() / 4], "jump to start of while");
 
-			 gen_patch(code + codepos, p1);
-			 gen_patch(code + p2, codepos);
+			 bin.writeFloat(opArray[jmp].op);
+			
+			 bin.writeFloat(jmp_from_while_end);
+			 //gen_patch(code + bin.GetPosition() / 4, p1);
+			
+			// gen_patch(code + p2, bin.GetPosition() / 4);
 
-			 bin[here_need_jmp_to_while_end] = binpos;
+			// bin[here_need_jmp_to_while_end] = binpos;
+			 bin.writeFloatInPos(bin.GetPosition() / 4, here_need_jmp_to_while_end);
 			 return;
 		 }
 		 if (accept("return")) {
@@ -747,12 +1680,7 @@ public:
 			 lastIsReturn = 1;
 			 if (currFunction == nullptr)
 				 error("why there is ret when no funtion");
-			 //else if (strcmp("_main", currFunction->name) == 0)
-			 //{
-			 //    gen_halt();
-			 //}
-			 //else
-			 gen_ret(numPreambleVars);
+			 gen_ret();
 			 return;
 		 }
 		 // we should process an expression...

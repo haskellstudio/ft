@@ -250,6 +250,16 @@ public:
 	{
 		return ReadBuffer(&a, 4);
 	}
+
+	void writeFloatInPos(float a, int pos)
+	{
+		*((float*)GetMemory() + pos) = a;
+	}
+
+	int getFloatPos()
+	{
+		return GetPosition() / sizeof(float);
+	}
 };
 
 
