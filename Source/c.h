@@ -601,7 +601,7 @@ public:
 
 
 	 void gen_unref(int type) {
-		 if (type == TYPE_INTVAR) {
+		 if (type == TYPE_INTVAR || type == TYPE_GLOBAL) {
 			 bin.writeFloat(opArray[mov_eax_addr].op);
 		 }
 		 else  {
