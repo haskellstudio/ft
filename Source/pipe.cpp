@@ -56,10 +56,13 @@ pipe::pipe ()
 	addAndMakeVisible(advancedDock);
 
 	advancedDock.addComponentToNewRow(pshaderSource = new shaderSource(_tree), 0);
-	advancedDock.addComponentToDock(pfragmentShader = new fragmentShader(_tree), 0);
+	advancedDock.addComponentToNewRow(pfragmentShader  = new fragmentShader (_tree), 1);
 
-	advancedDock.addComponentToNewRow(pcode = new code(_tree), 1);
-	advancedDock.addComponentToDock(pasm_ = new asm_(_tree), 1);
+
+	advancedDock.addComponentToDock(pasm_ = new asm_(_tree), 0);
+
+
+	advancedDock.addComponentToDock(pcode = new code(_tree), 1);
 
 	//advancedDock.addComponentToNewRow(new fragmentShader(), 2);
 

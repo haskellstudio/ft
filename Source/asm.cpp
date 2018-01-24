@@ -61,7 +61,8 @@ asm_::asm_ (juce::ValueTree& tree)
 	_asmOpCodeTree = tree.getOrCreateChildWithName("property_asmOpCode", nullptr);
 	_asmOpCodeTree.addListener(this);
 
-	
+
+	textEditor->addListener(this);
     //[/Constructor]
 }
 
@@ -116,7 +117,7 @@ void asm_::resized()
 
 BEGIN_JUCER_METADATA
 
-<JUCER_COMPONENT documentType="Component" className="asm_" componentName="" parentClasses="public Component, public juce::ValueTree::Listener"
+<JUCER_COMPONENT documentType="Component" className="asm_" componentName="" parentClasses="public Component, public juce::ValueTree::Listener, TextEditor::Listener"
                  constructorParams="juce::ValueTree&amp; tree" variableInitialisers="_tree(tree)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
                  fixedSize="0" initialWidth="600" initialHeight="400">

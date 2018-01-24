@@ -20,15 +20,14 @@
 //[Headers] You can add your own extra header files here...
 //[/Headers]
 
-#include "code.h"
+#include "vmComTest.h"
 
 
 //[MiscUserDefs] You can add your own user definitions and misc code here...
 //[/MiscUserDefs]
 
 //==============================================================================
-code::code (juce::ValueTree& tree)
-    : _tree(tree)
+vmComTest::vmComTest ()
 {
     //[Constructor_pre] You can add your own custom stuff here..
     //[/Constructor_pre]
@@ -40,10 +39,7 @@ code::code (juce::ValueTree& tree)
     textEditor->setScrollbarsShown (true);
     textEditor->setCaretVisible (true);
     textEditor->setPopupMenuEnabled (true);
-    textEditor->setText (TRANS("int main()\n"
-    "{\n"
-    "   return 1+1;\n"
-    "}"));
+    textEditor->setText (String());
 
 
     //[UserPreSize]
@@ -53,17 +49,10 @@ code::code (juce::ValueTree& tree)
 
 
     //[Constructor] You can add your own custom stuff here..
-	Component::setName("code");
-
-
-	_cSourceTree = tree.getOrCreateChildWithName("cSource", nullptr);
-
-	textEditor->addListener(this);
-
     //[/Constructor]
 }
 
-code::~code()
+vmComTest::~vmComTest()
 {
     //[Destructor_pre]. You can add your own custom destruction code here..
     //[/Destructor_pre]
@@ -76,7 +65,7 @@ code::~code()
 }
 
 //==============================================================================
-void code::paint (Graphics& g)
+void vmComTest::paint (Graphics& g)
 {
     //[UserPrePaint] Add your own custom painting code here..
     //[/UserPrePaint]
@@ -87,18 +76,15 @@ void code::paint (Graphics& g)
     //[/UserPaint]
 }
 
-void code::resized()
+void vmComTest::resized()
 {
     //[UserPreResize] Add your own custom resize code here..
     //[/UserPreResize]
 
-    textEditor->setBounds (40, 8, 280, 264);
+    textEditor->setBounds (88, 88, 240, 264);
     //[UserResized] Add your own custom resize handling here..
-
-    auto area = getLocalBounds();
-	textEditor->setBounds(area.reduced(4));
-
-
+	auto area = getLocalBounds();
+	textEditor->setBounds(area);
     //[/UserResized]
 }
 
@@ -117,13 +103,14 @@ void code::resized()
 
 BEGIN_JUCER_METADATA
 
-<JUCER_COMPONENT documentType="Component" className="code" componentName="" parentClasses="public Component, public TextEditor::Listener, private Timer"
-                 constructorParams="juce::ValueTree&amp; tree" variableInitialisers="_tree(tree)"
-                 snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
-                 fixedSize="0" initialWidth="600" initialHeight="400">
+<JUCER_COMPONENT documentType="Component" className="vmComTest" componentName=""
+                 parentClasses="public Component, public TextEditor::Listener"
+                 constructorParams="" variableInitialisers="" snapPixels="8" snapActive="1"
+                 snapShown="1" overlayOpacity="0.330" fixedSize="0" initialWidth="600"
+                 initialHeight="400">
   <BACKGROUND backgroundColour="ff323e44"/>
-  <TEXTEDITOR name="new text editor" id="40a926f4a47423e9" memberName="textEditor"
-              virtualName="" explicitFocusOrder="0" pos="40 8 280 264" initialText="int main()&#10;{&#10;   return 1+1;&#10;}"
+  <TEXTEDITOR name="new text editor" id="4cf4e4fa82b23402" memberName="textEditor"
+              virtualName="" explicitFocusOrder="0" pos="88 88 240 264" initialText=""
               multiline="1" retKeyStartsLine="1" readonly="0" scrollbars="1"
               caret="1" popupmenu="1"/>
 </JUCER_COMPONENT>

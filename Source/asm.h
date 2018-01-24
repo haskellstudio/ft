@@ -21,6 +21,9 @@
 
 //[Headers]     -- You can add your own extra header files here --
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "vm.h"
+
+extern void msg(juce::String s);
 //[/Headers]
 
 
@@ -34,7 +37,8 @@
                                                                     //[/Comments]
 */
 class asm_  : public Component,
-              public juce::ValueTree::Listener
+              public juce::ValueTree::Listener,
+              TextEditor::Listener
 {
 public:
     //==============================================================================
@@ -45,6 +49,23 @@ public:
     //[UserMethods]     -- You can add your own custom methods in this section.
 
 
+	
+	virtual void textEditorEscapeKeyPressed  (TextEditor&) override
+	{
+		//msg("esc is press");
+		//int size = opCode.size();
+		//float * byteFloat = new float[size];
+
+		//for (int i = 0; i < size; i++)
+		//{
+		//	byteFloat[i] = opCode[i];
+		//}
+		//opCode.getRawDataPointer();
+
+		float  r = vm(opCode.getRawDataPointer());
+		msg("return value is " + String(r));
+	//	delete byteFloat;
+	}
 
 
 	void valueTreePropertyChanged(juce::ValueTree &treeWhosePropertyHasChanged, const juce::Identifier &_property) override
@@ -53,13 +74,13 @@ public:
 		static String opArrayStr;
 		static String compileReslutStr;
 		static bool bCompileSuccess = false;
-	
+
 		if (_asmStrCodeTree == treeWhosePropertyHasChanged)
 		{
 			if (_asmStrCodeTree.hasProperty("property_asmStrCode") && _property == juce::Identifier("property_asmStrCode"))
 			{
 				asmStr = _asmStrCodeTree.getProperty("property_asmStrCode");
-				
+
 				//AlertWindow::showMessageBox(juce::AlertWindow::AlertIconType::InfoIcon, "source txt", _cSourceTree.getProperty("cSource"));
 			}
 		}
@@ -71,36 +92,41 @@ public:
 				opArrayStr = "\nopcode:\n";
 				var v = _asmOpCodeTree.getProperty("property_asmOpCode");
 			//	textEditor->moveCaretToEndOfLine(true);
+				opCode.clear();
 
-				
 				auto a = v.getArray();
 				if (a)
 				{
 					for (auto &i : *a)
 					{
+						opCode.add(i);
 						opArrayStr = opArrayStr + i.toString() + "\n";
-			
+
 					}
 				}
+
+
+
+
 			}
 			else if (_asmOpCodeTree.hasProperty("property_compileReslutString") && _property == juce::Identifier("property_compileReslutString"))
 			{
 				var v = _asmOpCodeTree.getProperty("property_compileReslutString");
 				compileReslutStr = v.toString();
-	
+
 			}
 			else if (_asmOpCodeTree.hasProperty("property_compileResultBool") && _property == juce::Identifier("property_compileResultBool"))
 			{
 				var v = _asmOpCodeTree.getProperty("property_compileResultBool");
 				bCompileSuccess = v;
-	
+
 			}
 
 		}
 
 		String r = asmStr + "\n" + opArrayStr + compileReslutStr + "\ncompiler return: "+ String(bCompileSuccess);
 		textEditor->setText(r);
-		
+
 	}
 
 
@@ -127,7 +153,7 @@ private:
 	juce::ValueTree _tree;
 	juce::ValueTree _asmStrCodeTree;
 	juce::ValueTree _asmOpCodeTree;
-
+	juce::Array<float> opCode;
 
     //[/UserVariables]
 

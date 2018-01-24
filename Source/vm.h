@@ -1,259 +1,277 @@
 
-
-#ifndef vm_h
-#define vm_h
-
+#pragma once
+#include "../JuceLibraryCode/JuceHeader.h"
+#include "asmType.h"
 #include <stdio.h>
 
+extern OP opArray[39];
 
 
-#define DEFAULT_STACK_SIZE      1000
+const int stackSize = 1024;
 
-typedef enum {
-    NOOP    = 0,
-    IADD    = 1,   // int add
-    ISUB    = 2,
-    IMUL    = 3,
-    ILT     = 4,   // int less than
-    IEQ     = 5,   // int equal
-    BR      = 6,   // branch
-    BRT     = 7,   // branch if true
-    BRF     = 8,   // branch if true
-    ICONST  = 9,   // push constant integer
-    LOAD    = 10,  // load from local context
-    GLOAD   = 11,  // load from global memory
-    STORE   = 12,  // store in local context
-    GSTORE  = 13,  // store in global memory
-    PRINT   = 14,  // print stack top
-    POP     = 15,  // throw away top of stack
-    CALL    = 16,  // call function at address with nargs,nlocals
-    RET     = 17,  // return value from function
-    HALT    = 18
-} VM_CODE;
-
-
-typedef struct {
-    char name[8];
-    int nargs;
-} VM_INSTRUCTION;
-
-
-
-static VM_INSTRUCTION vm_instructions[] = {
-    { "noop",   0 },    // 0
-    { "iadd",   0 },    // 1
-    { "isub",   0 },    // 2
-    { "imul",   0 },    // 3
-    { "ilt",    0 },    // 4
-    { "ieq",    0 },    // 5
-    { "br",     1 },    // 7
-    { "brt",    1 },    // 8
-    { "brf",    1 },    // 9
-    { "iconst", 1 },    // 10
-    { "load",   1 },
-    { "gload",  1 },
-    { "store",  1 },
-    { "gstore", 1 },
-    { "print",  0 },
-    { "pop",    0 },
-    { "call",   3 },
-    { "ret",    0 },
-    { "halt",   0 }
-};
-
-
-
-
-
-
-typedef struct {
-    int stack[1024];      //.stack
-
-    int ip;
-    int sp ;
-    int fp;
-
-    int startIp;
-
-    int  *code;             //.text
-    int code_size;
-
-    int globals[512];      // .data
-    int nglobals ;
-} VM;
-
-void  vm_create(VM* vm, int *code, int code_size, int nglobals, int startIp)
+inline void printstatus(float eax, float ebx, int esp, int pc, float stack[])
 {
-    vm->code = code;
-    vm->code_size = code_size;
-
-    vm->nglobals = nglobals;
-
-    vm->startIp = startIp;
-    vm->ip = startIp;
-
-    vm->fp = -1;
-    vm->sp = -1;
+	
+	DBG("eax = "<< eax <<"\nebx = "<<ebx<<"\nesp = "<< esp << "\neip = "<< pc);
+	DBG("stack begin:");
+	for (int i = esp; i < stackSize; i++)
+	{
+		DBG(i << "       "<<stack[i] );
+	}
+	DBG("stack end: \n\n");
+	DBG(".");
+	DBG(".");
+	DBG(".");
+	DBG(".");
 }
 
 
-
-
-
-
-void vm_print_instr(int *code, int ip)
+inline float vm(float bytecode[])
 {
-    int opcode = code[ip];
-    VM_INSTRUCTION *inst = &vm_instructions[opcode];
-    switch (inst->nargs) {
-        case 0:
-            printf("%04d:  %-20s", ip, inst->name);
-            break;
-        case 1:
-            printf("%04d:  %-10s%-10d", ip, inst->name, code[ip + 1]);
-            break;
-        case 2:
-            printf("%04d:  %-10s%d,%10d", ip, inst->name, code[ip + 1], code[ip + 2]);
-            break;
-        case 3:
-            printf("%04d:  %-10s%d,%d,%-6d", ip, inst->name, code[ip + 1], code[ip + 2], code[ip + 3]);
-            break;
-    }
+	float stack[stackSize];
+	int codeSize = bytecode[0];
+
+	int pc = 0;
+	int esp = stackSize; // no value
+	int op = 0;
+	float eax = 0;
+	float ebx = 0;
+
+
+	for (pc = 1; pc < codeSize; )
+	{
+		printstatus(eax, ebx, esp, pc, stack);
+		op = bytecode[pc++];
+		// int args = opArray[op].nargs;
+
+		if (op == mov_eax_xxx)
+		{
+			eax = bytecode[pc++];
+		}
+		else if (op == jmp)
+		{
+			pc = bytecode[pc];
+		}
+		else if (op == jz)
+		{
+			int targetPc = bytecode[pc++];
+			if (eax == 0)
+			{
+				printf("\n eax == 0 jump to %d\n", targetPc);
+				pc = targetPc;
+			}
+			else
+			{
+				printf("\n eax != 0 do not jump\n");
+				//do nothing
+			}
+		}
+		else if (op == lea_eax_mesp_xx)
+		{
+			eax = esp + bytecode[pc++];
+		}
+		else if (op == push_eax)
+		{
+			stack[--esp] = eax;
+		}
+		else if (op == mov_eax_addr)
+		{
+			eax = stack[(int)eax];
+		}
+		else if (op == mov_eax_byte_addr)
+		{
+
+		}
+		else if (op == ret)
+		{
+			pc = stack[esp];
+			esp++;
+		}
+		else if (op == pop_ebx_mov_mebx_eax)
+		{
+			ebx = stack[esp++];
+			stack[(int)ebx] = eax;
+		}
+		else if (op == add_esp_xx)
+		{
+			esp += bytecode[pc++];
+		}
+		else if (op == pop_ebx_imul_eax_ebx)
+		{
+			ebx = stack[esp++];
+			eax = eax * ebx;
+		}
+		else if (op == pop_ebx_fdiv_ebx_eax)
+		{
+			ebx = stack[esp++];
+			eax = ebx / eax;
+		}
+		else if (op == pop_ebx_mod_ebx_eax)
+		{
+			ebx = stack[esp++];
+			eax = (int)ebx % (int)eax;
+		}
+		else if (op == pop_ebx_logic_and_ebx_eax)
+		{
+			ebx = stack[esp++];
+			if (eax != 0 && ebx != 0)
+				eax = 1;
+			else
+				eax = 0;
+		}
+		else if (op == pop_ebx_logic_or_ebx_eax)
+		{
+			ebx = stack[esp++];
+			if (eax == 0 && ebx == 0)
+				eax = 0;
+			else
+				eax = 1;
+		}
+		else if (op == pop_ebx_bit_and_ebx_eax)
+		{
+			ebx = stack[esp++];
+			eax = (int)eax & (int)ebx;
+		}
+		else if (op == pop_ebx_bit_or_ebx_eax)
+		{
+			ebx = stack[esp++];
+			eax = (int)eax | (int)ebx;
+		}
+		else if (op == pop_ebx_bit_xor_ebx_eax)
+		{
+			ebx = stack[esp++];
+			eax = (int)eax ^ (int)ebx;
+		}
+		else if (op == pop_ebx_shl_ebx_eax)
+		{
+			ebx = stack[esp++];
+			eax = (int)ebx << (int)eax;
+		}
+		else if (op == pop_ebx_shr_ebx_eax)
+		{
+			ebx = stack[esp++];
+			eax = (int)ebx >> (int)eax;
+		}
+		else if (op == pop_ebx_add_eax_ebx)
+		{
+			ebx = stack[esp++];
+			eax = eax + ebx;
+		}
+		else if (op == pop_ebx_sub_ebx_eax)
+		{
+			ebx = stack[esp++];
+			eax = ebx - eax;
+		}
+		else if (op == pop_ebx_equal_eax_ebx)
+		{
+			ebx = stack[esp++];
+			if (eax == ebx)
+			{
+				eax = 1;
+			}
+			else
+				eax = 0;
+		}
+		else if (op == pop_ebx_not_equal_eax_ebx)
+		{
+			ebx = stack[esp++];
+			if (eax != ebx)
+			{
+				eax = 1;
+			}
+			else
+				eax = 0;
+		}
+		else if (op == pop_ebx_ebx_less_than_ebx)
+		{
+			ebx = stack[esp++];
+			if (ebx < eax)
+			{
+				eax = 1;
+			}
+			else
+				eax = 0;
+		}
+		else if (op == pop_ebx_ebx_greate_than_ebx)
+		{
+			ebx = stack[esp++];
+			if (ebx > eax)
+			{
+				eax = 1;
+			}
+			else
+				eax = 0;
+		}
+		else if (op == pop_ebx_ebx_greate_EQUAL_than_ebx)
+		{
+			ebx = stack[esp++];
+			if (ebx >= eax)
+			{
+				eax = 1;
+			}
+			else
+				eax = 0;
+		}
+		else if (op == pop_ebx_ebx_less_EQUAL_than_ebx)
+		{
+			ebx = stack[esp++];
+			if (ebx <= eax)
+			{
+				eax = 1;
+			}
+			else
+				eax = 0;
+		}
+
+		else if (op == call_eax)
+		{
+			stack[--esp] = pc;
+			pc = eax;
+
+		}
+		else if (op == halt)
+		{
+			printf("virtual machine exit with return value is %f\n", eax);
+			break;
+		}
+		else if (op == call_addr)
+		{
+
+			stack[--esp] = pc + 1; // + 1 because call has 1 argument
+
+			pc = bytecode[pc];
+		}
+		else if (op == negative_eax)
+		{
+			eax = -eax;
+		}
+		else if (op == mov_eax_ValueAtEax_negative_eax)
+		{
+			eax = stack[(int)eax];
+			eax = -eax;
+		}
+		else if (op == bit_negative_eax)
+		{
+			eax = ~(int)eax;
+		}
+		else if (op == not_eax)
+		{
+			eax = !eax;
+		}
+		else if (op == mov_eax_ValueAtEax_bit_negative_eax)
+		{
+			eax = stack[(int)eax];
+			eax = ~(int)eax;
+		}
+		else if (op == mov_eax_ValueAtEax_not_eax)
+		{
+			eax = stack[(int)eax];
+			eax = !eax;
+		}
+
+	}
+
+
+	return eax;
 }
 
-void vm_print_stack(int *stack, int count)
-{
-    printf("stack=[");
-    for (int i = 0; i <= count; i++) {
-        printf(" %d", stack[i]);
-    }
-    printf(" ]\n");
-}
-
-void vm_print_data(int *globals, int count)
-{
-    printf("Data memory:\n");
-    for (int i = 0; i < count; i++) {
-        printf("%04d: %d\n", i, globals[i]);
-    }
-}
-
-
-
-
-
-void vm_exec(VM *vm, int trace)
-{
-    // registers
-    int ip = vm->startIp;         // instruction pointer register
-    int sp = vm->sp;         // stack pointer register
-    
-    
-    int a = 0;
-    int b = 0;
-    int addr = 0;
-    int offset = 0;
-
-    int opcode = vm->code[ip];
-    
-//    int false = 0;
-//    int true = 1;
-    
-    while (opcode != HALT && ip < vm->code_size) {
-        if (trace) vm_print_instr(vm->code, ip);
-        ip++; //jump to next instruction or to operand
-        switch (opcode) {
-            case IADD:
-                b = vm->stack[sp--];           // 2nd opnd at top of stack
-                a = vm->stack[sp--];           // 1st opnd 1 below top
-                vm->stack[++sp] = a + b;       // push result
-                break;
-            case ISUB:
-                b = vm->stack[sp--];
-                a = vm->stack[sp--];
-                vm->stack[++sp] = a - b;
-                break;
-            case IMUL:
-                b = vm->stack[sp--];
-                a = vm->stack[sp--];
-                vm->stack[++sp] = a * b;
-                break;
-            case ILT:
-                b = vm->stack[sp--];
-                a = vm->stack[sp--];
-                vm->stack[++sp] = (a < b) ? 1 : 0;
-                break;
-            case IEQ:
-                b = vm->stack[sp--];
-                a = vm->stack[sp--];
-                vm->stack[++sp] = (a == b) ? 1 : 0;
-                break;
-            case BR:
-                ip = vm->code[ip];
-                break;
-            case BRT:
-                addr = vm->code[ip++];
-                if (vm->stack[sp--] == 1) ip = addr;
-                break;
-            case BRF:
-                addr = vm->code[ip++];
-                if (vm->stack[sp--] == 0) ip = addr;
-                break;
-            case ICONST:
-                vm->stack[++sp] = vm->code[ip++];  // push operand
-                break;
-            case LOAD: // load local or arg
-                offset = vm->code[ip++];
-                //vm->stack[++sp] = vm->call_stack[callsp].locals[offset];
-                break;
-            case GLOAD: // load from global memory
-                addr = vm->code[ip++];
-                vm->stack[++sp] = vm->globals[addr];
-                break;
-            case STORE:
-                offset = vm->code[ip++];
-              //  vm->call_stack[callsp].locals[offset] = vm->stack[sp--];
-                break;
-            case GSTORE:
-                addr = vm->code[ip++];
-                vm->globals[addr] = vm->stack[sp--];
-                break;
-            case PRINT:
-                printf("%d\n", vm->stack[sp--]);
-                break;
-            case POP:
-                --sp;
-                break;
-            case CALL:
-            {
-                // expects all args on stack
-                addr = vm->code[ip++];            // index of target function
-                int nargs = vm->code[ip++];     // how many args got pushed
-                int nlocals = vm->code[ip++];     // how many locals to allocate
-              //  ++callsp; // bump stack pointer to reveal space for this call
-              //  vm_context_init(&vm->call_stack[callsp], ip, nargs+nlocals);
-                // copy args into new context
-                for (int i=0; i<nargs; i++) {
-                //    vm->call_stack[callsp].locals[i] = vm->stack[sp-i];
-                }
-                sp -= nargs;
-                ip = addr;        // jump to function
-                break;
-            }
-            case RET:
-              //  ip = vm->call_stack[callsp].returnip;
-             //   callsp--; // pop context
-                break;
-            default:
-                printf("invalid opcode: %d at ip=%d\n", opcode, (ip - 1));
-               // exit(1);
-        }
-        if (trace) vm_print_stack(vm->stack, sp);
-        opcode = vm->code[ip];
-    }
-    if (trace) vm_print_data(vm->globals, vm->nglobals);
-}
-
-
-
-#endif /* vm_h */
