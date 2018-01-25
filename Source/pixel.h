@@ -53,19 +53,33 @@ public:
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
 
+	void mouseDrag(const MouseEvent& event) override
+	{
+		mouseXf = (float)event.getPosition().x ;
 
+		mouseYf = (float)getHeight() - (float)event.getPosition().y ;
+	}
 	 void mouseMove(const MouseEvent& event) override
 	{
-		mouseXf = (float)event.getPosition().x / getWidth();
 	
-		mouseYf = (float)event.getPosition().y / getHeight();
 	}
 	 void mouseDown(const MouseEvent& event) override
 	{
-		mouseXf = (float)event.getPosition().x / getWidth();
+		 mouseXf = (float)event.getPosition().x ;
 
-		mouseYf = (float)event.getPosition().y / getHeight();
+		 mouseYf = (float)getHeight() - (float)event.getPosition().y ;
+
+		 mouseZf = (float)event.getPosition().x ;
+
+		 mouseWf = (float)getHeight() - (float)event.getPosition().y ;
 	}
+
+	 void mouseUp(const MouseEvent& event) override
+	 {
+		 mouseZf = mouseZf * -1.0;
+		
+		// mouseWf = (float)event.getPosition().y / getHeight();
+	 }
 
 	bool keyPressed(const KeyPress& key) override
 	{
@@ -262,7 +276,11 @@ public:
 			}
 			if (uf->iMouse)
 			{
-				uf->iMouse->set(mouseXf, mouseYf);
+				uf->iMouse->set(mouseXf, mouseYf, mouseZf, mouseWf);
+			}
+			if (uf->iResolution)
+			{
+				uf->iResolution->set(float(getWidth()), float(getHeight()));
 			}
  
 		}
@@ -361,6 +379,9 @@ private:
 
 	float mouseXf{ 0 };
 	float mouseYf{ 0 };
+	float mouseZf{ 0 };
+	float mouseWf{ 0 };
+	 
     //[/UserVariables]
 
     //==============================================================================

@@ -19,7 +19,7 @@ STRINGIFY(\
 	attribute vec2 position;
 attribute vec2 textureCoordIn;
 varying vec2 textureCoordOut;
-varying vec2 _uv;
+varying vec2 uv;
 uniform mat4 projectionMatrix;
 uniform mat4 viewMatrix;
 uniform float _x;
@@ -42,7 +42,7 @@ vec2 getUV()
 }
 void main()
 {
-	_uv = getUV();
+	uv = getUV();
 	gl_Position = projectionMatrix * viewMatrix * vec4(position, 0.0, 1.0);
 	textureCoordOut = textureCoordIn;
 
@@ -54,9 +54,14 @@ void main()
  juce::String fragmentShader =
 STRINGIFY(\
 	#version 120 \n
-	uniform vec4 lightPosition;
+
+#define fragColor gl_FragColor \n
+
+
+
+uniform vec4 lightPosition;
 varying vec2 textureCoordOut;
-varying vec2 _uv;
+varying vec2 uv;
 uniform sampler2D Texture_1;
 
 //uniform sampler2D Texture_1;
@@ -69,7 +74,7 @@ uniform float _h;
 uniform float arrFloat[4];
 uniform float iTime;
 uniform vec2 iResolution;
-uniform vec2 iMouse;
+uniform vec4 iMouse;
 
 uniform float _mx;
 uniform float _my;
@@ -259,7 +264,6 @@ void shield_shape() {
 // implementation
 //////////////////////////////////////////////////////////
 vec2 aspect;
-vec2 uv;
 vec2 position;
 vec2 query_position;
 float ScreenH;
@@ -888,20 +892,7 @@ void graph(vec2 p, float f_x, vec2 df_x) {
 void paint();
 void main()
 {
-	vec2 uv = _uv;  // 0~1
-
-	//if (uv.x < 0.5) {
-	//	gl_FragColor = vec4(1., 0.0, 0.0, 1.);
-	//}
-	//else
-	//{
-	//	gl_FragColor = vec4(0., 1.0, 0.0, 1.);
-	//}
-	
- 
-	gl_FragColor = vec4(iMouse.x, 0.0, 0.0, 1.);
-
-	return;
+	//vec2 uv = _uv;  // 0~1
 	//vec2 uv = _uv - vec2(0.5);
 	//uv.x *= _w / _h;
 
@@ -911,7 +902,7 @@ void main()
 	//AA = ScreenH*0.4;
 	AA = 800.0 * 0.4;
 	AAINV = 1.0 / 400.0;
-	init(_uv);
+	init(uv);
 	paint();
 	blit(gl_FragColor);
 	//gl_FragColor = vec4(_uv.x, 0.0, 0.0, 1.0);

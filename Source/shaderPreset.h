@@ -3,7 +3,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 
-#include "shaderTemplate.h"
+#include "shaderTemplate2.h"
 
 
 struct ShaderPreset
