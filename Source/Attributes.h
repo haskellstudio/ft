@@ -94,6 +94,9 @@ struct Uniforms
 		w = createUniform(openGLContext, shader, "_w");
 		h = createUniform(openGLContext, shader, "_h");
 
+		iMouse = createUniform(openGLContext, shader, "iMouse");
+		 
+
 		winW = createUniform(openGLContext, shader, "winW");
 		winH = createUniform(openGLContext, shader, "winH");
 
@@ -109,7 +112,7 @@ struct Uniforms
 			return true;
 	}
 	ScopedPointer<OpenGLShaderProgram::Uniform>projectionMatrix, viewMatrix, lightPosition, texture, iGlobalTime, arrFloat;
-	ScopedPointer<OpenGLShaderProgram::Uniform> x, y, w, h, winW, winH;
+	ScopedPointer<OpenGLShaderProgram::Uniform> x, y, w, h, winW, winH, iMouse;
 
 private:
 	static OpenGLShaderProgram::Uniform* createUniform(OpenGLContext& openGLContext,

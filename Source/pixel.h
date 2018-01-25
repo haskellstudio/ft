@@ -52,6 +52,26 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
+
+
+	 void mouseMove(const MouseEvent& event) override
+	{
+		mouseXf = (float)event.getPosition().x / getWidth();
+	
+		mouseYf = (float)event.getPosition().y / getHeight();
+	}
+	 void mouseDown(const MouseEvent& event) override
+	{
+		mouseXf = (float)event.getPosition().x / getWidth();
+
+		mouseYf = (float)event.getPosition().y / getHeight();
+	}
+
+	bool keyPressed(const KeyPress& key) override
+	{
+
+		return true;
+	}
 	void updateShader()
 	{
 		if (_strVertex.isEmpty() && _strFragment.isEmpty())
@@ -240,6 +260,11 @@ public:
 				GLfloat v[4] = { 0.0, 1.0, 0.0, 0.8 };
 				uf->arrFloat->set(v, 4);
 			}
+			if (uf->iMouse)
+			{
+				uf->iMouse->set(mouseXf, mouseYf);
+			}
+ 
 		}
 
 		atrr->enable(_openGLContext);
@@ -333,6 +358,9 @@ private:
 	OpenGLTexture _texture;
 
 	FPS fps;
+
+	float mouseXf{ 0 };
+	float mouseYf{ 0 };
     //[/UserVariables]
 
     //==============================================================================

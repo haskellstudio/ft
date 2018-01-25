@@ -53,8 +53,8 @@ pixel::pixel ()
 	}
 
 	addAndMakeVisible(overLay = new overlay());
-	//if (overLay)
-	//	overLay->addMouseListener((MouseListener*)this, false);
+	if (overLay)
+		overLay->addMouseListener(this, true); // may be a bug , the second arg suppose to be false ! 
 
 
 	_openGLContext.setComponentPaintingEnabled(true);  // if false , the overlay component can not see.
@@ -107,6 +107,8 @@ void pixel::resized()
     //[/UserPreResize]
 
     //[UserResized] Add your own custom resize handling here..
+	if (overLay)
+		overLay->setBounds(this->getLocalBounds());
     //[/UserResized]
 }
 

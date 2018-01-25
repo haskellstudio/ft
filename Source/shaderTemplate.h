@@ -71,6 +71,9 @@ uniform float iTime;
 uniform vec2 iResolution;
 uniform vec2 iMouse;
 
+uniform float _mx;
+uniform float _my;
+
 // set color source for stroke / fill / clear
 void set_source_rgba(vec4 c);
 void set_source_rgba(float r, float g, float b, float a);
@@ -887,13 +890,17 @@ void main()
 {
 	vec2 uv = _uv;  // 0~1
 
-	if (uv.x < 0.5) {
-		gl_FragColor = vec4(1., 0.0, 0.0, 1.);
-	}
-	else
-	{
-		gl_FragColor = vec4(0., 1.0, 0.0, 1.);
-	}
+	//if (uv.x < 0.5) {
+	//	gl_FragColor = vec4(1., 0.0, 0.0, 1.);
+	//}
+	//else
+	//{
+	//	gl_FragColor = vec4(0., 1.0, 0.0, 1.);
+	//}
+	
+ 
+	gl_FragColor = vec4(iMouse.x, 0.0, 0.0, 1.);
+
 	return;
 	//vec2 uv = _uv - vec2(0.5);
 	//uv.x *= _w / _h;
