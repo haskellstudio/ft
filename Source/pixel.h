@@ -74,9 +74,6 @@ public:
 			_uniforms = nullptr;
 			_uniforms = new Uniforms(_openGLContext, *_shader);
 
-
-			//_sprite.setShader(_shader);
-
 		//	if (l)
 			{
 				_compileResult = "GLSL: v" + String(juce::OpenGLShaderProgram::getLanguageVersion(), 2);
