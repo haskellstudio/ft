@@ -124,7 +124,7 @@ public:
 
 		}
 
-		String r = asmStr + "\n" + opArrayStr + compileReslutStr + "\ncompiler return: "+ String(bCompileSuccess);
+        String r = asmStr + "\n" + opArrayStr + compileReslutStr + "\ncompiler return: "+ String(bCompileSuccess ? "true" : "false");
 		textEditor->setText(r);
 
 	}
