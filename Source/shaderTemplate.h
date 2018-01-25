@@ -29,17 +29,16 @@ uniform float _h;
 
 float getx()
 {
-	return (position.x - _x) / _w;
+	return (position.x - _x) / _w;   // 0 ~ 1
 }
 float gety()
 {
-	return (position.y - _y) / _h;
+	return (position.y - _y) / _h;   // 0 ~ 1
 
 }
 vec2 getUV()
 {
 	return vec2(getx(), gety());
-
 }
 void main()
 {
@@ -886,6 +885,16 @@ void graph(vec2 p, float f_x, vec2 df_x) {
 void paint();
 void main()
 {
+	vec2 uv = _uv;  // 0~1
+
+	if (uv.x < 0.5) {
+		gl_FragColor = vec4(1., 0.0, 0.0, 1.);
+	}
+	else
+	{
+		gl_FragColor = vec4(0., 1.0, 0.0, 1.);
+	}
+	return;
 	//vec2 uv = _uv - vec2(0.5);
 	//uv.x *= _w / _h;
 
