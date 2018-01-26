@@ -151,7 +151,7 @@ public:
 				asmStr += "                                 " + juce::String(PDBsymble[codeaddr]) + "\n";
 			}
 			
-			asmStr += juce::String(codeaddr) + ": " + opArray[int(op)].name;
+			asmStr += juce::String(codeaddr) + ": " + String(opArray[int(op)].name);
 			for (int j = 0; j < opArray[int(op)].nargs; j++)
 			{
 				float arg;
@@ -244,7 +244,7 @@ public:
 		char errorbuf[1024] = { 0 };
 		va_list args;
 		va_start(args, fmt);
-		_vsnprintf(errorbuf, sizeof(errorbuf)-1, fmt, args);
+		vsnprintf(errorbuf, sizeof(errorbuf)-1, fmt, args);
 		va_end(args);
 		throw std::runtime_error(errorbuf);
 	}

@@ -113,7 +113,7 @@ void pipe::resized()
 
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
-static ComponentList<pipe> td((const String)("pipe"), 4);
+//static ComponentList<pipe> td((const String)("pipe"), 4);
 //[/MiscUserCode]
 
 
