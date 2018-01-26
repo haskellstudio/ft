@@ -24,6 +24,7 @@
 
 
 //[MiscUserDefs] You can add your own user definitions and misc code here...
+extern void msg(juce::String s);
 //[/MiscUserDefs]
 
 //==============================================================================
@@ -72,6 +73,40 @@ code::code (juce::ValueTree& tree)
 
 	textEditor->addListener(this);
 
+
+	startTimer(200);
+
+
+	juce::SystemStats::OperatingSystemType ost = juce::SystemStats::getOperatingSystemType();
+
+	if (ost & juce::SystemStats::OperatingSystemType::MacOSX)
+	{
+		f = "~/frag.h";
+	}
+	else if (ost & juce::SystemStats::OperatingSystemType::Windows)
+	{
+		f = "D:/frag.h";
+	}
+	else
+	{
+		f = "./frag.h";
+	}
+	if (!f.existsAsFile())
+	{
+		juce::Result r = f.create();
+		if (!r.wasOk())
+		{
+			msg("fail to create frag.h " + r.getErrorMessage());
+		}
+		else
+		{
+			lastModiy = f.getLastModificationTime();
+		}
+
+	}
+
+
+	
     //[/Constructor]
 }
 

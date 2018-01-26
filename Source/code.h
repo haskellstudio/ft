@@ -48,19 +48,42 @@ public:
 
 	virtual void textEditorTextChanged(TextEditor& e) override
 	{
-		stopTimer();
-		startTimer(200);
+		isChangeByEditor = true;
+	//	stopTimer();
+	
 
 	}
 
 
 	virtual void timerCallback() override
 	{
-		stopTimer();
-		if (_cSourceTree.isValid())
+		
+		if (isChangeByEditor)
 		{
-			_cSourceTree.setProperty("cSource", textEditor->getText(), nullptr);
+		//	stopTimer();
+			if (_cSourceTree.isValid())
+			{
+				_cSourceTree.setProperty("cSource", textEditor->getText(), nullptr);
+			}
+			isChangeByEditor = false;
 		}
+		else
+		{
+
+			juce::Time t = f.getLastModificationTime();
+			
+			if (lastModiy != t)
+			{
+				lastModiy = t;
+				if (_cSourceTree.isValid())
+				{
+					juce::StringArray sa;
+					f.readLines(sa);
+					_cSourceTree.setProperty("cSource",sa.joinIntoString("\n"), nullptr);
+				}
+			 }
+		}
+
 	}
 	/** Called when the user presses the return key. */
 	virtual void textEditorReturnKeyPressed(TextEditor&) override {}
@@ -83,6 +106,12 @@ private:
     //[UserVariables]   -- You can add your own custom variables in this section.
     juce::ValueTree _tree;
 	juce::ValueTree _cSourceTree;
+
+	bool isChangeByEditor{ false };
+
+	juce::File f;
+    juce::Time lastModiy;
+
     //[/UserVariables]
 
     //==============================================================================
