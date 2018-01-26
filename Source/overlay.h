@@ -46,6 +46,12 @@ public:
 	{
 		label->setText(s, juce::NotificationType::dontSendNotification);
 	}
+
+	void setSetCompileResult(String s)
+	{
+		labelCompileResult->setText(s, juce::NotificationType::dontSendNotification);
+
+	}
     //[/UserMethods]
 
     void paint (Graphics& g) override;
@@ -59,6 +65,7 @@ private:
 
     //==============================================================================
     ScopedPointer<Label> label;
+    ScopedPointer<Label> labelCompileResult;
 
 
     //==============================================================================

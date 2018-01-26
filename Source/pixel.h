@@ -38,12 +38,11 @@ extern void msg(juce::String s);
     Describe your class and how it works here!
                                                                     //[/Comments]
 */
-
-
 class pixel  : public Component,
                private OpenGLRenderer,
                private Timer,
-               private CodeDocument::Listener
+               private CodeDocument::Listener,
+               public juce::ValueTree::Listener
 {
 public:
     //==============================================================================
@@ -53,6 +52,38 @@ public:
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
 
+	void valueTreePropertyChanged(juce::ValueTree &treeWhosePropertyHasChanged, const juce::Identifier &_property) override
+	{
+
+		if (_asmOpCodeTree == treeWhosePropertyHasChanged)
+		{
+			if (_asmOpCodeTree.hasProperty("property_asmOpCode") && _property == juce::Identifier("property_asmOpCode"))
+			{
+				var v = _asmOpCodeTree.getProperty("property_asmOpCode");
+					GLfloat v[4] = { 0.0, 1.0, 0.0, 0.8 };
+				_opFloatCode.clear();
+
+				auto a = v.getArray();
+				if (a)
+				{
+					for (auto &i : *a)
+					{
+						_opFloatCode.add(i);
+					}
+				}
+
+			}
+
+
+			}
+	}
+
+	void valueTreeChildAdded(juce::ValueTree &parentTree, juce::ValueTree &childWhichHasBeenAdded) override {}
+	void valueTreeChildRemoved(juce::ValueTree &parentTree, juce::ValueTree &childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override {}
+	void valueTreeChildOrderChanged(juce::ValueTree &parentTreeWhoseChildrenHaveMoved, int oldIndex, int newIndex) override {}
+	void valueTreeParentChanged(juce::ValueTree &treeWhoseParentHasChanged) override {}
+	void valueTreeRedirected(juce::ValueTree &treeWhichHasBeenChanged) override {}
+
 	void mouseDrag(const MouseEvent& event) override
 	{
 		mouseXf = (float)event.getPosition().x ;
@@ -61,7 +92,7 @@ public:
 	}
 	 void mouseMove(const MouseEvent& event) override
 	{
-	
+
 	}
 	 void mouseDown(const MouseEvent& event) override
 	{
@@ -77,7 +108,7 @@ public:
 	 void mouseUp(const MouseEvent& event) override
 	 {
 		 mouseZf = mouseZf * -1.0;
-		
+
 		// mouseWf = (float)event.getPosition().y / getHeight();
 	 }
 
@@ -88,7 +119,7 @@ public:
 	}
 	void updateShader()
 	{
-		if (_strVertex.isEmpty() && _strFragment.isEmpty())
+		if (_strVertex.isEmpty() || _strFragment.isEmpty())
 		{
 			return;
 		}
@@ -108,14 +139,15 @@ public:
 			_uniforms = nullptr;
 			_uniforms = new Uniforms(_openGLContext, *_shader);
 
-		//	if (l)
+			if (overLay)
 			{
 				_compileResult = "GLSL: v" + String(juce::OpenGLShaderProgram::getLanguageVersion(), 2);
-				
+
 				const MessageManagerLock mmLock;
 				if (mmLock.lockWasGained())
 				{
-				//	msg(_compileResult);
+					overLay->setSetCompileResult(_compileResult);
+				    //msg(_compileResult);
 					//l->setText(_compileResult, dontSendNotification);
 				}
 
@@ -126,16 +158,16 @@ public:
 		else
 		{
 			String s = newShader->getLastError();
-		//	if (l)
+			if (overLay)
 			{
 				_compileResult = s;
 
 				const MessageManagerLock mmLock;
-				
+
 				if (mmLock.lockWasGained())
 				{
-				
-				//	msg(_compileResult);
+
+					overLay->setSetCompileResult(_compileResult);
 				//	l->setText(_compileResult, dontSendNotification);
 				}
 
@@ -145,7 +177,7 @@ public:
 			//statusText = newShader->getLastError();
 		}
 
-		_strVertex = String();
+	//	_strVertex = String();
 		_strFragment = String();
 	}
 
@@ -159,7 +191,7 @@ public:
 		if (!isActive)
 			return;
 		//int i = _openGLContext.getSwapInterval();
-	
+
 		fps.incFrameCount();
 		if (overLay)
 		{
@@ -168,9 +200,9 @@ public:
 			{
 				//	msg(_compileResult);
 				//l->setText(_compileResult, dontSendNotification);
-				
+
 			}
-			
+
 		}
 
 		if (false == _bInit)
@@ -271,8 +303,7 @@ public:
 			//void OpenGLShaderProgram::Uniform::set (const GLfloat* values, GLsizei numValues)
 			if (uf->arrFloat)
 			{
-				GLfloat v[4] = { 0.0, 1.0, 0.0, 0.8 };
-				uf->arrFloat->set(v, 4);
+				uf->arrFloat->set(_opFloatCode.getRawDataPointer(), _opFloatCode.size());
 			}
 			if (uf->iMouse)
 			{
@@ -282,7 +313,7 @@ public:
 			{
 				uf->iResolution->set(float(getWidth()), float(getHeight()));
 			}
- 
+
 		}
 
 		atrr->enable(_openGLContext);
@@ -295,6 +326,22 @@ public:
 	void timerCallback() override
 	{
           overLay->setTxt(juce::String(fps.fps));
+
+
+		  juce::Time t = f.getLastModificationTime();
+
+		  if (lastModiy != t)
+		  {
+			  lastModiy = t;
+			  juce::StringArray sa;
+			  f.readLines(sa);
+
+			  _strFragment = sa.joinIntoString("\n");
+				//  _cSourceTree.setProperty("cSource", sa.joinIntoString("\n"), nullptr);
+
+		  }
+
+
 		//stopTimer();
 	}
 	void codeDocumentTextInserted(const String& /*newText*/, int /*insertIndex*/) override
@@ -315,8 +362,8 @@ public:
 			0.0f, 1.0f, 0.0f, 0.0f,
 			0.0f, 0.0f, -.01f, 0.0f,
 			0.0f, 0.0f, -1.0f, 1.0f
-			
-			
+
+
 			);
 		return ortho;
 	/*	float w = 1.0f / (0.5f + 0.1f);
@@ -381,7 +428,14 @@ private:
 	float mouseYf{ 0 };
 	float mouseZf{ 0 };
 	float mouseWf{ 0 };
-	 
+
+
+	juce::File f;
+	juce::Time lastModiy;
+
+	juce::ValueTree _tree;
+	juce::ValueTree _asmOpCodeTree;
+	juce::Array<float> _opFloatCode;
     //[/UserVariables]
 
     //==============================================================================
@@ -394,10 +448,10 @@ private:
 //[EndFile] You can add extra defines here...
 
 
-//const GLubyte* version = glGetString(GL_VERSION); //返回负责当前OpenGL实现厂商的名字  
+//const GLubyte* version = glGetString(GL_VERSION); //返回负责当前OpenGL实现厂商的名字
 //DBG(juce::String((char*)version));
-//const GLubyte* vender = glGetString(GL_VENDOR); //返回负责当前OpenGL实现厂商的名字  
+//const GLubyte* vender = glGetString(GL_VENDOR); //返回负责当前OpenGL实现厂商的名字
 //DBG(juce::String((char*)vender));
-//const GLubyte* render = glGetString(GL_RENDERER); //返回一个渲染器标识符，通常是个硬件平台  
+//const GLubyte* render = glGetString(GL_RENDERER); //返回一个渲染器标识符，通常是个硬件平台
 //DBG(juce::String((char*)render));
 //[/EndFile]

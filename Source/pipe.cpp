@@ -33,12 +33,12 @@
 #include "shaderSource.h"
 #include "fragmentShader.h"
 
-
+juce::ValueTree g_tree{ "main" };
 //[/MiscUserDefs]
 
 //==============================================================================
-pipe::pipe ()
-    : _compiler(_tree)
+pipeLine::pipeLine ()
+    : _compiler(g_tree)
 {
     //[Constructor_pre] You can add your own custom stuff here..
     //[/Constructor_pre]
@@ -55,21 +55,21 @@ pipe::pipe ()
 
 	addAndMakeVisible(advancedDock);
 
-	advancedDock.addComponentToNewRow(pshaderSource = new shaderSource(_tree), 0);
-	advancedDock.addComponentToNewRow(pfragmentShader  = new fragmentShader (_tree), 1);
+	advancedDock.addComponentToNewRow(pshaderSource = new shaderSource(g_tree), 0);
+	advancedDock.addComponentToNewRow(pfragmentShader  = new fragmentShader (g_tree), 1);
 
 
-	advancedDock.addComponentToDock(pasm_ = new asm_(_tree), 0);
+	advancedDock.addComponentToDock(pasm_ = new asm_(g_tree), 0);
 
 
-	advancedDock.addComponentToDock(pcode = new code(_tree), 1);
+	advancedDock.addComponentToDock(pcode = new code(g_tree), 1);
 
 	//advancedDock.addComponentToNewRow(new fragmentShader(), 2);
 
     //[/Constructor]
 }
 
-pipe::~pipe()
+pipeLine::~pipeLine()
 {
     //[Destructor_pre]. You can add your own custom destruction code here..
     //[/Destructor_pre]
@@ -85,7 +85,7 @@ pipe::~pipe()
 }
 
 //==============================================================================
-void pipe::paint (Graphics& g)
+void pipeLine::paint (Graphics& g)
 {
     //[UserPrePaint] Add your own custom painting code here..
     //[/UserPrePaint]
@@ -96,7 +96,7 @@ void pipe::paint (Graphics& g)
     //[/UserPaint]
 }
 
-void pipe::resized()
+void pipeLine::resized()
 {
     //[UserPreResize] Add your own custom resize code here..
     //[/UserPreResize]
@@ -113,7 +113,7 @@ void pipe::resized()
 
 
 //[MiscUserCode] You can add your own definitions of your custom methods or any other code here...
-//static ComponentList<pipe> td((const String)("pipe"), 4);
+static ComponentList<pipeLine> td((const String)("pipeLine"), 4);
 //[/MiscUserCode]
 
 
@@ -126,8 +126,8 @@ void pipe::resized()
 
 BEGIN_JUCER_METADATA
 
-<JUCER_COMPONENT documentType="Component" className="pipe" componentName="" parentClasses="public Component"
-                 constructorParams="" variableInitialisers="_compiler(_tree)"
+<JUCER_COMPONENT documentType="Component" className="pipeLine" componentName=""
+                 parentClasses="public Component" constructorParams="" variableInitialisers="_compiler(_tree)"
                  snapPixels="8" snapActive="1" snapShown="1" overlayOpacity="0.330"
                  fixedSize="0" initialWidth="600" initialHeight="400">
   <BACKGROUND backgroundColour="ff323e44"/>

@@ -80,9 +80,9 @@ float distanceToSegment(vec2 a, vec2 b, vec2 p)\n
 
 
 	vec2 pa = p - a;
-vec2 ba = b - a;
-float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
-return length(pa - ba*h);
+	vec2 ba = b - a;
+	float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+	return length(pa - ba*h);
 
 
 }
@@ -91,20 +91,20 @@ void main()\n
 {
 
 	vec2 p = fragCoord.xy / iResolution.xx;
-vec4 m = iMouse / iResolution.xxxx;
+	vec4 m = iMouse / iResolution.xxxx;
 
-vec3 col = vec3(0.0);
+	vec3 col = vec3(0.0);
 
-if (m.z>0.0)
-{
-	float d = distanceToSegment(m.xy, m.zw, p);
-	col = mix(col, vec3(1.0, 1.0, 0.0), 1.0 - smoothstep(.004, 0.008, d));
-}
+	if (m.z>0.0)
+	{
+		float d = distanceToSegment(m.xy, m.zw, p);
+		col = mix(col, vec3(1.0, 1.0, 0.0), 1.0 - smoothstep(.004, 0.008, d));
+	}
 
-col = mix(col, vec3(1.0, 0.0, 0.0), 1.0 - smoothstep(0.03, 0.035, length(p - m.xy)));
-col = mix(col, vec3(0.0, 0.0, 1.0), 1.0 - smoothstep(0.03, 0.035, length(p - abs(m.zw))));
+	col = mix(col, vec3(1.0, 0.0, 0.0), 1.0 - smoothstep(0.03, 0.035, length(p - m.xy)));
+	col = mix(col, vec3(0.0, 0.0, 1.0), 1.0 - smoothstep(0.03, 0.035, length(p - abs(m.zw))));
 
-fragColor = vec4(col, 1.0);
+	fragColor = vec4(col, 1.0);
 
 }
 

@@ -35,12 +35,12 @@
     Describe your class and how it works here!
                                                                     //[/Comments]
 */
-class pipe  : public Component
+class pipeLine  : public Component
 {
 public:
     //==============================================================================
-    pipe ();
-    ~pipe();
+    pipeLine ();
+    ~pipeLine();
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
@@ -53,8 +53,6 @@ public:
 
 private:
     //[UserVariables]   -- You can add your own custom variables in this section.
-	ValueTree _tree{ "main" };
-
 	compiler _compiler;
 
 	DockableWindowManager dockManager;
@@ -69,7 +67,7 @@ private:
 
 
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (pipe)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (pipeLine)
 };
 
 //[EndFile] You can add extra defines here...

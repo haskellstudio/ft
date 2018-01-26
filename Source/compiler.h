@@ -164,12 +164,12 @@ class compiler : public juce::ValueTree::Listener ,
 public:
 	compiler(juce::ValueTree& tree) : _tree(tree)
 	{
-		_cSourceTree = tree.getOrCreateChildWithName("cSource", nullptr);
+		_cSourceTree = _tree.getOrCreateChildWithName("cSource", nullptr);
 		_cSourceTree.addListener(this);
 
-		_asmStrCodeTree = tree.getOrCreateChildWithName("property_asmStrCode", nullptr);
+		_asmStrCodeTree = _tree.getOrCreateChildWithName("property_asmStrCode", nullptr);
 		
-		_asmOpCodeTree = tree.getOrCreateChildWithName("property_asmOpCode", nullptr);
+		_asmOpCodeTree = _tree.getOrCreateChildWithName("property_asmOpCode", nullptr);
 		_thread.startThread();
 
 		startTimer(100);

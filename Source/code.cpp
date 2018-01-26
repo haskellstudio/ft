@@ -69,7 +69,7 @@ code::code (juce::ValueTree& tree)
 	Component::setName("code");
 
 
-	_cSourceTree = tree.getOrCreateChildWithName("cSource", nullptr);
+	_cSourceTree = _tree.getOrCreateChildWithName("cSource", nullptr);
 
 	textEditor->addListener(this);
 
@@ -81,22 +81,22 @@ code::code (juce::ValueTree& tree)
 
 	if (ost & juce::SystemStats::OperatingSystemType::MacOSX)
 	{
-		f = "~/frag.h";
+		f = "~/compiler.h";
 	}
 	else if (ost & juce::SystemStats::OperatingSystemType::Windows)
 	{
-		f = "D:/frag.h";
+		f = "D:/compiler.h";
 	}
 	else
 	{
-		f = "./frag.h";
+		f = "./compiler.h";
 	}
 	if (!f.existsAsFile())
 	{
 		juce::Result r = f.create();
 		if (!r.wasOk())
 		{
-			msg("fail to create frag.h " + r.getErrorMessage());
+			msg("fail to create compiler.h " + r.getErrorMessage());
 		}
 		else
 		{
