@@ -38,7 +38,6 @@ overlay::overlay ()
     addAndMakeVisible (label = new Label ("new label",
                                           TRANS("fps")));
 	addAndMakeVisible(pl = new pipeLine());
-
     label->setFont (Font (15.00f, Font::plain).withTypefaceStyle ("Regular"));
     label->setJustificationType (Justification::centredLeft);
     label->setEditable (false, false, false);
@@ -98,9 +97,9 @@ void overlay::resized()
     //[/UserPreResize]
 
     label->setBounds (40, 32, 150, 24);
-    labelCompileResult->setBounds (48, 88, 150, 24);
+    labelCompileResult->setBounds (40, 88, 1152, 128);
     //[UserResized] Add your own custom resize handling here..
-	pl->setBounds(40, 32, 150, 24);
+	pl->setBounds(0, 400, 400, 400);
     //[/UserResized]
 }
 
@@ -130,7 +129,7 @@ BEGIN_JUCER_METADATA
          focusDiscardsChanges="0" fontname="Default font" fontsize="15"
          kerning="0" bold="0" italic="0" justification="33"/>
   <LABEL name="label compile result" id="f44be078bf8f7ea1" memberName="labelCompileResult"
-         virtualName="" explicitFocusOrder="0" pos="48 88 150 24" edTextCol="ff000000"
+         virtualName="" explicitFocusOrder="0" pos="40 88 1152 128" edTextCol="ff000000"
          edBkgCol="0" labelText="compile result" editableSingleClick="0"
          editableDoubleClick="0" focusDiscardsChanges="0" fontname="Default font"
          fontsize="15" kerning="0" bold="0" italic="0" justification="33"/>

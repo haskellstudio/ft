@@ -4,7 +4,7 @@
 #include "asmType.h"
 #include <stdio.h>
 
-extern OP opArray[40];
+//extern OP opArray[40];
 extern void msg(juce::String s);
 
 const int stackSize = 1024;

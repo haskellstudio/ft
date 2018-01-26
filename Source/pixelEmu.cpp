@@ -76,7 +76,7 @@ void pixelEmu::paint (Graphics& g)
     //[UserPrePaint] Add your own custom painting code here..
     //[/UserPrePaint]
 
-    g.fillAll (Colours::white);
+    g.fillAll (Colour (0xff323e44));
 
     //[UserPaint] Add your own custom painting code here..
 
@@ -153,7 +153,7 @@ bool pixelEmu::keyPressed (const KeyPress& key)
 			for (int x = 0; x < getWidth(); x++)
 			{
 				juce::Colour c=	_canvas.getPixelAt(x, y);
-				
+
 				ms.writeRGB(_charCanvas[y][x].r, _charCanvas[y][x].g, _charCanvas[y][x].b, true);
 				//s << std::hex << (int)c.getRed() << (int)c.getGreen() << (int)c.getBlue();
 				//g.append(std::string(c.getRed()));
@@ -173,14 +173,14 @@ bool pixelEmu::keyPressed (const KeyPress& key)
 
 	//	edtShowBin->setVisible(!edtShowBin->isVisible());
 	//	edtShowBin->setText((char*)ms.GetMemory());
-		
+
 
 	}
 	else if (key == KeyPress::F1Key)
 	{
 		repaint();
 	}
-			
+
 		//if (key == KeyPress::F1Key)
 		//	msg("F1Key");
     return false;  // Return true if your handler uses this key event, or false to allow it to be passed-on.
@@ -210,7 +210,7 @@ BEGIN_JUCER_METADATA
   <METHODS>
     <METHOD name="keyPressed (const KeyPress&amp; key)"/>
   </METHODS>
-  <BACKGROUND backgroundColour="ffffffff"/>
+  <BACKGROUND backgroundColour="ff323e44"/>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA
