@@ -81,22 +81,22 @@ code::code (juce::ValueTree& tree)
 
 	if (ost & juce::SystemStats::OperatingSystemType::MacOSX)
 	{
-		f = "~/compiler.h";
+		f = "~/csource.h";
 	}
 	else if (ost & juce::SystemStats::OperatingSystemType::Windows)
 	{
-		f = "D:/compiler.h";
+		f = "D:/csource.h";
 	}
 	else
 	{
-		f = "./compiler.h";
+		f = "./csource.h";
 	}
 	if (!f.existsAsFile())
 	{
 		juce::Result r = f.create();
 		if (!r.wasOk())
 		{
-			msg("fail to create compiler.h " + r.getErrorMessage());
+			msg("fail to create csource.h " + r.getErrorMessage());
 		}
 		else
 		{
