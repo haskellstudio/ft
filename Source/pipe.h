@@ -23,6 +23,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "JDockableWindows.h"
 #include "JAdvancedDock.h"
+#include "compiler.h"
 //[/Headers]
 
 

@@ -60,7 +60,7 @@ public:
 			if (_asmOpCodeTree.hasProperty("property_asmOpCode") && _property == juce::Identifier("property_asmOpCode"))
 			{
 				var v = _asmOpCodeTree.getProperty("property_asmOpCode");
-					GLfloat v[4] = { 0.0, 1.0, 0.0, 0.8 };
+					//GLfloat v[4] = { 0.0, 1.0, 0.0, 0.8 };
 				_opFloatCode.clear();
 
 				auto a = v.getArray();

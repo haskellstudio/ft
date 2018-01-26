@@ -18,12 +18,14 @@
 */
 
 //[Headers] You can add your own extra header files here...
+
 //[/Headers]
 
 #include "overlay.h"
 
 
 //[MiscUserDefs] You can add your own user definitions and misc code here...
+
 //[/MiscUserDefs]
 
 //==============================================================================
@@ -35,6 +37,8 @@ overlay::overlay ()
 
     addAndMakeVisible (label = new Label ("new label",
                                           TRANS("fps")));
+	addAndMakeVisible(pl = new pipeLine());
+
     label->setFont (Font (15.00f, Font::plain).withTypefaceStyle ("Regular"));
     label->setJustificationType (Justification::centredLeft);
     label->setEditable (false, false, false);
@@ -96,6 +100,7 @@ void overlay::resized()
     label->setBounds (40, 32, 150, 24);
     labelCompileResult->setBounds (48, 88, 150, 24);
     //[UserResized] Add your own custom resize handling here..
+	pl->setBounds(40, 32, 150, 24);
     //[/UserResized]
 }
 
