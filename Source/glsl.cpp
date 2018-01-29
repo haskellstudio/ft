@@ -491,8 +491,13 @@ float uniform_scale_for_aa() {
 float calc_aa_blur(float w) {
     
     vec2 blur = _stack.blur;
-    w -= blur.x;
-    float wa = clamp(-w*AA*uniform_scale_for_aa(), 0.0f, 1.0f);
+	if (w < 0)
+	{
+		w = w;
+	}
+  //  w -= blur.x;
+
+    float wa = clamp(-w*AA*uniform_scale_for_aa(), 0.0f, 1.0f);  
     float wb = clamp(-w / blur.x + blur.y, 0.0f, 1.0f);
     float r = wa * wb;
     //if (_isnan(r))
@@ -503,8 +508,9 @@ float calc_aa_blur(float w) {
     {
         //_isnan(1);
     }
-    return r;
-    return w;
+   // return r;
+	return clamp(-w*AA, 0.0f, 1.0f) * wb; //* ;
+	//return wa * wb;
 }
 
 void fill_preserve() {
@@ -768,6 +774,16 @@ void line_to(vec2 p) {
 }
 
 
+//向量a 在 向量 b上的投影。  A = sqrt(a*a)A 表示 a的長度。B 表示 b的長度。
+//
+//cos(x) = a * b / A * B
+//
+//a在向量b上的投影 A * cos(x) = A *  (a*b) / A*B = (a*b) / B      // 這個值是一個標量 
+//
+//所以 a在向量b上的投影向量是(a*b) / B * b / B = a*b*b / b*b
+//
+//即(a*b / b*b)  * b
+
 // stroke only
 void line_to_(vec2 p) {
     _stack.position = vec4(.3f, .3f, 0.f, 2.f);
@@ -780,9 +796,11 @@ void line_to_(vec2 p) {
     vec2 ba = p - _stack.last_pt;
     vec2 pb = dot2(pa, ba);
     float bb = dot(ba, ba);
-    //vec2 h = clamp(dot2(pa, ba) / dot(ba, ba), 0.0f, 1.0f);
-    vec2 h = dot2(pa, ba) / dot(ba, ba);
-    vec2 ss = pa.xz*ba.y - pa.yw*ba.x;
+    vec2 h = clamp(dot2(pa, ba) / dot(ba, ba), 0.0f, 1.0f);    // (a*b / b*b)   分別表示兩個標量 ， 第一個算的是當前計算的點，  第二個算的是鼠標所在的點（？ todo 還沒有研究）
+	//這裏需要 clamp 不然下面的  pa - projectionVector 計算不對， 會造成直綫過長 
+	
+	//vec2 h = dot2(pa, ba) / dot(ba, ba);  
+    vec2 ss = pa.xz*ba.y - pa.yw*ba.x;    // a.x * b.y  - a.y * b.x    算兩個夾角逆時針是否超過180 度 ？
     vec2 s = sign((vec2)ss);
     
     vec4 projectionVector = ba.xyxy*h.xxyy;
@@ -935,9 +953,9 @@ void paint() {
     //example 4 curve
     
     /**/
-    set_source_rgba(1., 0.0, 0.0, 1.);
-    set_line_width(0.01);
-    set_blur(0.0001);
+    set_source_rgba(.5, 0.0, 0.0, 1.);
+    set_line_width(0.1);
+    set_blur(0.025);
     move_to(.0f, 0.0f);
     
     //curve_to(0.f, 0.5f, -0.5f, 0.f);
@@ -946,6 +964,14 @@ void paint() {
     stroke();
     //fill_preserve();
     
+
+
+
+	set_line_width(0.1);
+	set_blur(0.0001);
+	move_to(.0f, 0.0f);
+	line_to(-.5f, .0f);
+	stroke();
     
     
     //float liushidu = 0.6283185306;  // 36 du
@@ -1061,7 +1087,7 @@ void mainImage(vec2& gl_FragCoord)
     
     aspect = vec2(iResolution.x / iResolution.y, 1.0);
     ScreenH = min(iResolution.x, iResolution.y);
-    AA = ScreenH*0.4;
+    AA = ScreenH/**0.4*/;
     AAINV = 1.0 / AA;
     
     init(gl_FragCoord);

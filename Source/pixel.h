@@ -335,14 +335,9 @@ public:
 			  lastModiy = t;
 			  juce::StringArray sa;
 			  f.readLines(sa);
-
 			  _strFragment = sa.joinIntoString("\n");
-				//  _cSourceTree.setProperty("cSource", sa.joinIntoString("\n"), nullptr);
 
 		  }
-
-
-		//stopTimer();
 	}
 	void codeDocumentTextInserted(const String& /*newText*/, int /*insertIndex*/) override
 	{

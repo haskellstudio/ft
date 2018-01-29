@@ -43,6 +43,16 @@ public:
 
     //==============================================================================
     //[UserMethods]     -- You can add your own custom methods in this section.
+
+
+	bool keyPressed(const KeyPress& key) override
+	{
+		if (key == 'S')
+		{
+			pl->setVisible(!pl->isVisible());
+		}
+		return false;
+	}
 	void setTxt(String s)
 	{
 		label->setText(s, juce::NotificationType::dontSendNotification);

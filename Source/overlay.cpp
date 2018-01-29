@@ -33,6 +33,7 @@ overlay::overlay ()
 {
     //[Constructor_pre] You can add your own custom stuff here..
 	setOpaque(true);
+	setWantsKeyboardFocus(true);
     //[/Constructor_pre]
 
     addAndMakeVisible (label = new Label ("new label",

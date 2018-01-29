@@ -794,10 +794,9 @@ void line_to(vec2 p) {
 	vec4 pa = _stack.position - _stack.last_pt.xyxy;
 	vec2 ba = p - _stack.last_pt;
 	vec2 h = clamp(dot2(pa, ba) / dot(ba, ba), 0.0, 1.0);
+	//vec2 h = dot2(pa, ba) / dot(ba, ba);
 	vec2 s = sign(pa.xz*ba.y - pa.yw*ba.x);
 	vec2 d = length2(pa - ba.xyxy*h.xxyy);
-
-
 
 	add_field(d);
 	add_clip(d * s);

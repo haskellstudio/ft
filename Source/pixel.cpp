@@ -59,7 +59,7 @@ pixel::pixel ()
 
 	addAndMakeVisible(overLay = new overlay());
 	if (overLay)
-		overLay->addMouseListener(this, true); // may be a bug , the second arg suppose to be false !
+		overLay->addMouseListener(this, false); // may be a bug , the second arg suppose to be false !     update : not a bug !   done well exactly
 
 
 	_openGLContext.setComponentPaintingEnabled(true);  // if false , the overlay component can not see.
