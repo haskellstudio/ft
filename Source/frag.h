@@ -553,31 +553,31 @@ float _vm()
 			else
 				eax = 1;
 		}
-		else if (op == pop_ebx_bit_and_ebx_eax)
-		{
-			ebx = stack[esp++];
-			eax = int(eax) * int(ebx);                 // to do , glsl has no &!!!!!
-		}
-		else if (op == pop_ebx_bit_or_ebx_eax)
-		{
-			ebx = stack[esp++];
-			eax = int(eax) + int(ebx);					// to do , glsl has no |!!!!!
-		}
-		else if (op == pop_ebx_bit_xor_ebx_eax)
-		{
-			ebx = stack[esp++];
-			eax = int(eax) * int(ebx);                   // to do , glsl has no ^!!!!!
-		}
-		else if (op == pop_ebx_shl_ebx_eax)
-		{
-			ebx = stack[esp++];
-			eax = int(ebx)  * int(eax);						// to do , glsl has no <<  !!!!!
-		}
-		else if (op == pop_ebx_shr_ebx_eax)
-		{
-			ebx = stack[esp++];
-			eax = int(ebx) * int(eax);                 // to do , glsl has no >>  !!!!!
-		}
+		//else if (op == pop_ebx_bit_and_ebx_eax)
+		//{
+		//	ebx = stack[esp++];
+		//	eax = int(eax) * int(ebx);                 // to do , glsl has no &!!!!!
+		//}
+		//else if (op == pop_ebx_bit_or_ebx_eax)
+		//{
+		//	ebx = stack[esp++];
+		//	eax = int(eax) + int(ebx);					// to do , glsl has no |!!!!!
+		//}
+		//else if (op == pop_ebx_bit_xor_ebx_eax)
+		//{
+		//	ebx = stack[esp++];
+		//	eax = int(eax) * int(ebx);                   // to do , glsl has no ^!!!!!
+		//}
+		//else if (op == pop_ebx_shl_ebx_eax)
+		//{
+		//	ebx = stack[esp++];
+		//	eax = int(ebx)  * int(eax);						// to do , glsl has no <<  !!!!!
+		//}
+		//else if (op == pop_ebx_shr_ebx_eax)
+		//{
+		//	ebx = stack[esp++];
+		//	eax = int(ebx) * int(eax);                 // to do , glsl has no >>  !!!!!
+		//}
 		else if (op == pop_ebx_add_eax_ebx)
 		{
 			ebx = stack[esp++];
