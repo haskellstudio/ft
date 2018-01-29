@@ -1669,6 +1669,24 @@ public:
 
 		 var = sym_declare(context, "sleep", 'A');
 		 var->apiIndex = 1;
+
+		 var = sym_declare(context, "set_source_rgba", 'A');
+		 var->apiIndex = 2;
+
+		 var = sym_declare(context, "set_line_width", 'A');
+		 var->apiIndex = 3;
+
+		 var = sym_declare(context, "set_blur", 'A');
+		 var->apiIndex = 4;
+
+		 var = sym_declare(context, "move_to", 'A');
+		 var->apiIndex = 5;
+
+		 var = sym_declare(context, "line_to", 'A');
+		 var->apiIndex = 6;
+
+		 var = sym_declare(context, "stroke", 'A');
+		 var->apiIndex = 7;
 	 }
 
 	void compile()
