@@ -65,7 +65,7 @@ uniform vec4 iMouse;
 uniform float _mx;
 uniform float _my;\n
 
-#define fragColor gl_FragColor\n
+//#define fragColor gl_FragColor\n
 //#define color gl_FragColor \n
 //#define o gl_FragColor \n
 
@@ -104,7 +104,7 @@ void main()\n
 	col = mix(col, vec3(1.0, 0.0, 0.0), 1.0 - smoothstep(0.03, 0.035, length(p - m.xy)));
 	col = mix(col, vec3(0.0, 0.0, 1.0), 1.0 - smoothstep(0.03, 0.035, length(p - abs(m.zw))));
 
-	fragColor = vec4(col, 1.0);
+	gl_FragColor = vec4(col, 1.0);
 
 }
 

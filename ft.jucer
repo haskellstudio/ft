@@ -3,7 +3,7 @@
 <JUCERPROJECT id="tdN1ra" name="ft" displaySplashScreen="0" reportAppUsage="0"
               splashScreenColour="Dark" projectType="guiapp" version="1.0.0"
               bundleIdentifier="com.yourcompany.ft" includeBinaryInAppConfig="1"
-              jucerVersion="5.0.1" cppLanguageStandard="14" companyCopyright="">
+              jucerVersion="5.2.0" cppLanguageStandard="14" companyCopyright="">
   <MAINGROUP id="Cyewot" name="ft">
     <GROUP id="{BD5485AD-6B1E-43BE-0E99-E70CC9D1D4F4}" name="Source">
       <GROUP id="{65888FAA-A1C0-9EDA-F886-A9E9FC6EE511}" name="Dock">

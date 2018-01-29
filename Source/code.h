@@ -7,7 +7,7 @@
   the "//[xyz]" and "//[/xyz]" sections will be retained when the file is loaded
   and re-saved.
 
-  Created with Projucer version: 5.0.1
+  Created with Projucer version: 5.2.0
 
   ------------------------------------------------------------------------------
 
@@ -50,14 +50,14 @@ public:
 	{
 		isChangeByEditor = true;
 	//	stopTimer();
-	
+
 
 	}
 
 
 	virtual void timerCallback() override
 	{
-		
+
 		if (isChangeByEditor)
 		{
 		//	stopTimer();
@@ -71,7 +71,7 @@ public:
 		{
 
 			juce::Time t = f.getLastModificationTime();
-			
+
 			if (lastModiy != t)
 			{
 				lastModiy = t;

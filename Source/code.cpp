@@ -7,7 +7,7 @@
   the "//[xyz]" and "//[/xyz]" sections will be retained when the file is loaded
   and re-saved.
 
-  Created with Projucer version: 5.0.1
+  Created with Projucer version: 5.2.0
 
   ------------------------------------------------------------------------------
 
@@ -41,22 +41,17 @@ code::code (juce::ValueTree& tree)
     textEditor->setScrollbarsShown (true);
     textEditor->setCaretVisible (true);
     textEditor->setPopupMenuEnabled (true);
-    textEditor->setText (TRANS("\n"
-    "int F(int n) {\n"
-    "    if (n == 0)\n"
-    "        return 0;\n"
-    "    if (n == 1 || n == 2)\n"
-    "        return 1;\n"
-    "    else\n"
-    "        return F(n - 1) + F(n - 2);\n"
-    "}\n"
-    "\n"
-    "\n"
-    "int main()\n"
+    textEditor->setText (TRANS("int main()\n"
     "{\n"
-    "   MessageBox(2,2, 4,5);\n"
-    "   return 1+1;\n"
+    "\tset_source_rgba(1.0, 0.0, 0.0, 1.0);\n"
+    "\tset_line_width( 0.01);\n"
+    "\tset_blur(0.005);\n"
+    "\tmove_to(0.0, 0.0);\n"
+    "\tline_to(0.5, 0.0);\n"
+    "\tstroke();\n"
     "}\n"));
+
+    textEditor->setBounds (40, 8, 280, 264);
 
 
     //[UserPreSize]
@@ -106,7 +101,7 @@ code::code (juce::ValueTree& tree)
 	}
 
 
-	
+
     //[/Constructor]
 }
 
@@ -139,7 +134,6 @@ void code::resized()
     //[UserPreResize] Add your own custom resize code here..
     //[/UserPreResize]
 
-    textEditor->setBounds (40, 8, 280, 264);
     //[UserResized] Add your own custom resize handling here..
 
     auto area = getLocalBounds();
@@ -170,7 +164,7 @@ BEGIN_JUCER_METADATA
                  fixedSize="0" initialWidth="600" initialHeight="400">
   <BACKGROUND backgroundColour="ff323e44"/>
   <TEXTEDITOR name="new text editor" id="40a926f4a47423e9" memberName="textEditor"
-              virtualName="" explicitFocusOrder="0" pos="40 8 280 264" initialText="&#10;int F(int n) {&#10;    if (n == 0)&#10;        return 0;&#10;    if (n == 1 || n == 2)&#10;        return 1;&#10;    else&#10;        return F(n - 1) + F(n - 2);&#10;}&#10;&#10;&#10;int main()&#10;{&#10;   MessageBox(2,2, 4,5);&#10;   return 1+1;&#10;}&#10;"
+              virtualName="" explicitFocusOrder="0" pos="40 8 280 264" initialText="int main()&#10;{&#10;&#9;set_source_rgba(1.0, 0.0, 0.0, 1.0);&#10;&#9;set_line_width( 0.01);&#10;&#9;set_blur(0.005);&#10;&#9;move_to(0.0, 0.0);&#10;&#9;line_to(0.5, 0.0);&#10;&#9;stroke();&#10;}&#10;"
               multiline="1" retKeyStartsLine="1" readonly="0" scrollbars="1"
               caret="1" popupmenu="1"/>
 </JUCER_COMPONENT>
