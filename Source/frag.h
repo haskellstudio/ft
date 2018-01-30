@@ -421,30 +421,33 @@ vec2 lines = vec2(lineWidth, lineHeight);
 
 float showc(vec2 offset)
 {
-	if (textureCoordOut.x > (1.0 / lineWidth) *( offset.x+1.0) )
-	{
-		return 0;
-	}
-	else if (textureCoordOut.y <  1.0 / lineHeight  *(lineHeight - offset.y-1))
-	{
-		return 0;
-	}
-	
+	float judg1 = step(textureCoordOut.x, (1.0 / lineWidth) *(offset.x + 1.0));
+	//if (textureCoordOut.x > (1.0 / lineWidth) *( offset.x+1.0) )
+	//{
+	//	return 0;
+	//}
+	//else if (textureCoordOut.y <  1.0 / lineHeight  *(lineHeight - offset.y-1))
+	//{
+	//	return 0;
+	//}
+	float judg2 = step( (1.0 / lineHeight) *(lineHeight - offset.y - 1.0), textureCoordOut.y);
+
+
 	vec2 msdfUnit = pxRange / vec2(32.0, 32.0);
 
 	offset.y = lineHeight - 1 - offset.y;
-
+	
 	vec2 textureCoord =  textureCoordOut * lines - offset;
 	
 	vec3 sample = texture2D(Texture_1, textureCoord).rgb;
 	
 	float sigDist =  median(sample.r, sample.g, sample.b) - 0.5;
 
-	sigDist *= dot(msdfUnit, 0.5 / fwidth(textureCoord));
+	//sigDist *= dot(msdfUnit, 0.5 / fwidth(textureCoord));
 	
 	float opacity = clamp(sigDist + 0.5, 0.0, 1.0);
 
-	return opacity;
+	return judg1 *judg2 * opacity;
 
 }
 
@@ -474,26 +477,123 @@ void main()
 	
 	
 	//gl_FragColor = mix(bgColor, fgColor, showc(vec2(0.0, 0.0)));
-	gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+	//gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
 	
-	for (int i = 0; i < lineWidth; i++)
-	{
-		for (int j = 0; j < lineHeight; j++)
-		{
-			gl_FragColor = mix(gl_FragColor, fgColor, showc(vec2(i, j)));
-		}
-		
-	}
+	//for (int i = 0; i < lineWidth; i++)
+	//{
+	//	for (int j = 0; j < lineHeight; j++)
+	//	{
+	//		gl_FragColor = mix(gl_FragColor, fgColor, showc(vec2(i, j)));
+	//	}
+	//	
+	//}
 
-	//gl_FragColor = mix(bgColor, fgColor, step(0.5, showc(vec2(0.0, 0.0))) );
-
-	//gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(1.0, 1.0))));
+	gl_FragColor = mix(bgColor, fgColor, step(0.5, showc(vec2(0.0, 0.0))) );
 
 
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(3.0, 1.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(4.0, 1.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(5.0, 1.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(6.0, 1.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(7.0, 1.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(8.0, 1.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(9.0, 1.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(10.0, 1.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(11.0, 1.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(12.0, 1.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(13.0, 1.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(14.0, 1.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(15.0, 1.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(16.0, 1.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(17.0, 1.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(18.0, 1.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(19.0, 1.0))));
 
-	return;
 
 
+	
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(4.0, 2.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(5.0, 2.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(6.0, 2.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(7.0, 2.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(8.0, 2.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(9.0, 2.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(10.0, 2.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(11.0, 2.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(12.0, 2.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(13.0, 2.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(14.0, 2.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(15.0, 2.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(16.0, 2.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(17.0, 2.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(18.0, 2.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(19.0, 2.0))));
+
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(2.0, 3.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(3.0, 3.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(4.0, 3.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(5.0, 3.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(6.0, 3.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(7.0, 3.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(8.0, 3.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(9.0, 3.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(10.0, 3.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(11.0, 3.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(12.0, 3.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(13.0, 3.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(14.0, 3.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(15.0, 3.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(16.0, 3.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(17.0, 3.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(18.0, 3.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(19.0, 3.0))));
+	
+	
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(2.0, 4.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(3.0, 4.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(4.0, 4.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(5.0, 4.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(6.0, 4.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(7.0, 4.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(8.0, 4.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(9.0, 4.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(10.0, 4.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(11.0, 4.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(12.0, 4.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(13.0, 4.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(14.0, 4.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(15.0, 4.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(16.0, 4.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(17.0, 4.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(18.0, 4.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(19.0, 4.0))));
+
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(2.0, 5.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(3.0, 5.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(4.0, 5.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(5.0, 5.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(6.0, 5.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(7.0, 5.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(8.0, 5.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(9.0, 5.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(10.0, 5.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(11.0, 5.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(12.0, 5.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(13.0, 5.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(14.0, 5.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(15.0, 5.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(16.0, 5.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(17.0, 5.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(18.0, 5.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(19.0, 5.0))));
+
+
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(14.0, 6.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(15.0, 6.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(16.0, 6.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(17.0, 6.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(18.0, 6.0))));
+	gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(19.0, 6.0))));
 
 	//vec2 uv = fragCoord.xy / iResolution.xx;
 	//float r = getcolor(uv); 
