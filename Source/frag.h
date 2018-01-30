@@ -402,6 +402,54 @@ void clear() {
 	_color = mix(_color, _stack.source.rgb, _stack.source.a);
 }
 float _vm();
+
+
+
+
+
+float pxRange = 2.0;
+vec4 bgColor = vec4(0.0, 0.0, 0.0, 1.0f);
+vec4 fgColor = vec4(1.0, 1.0, 0.0, 1.0f);
+
+float median(float r, float g, float b) {
+	return max(min(r, g), min(max(r, g), b));
+}
+
+float lineWidth = 22.0;
+float lineHeight = 22.0;
+vec2 lines = vec2(lineWidth, lineHeight);
+
+float showc(vec2 offset)
+{
+	if (textureCoordOut.x > (1.0 / lineWidth) *( offset.x+1.0) )
+	{
+		return 0;
+	}
+	else if (textureCoordOut.y <  1.0 / lineHeight  *(lineHeight - offset.y-1))
+	{
+		return 0;
+	}
+	
+	vec2 msdfUnit = pxRange / vec2(32.0, 32.0);
+
+	offset.y = lineHeight - 1 - offset.y;
+
+	vec2 textureCoord =  textureCoordOut * lines - offset;
+	
+	vec3 sample = texture2D(Texture_1, textureCoord).rgb;
+	
+	float sigDist =  median(sample.r, sample.g, sample.b) - 0.5;
+
+	sigDist *= dot(msdfUnit, 0.5 / fwidth(textureCoord));
+	
+	float opacity = clamp(sigDist + 0.5, 0.0, 1.0);
+
+	return opacity;
+
+}
+
+
+
 void main() 
 {
 	init(fragCoord);
@@ -418,9 +466,31 @@ void main()
 	//////close_path();
 	//stroke();
 
-	_vm();
+	//_vm();
 
-	fragColor = vec4(_color, 1.0);
+	//fragColor = vec4(_color, 1.0);
+
+//	gl_FragColor = texture2D(Texture_1, textureCoordOut);
+	
+	
+	//gl_FragColor = mix(bgColor, fgColor, showc(vec2(0.0, 0.0)));
+	gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+	
+	for (int i = 0; i < lineWidth; i++)
+	{
+		for (int j = 0; j < lineHeight; j++)
+		{
+			gl_FragColor = mix(gl_FragColor, fgColor, showc(vec2(i, j)));
+		}
+		
+	}
+
+	//gl_FragColor = mix(bgColor, fgColor, step(0.5, showc(vec2(0.0, 0.0))) );
+
+	//gl_FragColor = mix(gl_FragColor, fgColor, step(0.5, showc(vec2(1.0, 1.0))));
+
+
+
 	return;
 
 

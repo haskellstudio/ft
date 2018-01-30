@@ -143,22 +143,28 @@ struct DynamicTexture
 		const int size = 16 * 16;
 
 		if (!image.isValid())
-			image = Image(Image::ARGB, size, size, true);
-
 		{
-			Graphics g(image);
-			g.fillAll(Colours::lightpink);
-
-			//g.setColour(Colours::black);
-			//g.drawRect(10, 10, size/2, size/2, 2);
-
-
-			//g.fillEllipse(0, 0, 16, 16);
-			g.setColour(Colours::red);
-			g.setFont(40);
-			g.drawFittedText(String("hello world"), image.getBounds(), Justification::centred, 1);
-
+			File f = "E:/juceStudy/ft/vs2015console2/output.png";
+			image = juce::ImageFileFormat::loadFrom(f);
 		}
+
+		//if (!image.isValid())
+		//	image = Image(Image::ARGB, size, size, true);
+
+		//{
+		//	Graphics g(image);
+		//	g.fillAll(Colours::lightpink);
+
+		//	//g.setColour(Colours::black);
+		//	//g.drawRect(10, 10, size/2, size/2, 2);
+
+
+		//	//g.fillEllipse(0, 0, 16, 16);
+		//	g.setColour(Colours::red);
+		//	g.setFont(40);
+		//	g.drawFittedText(String("hello world"), image.getBounds(), Justification::centred, 1);
+
+		//}
 
 		texture.loadImage(image);
 		return true;
