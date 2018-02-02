@@ -209,7 +209,10 @@ public:
 		{
 			_bInit = true;
 			_sprite.init(-1., -1., 2., 2.);
-			_dynamicTexture.applyTo(_texture);
+			_dynamicTexture.applyTo(_texture, "E:/juceStudy/ft/ft/1.png");
+			_dynamicTexture.applyTo(_texture2, "E:/juceStudy/ft/ft/2.png");
+			_dynamicTexture.applyTo(_texture3, "E:/juceStudy/ft/ft/3.png");
+			_dynamicTexture.applyTo(_texture4, "E:/juceStudy/ft/ft/4.png");
 			_openGLContext.setSwapInterval(0);
 		}
 
@@ -227,14 +230,26 @@ public:
 		glDepthFunc(GL_LESS);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		_openGLContext.extensions.glActiveTexture(GL_TEXTURE0);
 		glEnable(GL_TEXTURE_2D);
+
+
+		_openGLContext.extensions.glActiveTexture(GL_TEXTURE0);
+		_texture.bind();
+		_openGLContext.extensions.glActiveTexture(GL_TEXTURE1);
+		_texture2.bind();
+		_openGLContext.extensions.glActiveTexture(GL_TEXTURE2);
+		_texture3.bind();
+
+		_openGLContext.extensions.glActiveTexture(GL_TEXTURE2+1);
+		_texture4.bind();
 
 		const float desktopScale = (float)_openGLContext.getRenderingScale();
 		glViewport(0, 0, roundToInt(desktopScale * getWidth()), roundToInt(desktopScale * getHeight()));
 
-		_texture.bind();
-
+		
+		
+		
+	
 
 		drawSprite(_shader, _sprite, _attributes, _uniforms, (float)(Time::getMillisecondCounter() / 140), getWidth(), getHeight());
 
@@ -266,6 +281,19 @@ public:
 			{
 				uf->texture->set(0);
 			}
+			if (uf->texture2)
+			{
+				uf->texture2->set(1);
+			}
+			if (uf->texture3)
+			{
+				uf->texture3->set(2);
+			}
+			if (uf->texture4)
+			{
+				uf->texture4->set(3);
+			}
+
 			if (uf->iGlobalTime)
 			{
 
@@ -388,6 +416,9 @@ public:
 	{
 		_shader = nullptr;
 		_texture.release();
+		_texture2.release();
+		_texture3.release();
+		_texture4.release();
 	}
     //[/UserMethods]
 
@@ -416,6 +447,9 @@ private:
 	Sprite _sprite;
 
 	OpenGLTexture _texture;
+	OpenGLTexture _texture2;
+	OpenGLTexture _texture3;
+	OpenGLTexture _texture4;
 
 	FPS fps;
 

@@ -1,4 +1,6 @@
 #pragma once
+extern void msg(juce::String s);
+
 
 struct Vertex {
 	float x;
@@ -86,6 +88,10 @@ struct Uniforms
 		projectionMatrix = createUniform(openGLContext, shader, "projectionMatrix");
 		viewMatrix = createUniform(openGLContext, shader, "viewMatrix");
 		texture = createUniform(openGLContext, shader, "Texture_1");
+		texture2 = createUniform(openGLContext, shader, "Texture_2");
+		texture3 = createUniform(openGLContext, shader, "Texture_3");
+		texture4 = createUniform(openGLContext, shader, "Texture_4");
+		
 		lightPosition = createUniform(openGLContext, shader, "lightPosition");
 		iGlobalTime = createUniform(openGLContext, shader, "iGlobalTime");
 
@@ -107,12 +113,9 @@ struct Uniforms
 	bool getStatus()
 	{
 		return true;
-		if (lightPosition == nullptr || texture == nullptr)
-			return false;
-		else
-			return true;
+
 	}
-	ScopedPointer<OpenGLShaderProgram::Uniform>projectionMatrix, viewMatrix, lightPosition, texture, iGlobalTime, arrFloat;
+	ScopedPointer<OpenGLShaderProgram::Uniform>projectionMatrix, viewMatrix, lightPosition, iGlobalTime, arrFloat, texture, texture2, texture3, texture4;
 	ScopedPointer<OpenGLShaderProgram::Uniform> x, y, w, h, winW, winH, iMouse  , iResolution;
 
 private:
@@ -138,14 +141,20 @@ struct DynamicTexture
 	Image image;
 
 
-	bool applyTo(OpenGLTexture& texture)
+	bool applyTo(OpenGLTexture& texture, juce::String p)
 	{
 		const int size = 16 * 16;
 
-		if (!image.isValid())
+		//if (!image.isValid())
 		{
-			File f = "E:/juceStudy/ft/vs2015console2/output.png";
-			image = juce::ImageFileFormat::loadFrom(f);
+			File f = p;
+			if (!f.existsAsFile())
+			{
+				jassertfalse;
+				//msg("file " + p + " is not exist!");
+			}
+			else
+				image = juce::ImageFileFormat::loadFrom(f);
 		}
 
 		//if (!image.isValid())
