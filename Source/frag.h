@@ -471,7 +471,7 @@ void main()
     // 2/rows  every grid width
     float gridHeight = 2.0/ rows;
     float gridWidth  = 2.0 / cols;
-    for(int i = 0; i < rows; i ++)
+    for(int i = 0; i < rows; i ++)         // maybe low fps!
     {
        // for(int j = 0; j < cols; j++)
         {
