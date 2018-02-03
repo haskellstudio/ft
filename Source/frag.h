@@ -458,16 +458,32 @@ void main()
 
 	set_source_rgb(vec3(0.1333f, 0.1333f, 0.1333f));
 	clear();
+    set_source_rgba(vec4(1.f, 0.0f, 0.f, 1.f) );
+    set_line_width(0.0005);
+    set_blur(0.002);
 
-	//set_source_rgba(vec4(1.f, 0.0f, 0.f, 1.f) );
-	//set_line_width(0.1);
-	//set_blur(0.025);
-	//move_to(.0f, 0.0f);
-	//////curve_to(0.f, 0.5f, -0.5f, 0.f);
-	//line_to(.5f, .0f);
-	//////close_path();
-	//stroke();
-
+ //   move_to(.0f, 0.9f);
+    ////curve_to(0.f, 0.5f, -0.5f, 0.f);
+  //  line_to(1.f, .0f);
+    //close_path();
+  
+        //0-2  xia dao shang
+    // 2/rows  every grid width
+    float gridHeight = 2.0/ rows;
+    float gridWidth  = 2.0 / cols;
+    for(int i = 0; i < rows; i ++)
+    {
+       // for(int j = 0; j < cols; j++)
+        {
+            move_to(-1.0, i*gridHeight-1.0);
+            line_to(1.0,  i*gridHeight-1.0);
+        }
+    }
+  
+    
+    stroke();
+    
+    gl_FragColor.rgba = vec4(_color, 1.);
 	//_vm();
 
 	//fragColor = vec4(_color, 1.0);
