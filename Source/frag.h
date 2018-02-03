@@ -489,6 +489,16 @@ void main()
 	//fragColor = vec4(_color, 1.0);
 
 //	gl_FragColor = texture2D(Texture_1, textureCoordOut);
+
+	
+	 //   vec2 uv = fragCoord.xy / iResolution.xy;
+	//    for(int i = 0; i < rows; i ++)    // low fps!!!
+	//    {
+	//        for(int j = 0; j < 1; j++)
+	//        {
+	//            gl_FragColor  += getChar(uv, 49 + i * 20 + j, i, j);
+	//        }
+	//    }
 	
 	
 	// show 1 2 3 4 5 in specific grid
