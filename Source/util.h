@@ -9,6 +9,9 @@
 */
 
 #pragma once
+
+extern void msg(juce::String s);
+
 enum SEEK_ORIGIN
 {
 	SO_BEGINNING = 0,
@@ -260,6 +263,46 @@ public:
 	{
 		return GetPosition() / sizeof(float);
 	}
+
+	int writeByte(juce::uint8 b)
+	{
+		return Write(&b, 1);
+	}
+
+	int writeWord(juce::uint16 b)
+	{
+		return Write(&b, 2);
+	}
+	int writeDword(juce::uint32 b)
+	{
+		return Write(&b, 4);
+	}
+	int writeInt64(juce::uint64 b)
+	{
+		return Write(&b, 8);
+	}
+	int writeStr(juce::CharPointer_UTF8 s)
+	{
+		return Write(s , strlen(s));
+	}
+
+	bool writeToFile(juce::String fileName)
+	{
+		juce::File f = fileName;
+
+		juce::Result r = f.create();
+		if (!r.wasOk())
+		{
+			msg("fail to create m.midi" + r.getErrorMessage());
+			return false;
+		}
+		else
+		{
+			return f.replaceWithData(GetMemory(), GetSize());
+		}
+	}
+	
+
 };
 
 

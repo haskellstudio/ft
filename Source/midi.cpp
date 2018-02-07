@@ -44,6 +44,10 @@ midi::midi ()
     //[Constructor_pre] You can add your own custom stuff here..
     //[/Constructor_pre]
 
+    addAndMakeVisible (_btnGenMidi = new TextButton ("btnGenMidi"));
+    _btnGenMidi->setButtonText (TRANS("gen midi"));
+    _btnGenMidi->addListener (this);
+
 
     //[UserPreSize]
     //[/UserPreSize]
@@ -53,6 +57,7 @@ midi::midi ()
 
     //[Constructor] You can add your own custom stuff here..
 
+	return;
 	AlertWindow::showOkCancelBox(AlertWindow::QuestionIcon,
 		"OPTION",
 		"this program run as server or client.",
@@ -70,6 +75,7 @@ midi::~midi()
     //[Destructor_pre]. You can add your own custom destruction code here..
     //[/Destructor_pre]
 
+    _btnGenMidi = nullptr;
 
 
     //[Destructor]. You can add your own custom destruction code here..
@@ -82,7 +88,7 @@ void midi::paint (Graphics& g)
     //[UserPrePaint] Add your own custom painting code here..
     //[/UserPrePaint]
 
-    g.fillAll (Colours::white);
+    g.fillAll (Colour (0xff323e44));
 
     //[UserPaint] Add your own custom painting code here..
 	g.drawText("midi", getLocalBounds(), Justification::centred, true);
@@ -94,8 +100,27 @@ void midi::resized()
     //[UserPreResize] Add your own custom resize code here..
     //[/UserPreResize]
 
+    _btnGenMidi->setBounds (264, 96, 150, 24);
     //[UserResized] Add your own custom resize handling here..
     //[/UserResized]
+}
+
+void midi::buttonClicked (Button* buttonThatWasClicked)
+{
+    //[UserbuttonClicked_Pre]
+    //[/UserbuttonClicked_Pre]
+
+    if (buttonThatWasClicked == _btnGenMidi)
+    {
+        //[UserButtonCode__btnGenMidi] -- add your button handler code here..
+
+		//msg("btn gen midi clicked!");
+		writeMidi();
+        //[/UserButtonCode__btnGenMidi]
+    }
+
+    //[UserbuttonClicked_Post]
+    //[/UserbuttonClicked_Post]
 }
 
 
@@ -118,7 +143,10 @@ BEGIN_JUCER_METADATA
                  constructorParams="" variableInitialisers="" snapPixels="8" snapActive="1"
                  snapShown="1" overlayOpacity="0.330" fixedSize="0" initialWidth="600"
                  initialHeight="400">
-  <BACKGROUND backgroundColour="ffffffff"/>
+  <BACKGROUND backgroundColour="ff323e44"/>
+  <TEXTBUTTON name="btnGenMidi" id="8420d0cd0369ff84" memberName="_btnGenMidi"
+              virtualName="" explicitFocusOrder="0" pos="264 96 150 24" buttonText="gen midi"
+              connectedEdges="0" needsCallback="1" radioGroupId="0"/>
 </JUCER_COMPONENT>
 
 END_JUCER_METADATA
