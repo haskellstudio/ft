@@ -1687,6 +1687,12 @@ public:
 
 		 var = sym_declare(context, "stroke", 'A');
 		 var->apiIndex = 7;
+
+		 var = sym_declare(context, "getCharInGrid", 'A');
+		 var->apiIndex = 8;
+
+		 var = sym_declare(context, "getChar", 'A');
+		 var->apiIndex = 9;
 	 }
 
 	void compile()

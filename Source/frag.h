@@ -19,7 +19,7 @@ uniform vec4 iMouse;
 uniform float _mx;
 uniform float _my;
 
-#define fragColor gl_FragColor 
+//#define fragColor gl_FragColor 
 //#define color gl_FragColor  
 //#define o gl_FragColor 
 
@@ -133,40 +133,40 @@ const int Multiply = 2; // multiply the new source with the old one
 
 struct Context {
 	// screen position, query position
-	// å‰ vec2 æ˜¯ å½“å‰shaderå¤„ç†çš„ç‚¹çš„åæ ‡ã€‚  åé¢çš„vec2æ˜¯å½“å‰é¼ æ ‡ç‚¹å‡»çš„åæ ‡
+	// Ç° vec2 ÊÇ µ±Ç°shader´¦ÀíµÄµãµÄ×ø±ê¡£  ºóÃæµÄvec2ÊÇµ±Ç°Êó±êµã»÷µÄ×ø±ê
 	vec4 position;
 
-	//å½“å‰shaderå¤„ç†çš„ç‚¹(é¼ æ ‡ç‚¹å‡»çš„åæ ‡ï¼‰çš„åæ ‡åˆ°è¦ç”»çš„çº¿çš„è·ç¦»ã€‚ 
+	//µ±Ç°shader´¦ÀíµÄµã(Êó±êµã»÷µÄ×ø±ê£©µÄ×ø±êµ½Òª»­µÄÏßµÄ¾àÀë¡£ 
 	vec2 shape;
 
-	// æ˜¯å¦è£å‰ªï¼Œ ç”»ç›´çº¿æ—¶å€™ ï¼Œ å¦‚æœå½“å‰åæ ‡å‘é‡ å’Œ è¦ç”»çš„ç›´çº¿å‘é‡   pa pb   (pa.x*pb.y - pa.y*pb.x) æ˜¯è´Ÿæ•° ï¼Œé‚£ä¹ˆclipæ˜¯è´Ÿæ•° ï¼Œé€†æ—¶é’ˆï¼Œ åˆ™å¡«å……çº¿çš„é¢œè‰²ã€‚
+	// ÊÇ·ñ²Ã¼ô£¬ »­Ö±ÏßÊ±ºò £¬ Èç¹ûµ±Ç°×ø±êÏòÁ¿ ºÍ Òª»­µÄÖ±ÏßÏòÁ¿   pa pb   (pa.x*pb.y - pa.y*pb.x) ÊÇ¸ºÊı £¬ÄÇÃ´clipÊÇ¸ºÊı £¬ÄæÊ±Õë£¬ ÔòÌî³äÏßµÄÑÕÉ«¡£
 	vec2 clip;
 
-	// å½“å‰ç¼©æ”¾çš„å€¼ 
+	// µ±Ç°Ëõ·ÅµÄÖµ 
 	vec2 scale;
 
-	//å½“å‰çº¿çš„å®½åº¦
+	//µ±Ç°ÏßµÄ¿í¶È
 	float line_width;
 
-	// æ˜¯å¦ä½¿ç”¨æå‰ç›¸ä¹˜ï¼Œåœ¨ç”»ç›´çº¿çš„æ—¶å€™ç”¨åˆ°ã€‚ ç›®å‰ä¸€ç›´æ˜¯falseã€‚
+	// ÊÇ·ñÊ¹ÓÃÌáÇ°Ïà³Ë£¬ÔÚ»­Ö±ÏßµÄÊ±ºòÓÃµ½¡£ Ä¿Ç°Ò»Ö±ÊÇfalse¡£
 	bool premultiply;
 
-	//å½“å‰çš„æ¨¡ç³Šå€¼ï¼Œ æ¯”å¦‚ç›´çº¿çš„è¾¹ç¼˜ä½¿ç”¨æ¨¡ç³Šçš„å®½åº¦ã€‚
+	//µ±Ç°µÄÄ£ºıÖµ£¬ ±ÈÈçÖ±ÏßµÄ±ßÔµÊ¹ÓÃÄ£ºıµÄ¿í¶È¡£
 	vec2 blur;
 
-	//å½“å‰ç›´çº¿çš„é¢œè‰²çš„å€¼ã€‚
+	//µ±Ç°Ö±ÏßµÄÑÕÉ«µÄÖµ¡£
 	vec4 source;
 
-	//move to çš„å€¼ï¼Ÿ 
+	//move to µÄÖµ£¿ 
 	vec2 start_pt;
 
-	//æœ€è¿‘ä¸€æ¬¡ line_toçš„å€¼ ã€‚
+	//×î½üÒ»´Î line_toµÄÖµ ¡£
 	vec2 last_pt;
 
-	//æœªçŸ¥ 
+	//Î´Öª 
 	int source_blend;
 
-	//å½“å‰æ˜¯å¦ä½¿ç”¨äº†è£å‰ª
+	//µ±Ç°ÊÇ·ñÊ¹ÓÃÁË²Ã¼ô
 	bool has_clip;
 };
 
@@ -205,7 +205,7 @@ void init(vec2 fragCoord) {
 
 
 void set_source_rgba(vec4 c) {
-	//c *= c;   // why squre ï¼Ÿ
+	//c *= c;   // why squre £¿
 	if (_stack.source_blend == Multiply) {
 		_stack.source *= c;
 	}
@@ -299,15 +299,15 @@ void line_to(float x, float y) { line_to(vec2(x, y)); }
 
 
 
-////å‘é‡a åœ¨ å‘é‡ bä¸Šçš„æŠ•å½±ã€‚  A = sqrt(a*a)A è¡¨ç¤º açš„é•·åº¦ã€‚B è¡¨ç¤º bçš„é•·åº¦ã€‚
+////ÏòÁ¿a ÔÚ ÏòÁ¿ bÉÏµÄÍ¶Ó°¡£  A = sqrt(a*a)A ±íÊ¾ aµÄéL¶È¡£B ±íÊ¾ bµÄéL¶È¡£
 ////
 ////cos(x) = a * b / A * B
 ////
-////aåœ¨å‘é‡bä¸Šçš„æŠ•å½± A * cos(x) = A *  (a*b) / A*B = (a*b) / B      // é€™å€‹å€¼æ˜¯ä¸€å€‹æ¨™é‡ 
+////aÔÚÏòÁ¿bÉÏµÄÍ¶Ó° A * cos(x) = A *  (a*b) / A*B = (a*b) / B      // ß@‚€ÖµÊÇÒ»‚€˜ËÁ¿ 
 ////
-////æ‰€ä»¥ aåœ¨å‘é‡bä¸Šçš„æŠ•å½±å‘é‡æ˜¯(a*b) / B * b / B = a*b*b / b*b
+////ËùÒÔ aÔÚÏòÁ¿bÉÏµÄÍ¶Ó°ÏòÁ¿ÊÇ(a*b) / B * b / B = a*b*b / b*b
 ////
-////å³(a*b / b*b)  * b
+////¼´(a*b / b*b)  * b
 //
 //// stroke only
 //void line_to_(vec2 p) {
@@ -321,11 +321,11 @@ void line_to(float x, float y) { line_to(vec2(x, y)); }
 //	vec2 ba = p - _stack.last_pt;
 //	vec2 pb = dot2(pa, ba);
 //	float bb = dot(ba, ba);
-//	vec2 h = clamp(dot2(pa, ba) / dot(ba, ba), 0.0f, 1.0f);    // (a*b / b*b)   åˆ†åˆ¥è¡¨ç¤ºå…©å€‹æ¨™é‡ ï¼Œ ç¬¬ä¸€å€‹ç®—çš„æ˜¯ç•¶å‰è¨ˆç®—çš„é»ï¼Œ  ç¬¬äºŒå€‹ç®—çš„æ˜¯é¼ æ¨™æ‰€åœ¨çš„é»ï¼ˆï¼Ÿ todo é‚„æ²’æœ‰ç ”ç©¶ï¼‰
-//															   //é€™è£éœ€è¦ clamp ä¸ç„¶ä¸‹é¢çš„  pa - projectionVector è¨ˆç®—ä¸å°ï¼Œ æœƒé€ æˆç›´ç¶«éé•· 
+//	vec2 h = clamp(dot2(pa, ba) / dot(ba, ba), 0.0f, 1.0f);    // (a*b / b*b)   ·Ö„e±íÊ¾ƒÉ‚€˜ËÁ¿ £¬ µÚÒ»‚€ËãµÄÊÇ®”Ç°Ó‹ËãµÄüc£¬  µÚ¶ş‚€ËãµÄÊÇÊó˜ËËùÔÚµÄüc£¨£¿ todo ß€›]ÓĞÑĞ¾¿£©
+//															   //ß@ÑYĞèÒª clamp ²»È»ÏÂÃæµÄ  pa - projectionVector Ó‹Ëã²»Œ¦£¬ •şÔì³ÉÖ±¾Qß^éL 
 //
 //															   //vec2 h = dot2(pa, ba) / dot(ba, ba);  
-//	vec2 ss = pa.xz*ba.y - pa.yw*ba.x;    // a.x * b.y  - a.y * b.x    ç®—å…©å€‹å¤¾è§’é€†æ™‚é‡æ˜¯å¦è¶…é180 åº¦ ï¼Ÿ
+//	vec2 ss = pa.xz*ba.y - pa.yw*ba.x;    // a.x * b.y  - a.y * b.x    ËãƒÉ‚€ŠA½ÇÄæ•rá˜ÊÇ·ñ³¬ß^180 ¶È £¿
 //	vec2 s = sign((vec2)ss);
 //
 //	vec4 projectionVector = ba.xyxy*h.xxyy;
@@ -338,39 +338,39 @@ void line_to(float x, float y) { line_to(vec2(x, y)); }
 //}
 
 
-void write_color(vec4 rgba /* çº¿çš„é¢œè‰² */, float w /* w åœ¨ 0ï¼Œ1ä¹‹é—´ */) {
+void write_color(vec4 rgba /* ÏßµÄÑÕÉ« */, float w /* w ÔÚ 0£¬1Ö®¼ä */) {
 
-	// src_a è¡¨ç¤ºå½“å‰é¢œè‰²éœ€è¦ä¿ç•™çš„ç™¾åˆ†æ¯”æ˜¯å¤šå°‘ï¼Œ 0 è¡¨ç¤ºå½“å‰é¢œè‰²å…¨éƒ¨ä¿ç•™ ã€‚
-	// å› ä¸º 0 ï¼Œè¡¨ç¤º rgbaçš„aæ˜¯0ï¼Œ rgba æ˜¯ stack.source ä¹Ÿå°±æ˜¯çº¿çš„é¢œè‰²    é‚£ä¹ˆè¡¨ç¤ºä¸ç”¨çº¿çš„é¢œè‰²ï¼ˆçº¿çš„alphaä¸º0ï¼Œå®Œå…¨é€æ˜ï¼‰ ã€‚ è¿™æ˜¯ä¸‹é¢çš„  _color ï¼ˆå½“å‰èƒŒæ™¯é¢œè‰²ï¼‰ * (1.0 - src_a)  = å½“å‰èƒŒæ™¯é¢œè‰² * 1 ï¼›
-	// å› ä¸º 0 ï¼Œè¡¨ç¤º w ä¸º0 .      åŒä¸Š ã€‚
+	// src_a ±íÊ¾µ±Ç°ÑÕÉ«ĞèÒª±£ÁôµÄ°Ù·Ö±ÈÊÇ¶àÉÙ£¬ 0 ±íÊ¾µ±Ç°ÑÕÉ«È«²¿±£Áô ¡£
+	// ÒòÎª 0 £¬±íÊ¾ rgbaµÄaÊÇ0£¬ rgba ÊÇ stack.source Ò²¾ÍÊÇÏßµÄÑÕÉ«    ÄÇÃ´±íÊ¾²»ÓÃÏßµÄÑÕÉ«£¨ÏßµÄalphaÎª0£¬ÍêÈ«Í¸Ã÷£© ¡£ ÕâÊÇÏÂÃæµÄ  _color £¨µ±Ç°±³¾°ÑÕÉ«£© * (1.0 - src_a)  = µ±Ç°±³¾°ÑÕÉ« * 1 £»
+	// ÒòÎª 0 £¬±íÊ¾ w Îª0 .      Í¬ÉÏ ¡£
 
 	float src_a = w * rgba.a;
 	float dst_a = _stack.premultiply ? w : src_a;
 
-	// rgb æ˜¯ line çš„é¢œè‰² ï¼Œ æ‰€ä»¥ src_a ä¸º 1ï¼Œ é‚£ä¹ˆå½“å‰ç‚¹æ˜¯å®å¿ƒçš„ ã€‚ å¦‚æœ 0< dst_a < 1 é‚£ä¹ˆå½“å‰ç‚¹æ˜¯æ¨¡ç³Šçš„ 
+	// rgb ÊÇ line µÄÑÕÉ« £¬ ËùÒÔ src_a Îª 1£¬ ÄÇÃ´µ±Ç°µãÊÇÊµĞÄµÄ ¡£ Èç¹û 0< dst_a < 1 ÄÇÃ´µ±Ç°µãÊÇÄ£ºıµÄ 
 	_color = _color * (1.0 - src_a) + rgba.rgb * dst_a;
 }
 
 
 
 
-float calc_aa_blur(float w /*w è¡¨ç¤ºç°åœ¨æ­£åœ¨æ£€æŸ¥çš„ç‚¹ç¦»è¦ç”»çš„ç›´çº¿çš„è¾¹ç¼˜æœ‰å¤šè¿œ !!!!!
-						   å¦‚æœwæ˜¯è´Ÿæ•° ï¼Œè¡¨ç¤ºè¿™ä¸ªç‚¹æ˜¯ç›´çº¿å†…çš„ç‚¹ ã€‚ å¦åˆ™ä¸ºç›´çº¿å¤–çš„ç‚¹ã€‚
+float calc_aa_blur(float w /*w ±íÊ¾ÏÖÔÚÕıÔÚ¼ì²éµÄµãÀëÒª»­µÄÖ±ÏßµÄ±ßÔµÓĞ¶àÔ¶ !!!!!
+						   Èç¹ûwÊÇ¸ºÊı £¬±íÊ¾Õâ¸öµãÊÇÖ±ÏßÄÚµÄµã ¡£ ·ñÔòÎªÖ±ÏßÍâµÄµã¡£
 						   */) {
 	vec2 blur = _stack.blur;
 
 
 
 
-	// a= w - x  è¡¨ç¤ºaè¿™ä¸ªå®½åº¦å†…æ˜¯éœ€è¦æ¨¡ç³Šçš„ ï¼Œ å‰©ä¸‹çš„w è¡¨ç¤ºä¸éœ€è¦æ¨¡ç³Šçš„å®½åº¦ ã€‚
-	// w -= blur.x; æ‰§è¡Œå®Œå ï¼Œ å¦‚æœwä¸ºè´Ÿæ•° ï¼Œ è¯´æ˜ è¿™ä¸ªç‚¹æ˜¯å®å¿ƒçš„ï¼Œ æ²¡æœ‰è¢«æ¨¡ç³Šã€‚ 
-	// å¦‚æœ w åœ¨ 0-blur.xä¹‹é—´ï¼Œ è¯´æ˜è¿™ä¸ªç‚¹æ˜¯åœ¨æ¨¡ç³ŠèŒƒå›´å†…çš„ ã€‚
-	// å¦‚æœ w å¤§äº  blur.xï¼Œ   è¯´æ˜è¿™ä¸ªç‚¹åœ¨æ¨¡ç³ŠèŒƒå›´ä¹‹å¤–ï¼Œ ä¹Ÿå°±æ˜¯è¯´ï¼Œè¿™ä¸ªç‚¹ä¸å±äºå½“å‰è¦ç”»çš„lineï¼Œ ä¹Ÿå°±æ˜¯è¯´ï¼Œé‡‡ç”¨èƒŒæ™¯è‰²ã€‚
+	// a= w - x  ±íÊ¾aÕâ¸ö¿í¶ÈÄÚÊÇĞèÒªÄ£ºıµÄ £¬ Ê£ÏÂµÄw ±íÊ¾²»ĞèÒªÄ£ºıµÄ¿í¶È ¡£
+	// w -= blur.x; Ö´ĞĞÍêºó £¬ Èç¹ûwÎª¸ºÊı £¬ ËµÃ÷ Õâ¸öµãÊÇÊµĞÄµÄ£¬ Ã»ÓĞ±»Ä£ºı¡£ 
+	// Èç¹û w ÔÚ 0-blur.xÖ®¼ä£¬ ËµÃ÷Õâ¸öµãÊÇÔÚÄ£ºı·¶Î§ÄÚµÄ ¡£
+	// Èç¹û w ´óÓÚ  blur.x£¬   ËµÃ÷Õâ¸öµãÔÚÄ£ºı·¶Î§Ö®Íâ£¬ Ò²¾ÍÊÇËµ£¬Õâ¸öµã²»ÊôÓÚµ±Ç°Òª»­µÄline£¬ Ò²¾ÍÊÇËµ£¬²ÉÓÃ±³¾°É«¡£
 	w -= blur.x;
 
 
-	float wa = clamp(-w*min(iResolution.x, iResolution.y)/**uniform_scale_for_aa()*/, 0.0, 1.0);       // wa è¡¨ç¤ºå½“å‰ç¦» ç›´çº¿è¾¹ç¼˜çš„è·ç¦»  å¤Ÿä¸å¤Ÿä¸€ä¸ªåƒç´ ï¼Œ å¦‚æœä¸å¤Ÿï¼Œ é‚£ä¹ˆè¿™ä¸ªç‚¹çš„é¢œè‰²ï¼Œ å°±æ˜¯ çº¿çš„é¢œè‰² * wa æ¯”å¦‚0.5ï¼Œ ç›¸å½“äºæŠ—é”¯é½¿ã€‚
-	float wb = clamp(-w / blur.x + blur.y, 0.0, 1.0);               // å½“å‰ç¦» ç›´çº¿è¾¹ç¼˜çš„è·ç¦»  é™¤ä»¥   blurçš„å®½åº¦  ï¼Œ å¦‚æœåœ¨blurä¹‹é—´ï¼Œ å°±å¯¹å…¶ ã€‚ã€‚ã€‚ã€‚ åŒä¸Š
+	float wa = clamp(-w*min(iResolution.x, iResolution.y)/**uniform_scale_for_aa()*/, 0.0, 1.0);       // wa ±íÊ¾µ±Ç°Àë Ö±Ïß±ßÔµµÄ¾àÀë  ¹»²»¹»Ò»¸öÏñËØ£¬ Èç¹û²»¹»£¬ ÄÇÃ´Õâ¸öµãµÄÑÕÉ«£¬ ¾ÍÊÇ ÏßµÄÑÕÉ« * wa ±ÈÈç0.5£¬ Ïàµ±ÓÚ¿¹¾â³İ¡£
+	float wb = clamp(-w / blur.x + blur.y, 0.0, 1.0);               // µ±Ç°Àë Ö±Ïß±ßÔµµÄ¾àÀë  ³ıÒÔ   blurµÄ¿í¶È  £¬ Èç¹ûÔÚblurÖ®¼ä£¬ ¾Í¶ÔÆä ¡£¡£¡£¡£ Í¬ÉÏ
 	return wa * wb;
 }
 
@@ -425,9 +425,9 @@ int cols = 20;
 int cPerRow = 32;
 float cPerRowf = 32.0;
 
-vec4 getChar(vec2 uv, int c, int whichRow, int whichCol)
+vec4 getCharInGrid( int c, int whichRow, int whichCol)
 {
-
+	vec2 uv = fragCoord.xy / iResolution.xy;
 	float restrictRowBefore = step((1.0 / float(cols)) * float(whichCol), uv.x);
 
 	float restrictColBefore = step(uv.y, (1.0 / float(rows)) *float(rows - whichRow));
@@ -448,15 +448,15 @@ vec4 getChar(vec2 uv, int c, int whichRow, int whichCol)
 	vec2 gx = dFdx(st / 16.0);
 	vec2 gy = dFdy(st / 16.0);
 
-	return texture2D(Texture_1, vec2(x, y)).xyzw  * restrictRowAfter * restrictColAfter * restrictRowBefore *restrictColBefore;
+	return gl_FragColor += texture2D(Texture_1, vec2(x, y)).xyzw  * restrictRowAfter * restrictColAfter * restrictRowBefore *restrictColBefore;
 }
 
 // uv		    left bottom is 0 0
 // draw pos     left top    is 0 0 
 
-vec4 getChar(vec2 uv, int c, float xpos, float ypos, float width, float height)
+vec4 getChar( int c, float xpos, float ypos, float width, float height)
 {
-
+	vec2 uv = fragCoord.xy / iResolution.xy;
 	float restrictRowBefore = step(xpos, uv.x);
 
 	float restrictColBefore = step(uv.y, ypos);
@@ -479,7 +479,7 @@ vec4 getChar(vec2 uv, int c, float xpos, float ypos, float width, float height)
 	//vec2 gx = dFdx(st / 16.0);
 //	vec2 gy = dFdy(st / 16.0);
 
-	return texture2D(Texture_1, vec2(x, y)).xyzw  * restrictRowAfter * restrictColAfter * restrictRowBefore *restrictColBefore;
+	return gl_FragColor += texture2D(Texture_1, vec2(x, y)).xyzw  * restrictRowAfter * restrictColAfter * restrictRowBefore *restrictColBefore;
 }
 
 
@@ -492,37 +492,34 @@ void main()
 	//	gl_FragColor = vec4(1.0, 1., 0., 1.);
 	//return;
 
-
-	init(fragCoord);
-
 	set_source_rgb(vec3(0.1333f, 0.1333f, 0.1333f));
 	clear();
-	set_source_rgba(vec4(1.f, 0.0f, 0.f, 1.f));
-	set_line_width(0.0005);
-	set_blur(0.002);
+	init(fragCoord);
+	_vm();
+	gl_FragColor += vec4(_color, 1.0);
 
-	//   move_to(.0f, 0.9f);
-	////curve_to(0.f, 0.5f, -0.5f, 0.f);
-	//  line_to(1.f, .0f);
-	//close_path();
-
-	//0-2  xia dao shang
-	// 2/rows  every grid width
-	float gridHeight = 2.0 / rows;
-	float gridWidth = 2.0 / cols;
-	for (int i = 0; i < rows; i++)         // maybe low fps!
-	{
-		// for(int j = 0; j < cols; j++)
-		{
-			move_to(-1.0, i*gridHeight - 1.0);
-			line_to(1.0, i*gridHeight - 1.0);
-		}
-	}
+	//getCharInGrid( 53, 1, 1);
+ //   getChar(49, .5, .5, .05, .1/2.);
+	
+	
+	//set_source_rgb(vec3(0.1333f, 0.1333f, 0.1333f));
+	//clear();
+	//set_source_rgba(vec4(1.f, 0.0f, 0.f, 1.f));
+	//set_line_width(0.003);
+	//set_blur(0.002);// why 0.0002  the line will dispare?
 
 
-	stroke();
+	//float gridHeight = 2.0 / rows;
+	//float gridWidth = 2.0 / cols;
+	//for (int i = 0; i < rows; i++)         // maybe low fps!
+	//{
+	//		move_to(-1.0, i*gridHeight - 1.0);
+	//		line_to(1.0, i*gridHeight - 1.0);
+	//}
+	//stroke();
 
-	gl_FragColor.rgba = vec4(_color, 1.);
+	//gl_FragColor.rgba = vec4(_color, 1.);
+
 	//_vm();
 
 	//fragColor = vec4(_color, 1.0);
@@ -537,12 +534,10 @@ void main()
 	//        }
 	//    }
 
-	vec2 uv = fragCoord.xy / iResolution.xy;
-	// show 1 2 3 4 5 in specific grid
-	gl_FragColor += getChar(uv, 49, 1, 1);
-
-
-	gl_FragColor += getChar(uv, 49, .5, .5, .05, .1/2.);
+	//vec2 uv = fragCoord.xy / iResolution.xy;
+	//// show 1 2 3 4 5 in specific grid
+	//gl_FragColor += getChar(uv, 49, 1, 1);
+	//gl_FragColor += getChar(uv, 49, .5, .5, .05, .1/2.);
 
 	//gl_FragColor += getChar(uv, 50, 2, 2);
 	//gl_FragColor += getChar(uv, 51, 3, 3);
@@ -623,7 +618,7 @@ void main()
 }
 
 
-//fragColor = vec4(0.5, 0., 0.5, 1.0);     // é‡ç½®shader
+//fragColor = vec4(0.5, 0., 0.5, 1.0);     // ÖØÖÃshader
 
 
 
@@ -914,6 +909,14 @@ float _vm()
 			else if (index == 7)
 			{
 				stroke();
+			}
+			else if (index == 8)
+			{
+				getCharInGrid(int(stack[esp + 2]),  int(stack[esp + 1]), int(stack[esp + 0]));
+			}
+			else if (index == 9)
+			{
+				getChar(int(stack[esp + 4]), stack[esp + 3], stack[esp + 2], stack[esp + 1], stack[esp + 0]);
 			}
 
 			//var = sym_declare(context, "set_source_rgba", 'A');
