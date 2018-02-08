@@ -4,6 +4,9 @@ uniform vec4 lightPosition;
 varying vec2 textureCoordOut;
 varying vec2 _uv;
 uniform sampler2D Texture_1;
+uniform sampler2D Texture_2;
+uniform sampler2D Texture_3;
+uniform sampler2D Texture_4;
 
 //uniform sampler2D Texture_1;
 uniform float iGlobalTime;
@@ -445,10 +448,10 @@ vec4 getCharInGrid( int c, int whichRow, int whichCol)
 	float x = (1.0 / cPerRowf) *  fract(float(c) / cPerRowf)  * cPerRowf + uv.x / cPerRowf;
 	float y = (1.0 / cPerRowf) *  (cPerRowf - float(c / cPerRow) - 1.0) + uv.y / cPerRowf;
 
-	vec2 gx = dFdx(st / 16.0);
-	vec2 gy = dFdy(st / 16.0);
+	//vec2 gx = dFdx(st / 16.0);
+//	vec2 gy = dFdy(st / 16.0);
 
-	return gl_FragColor += texture2D(Texture_1, vec2(x, y)).xyzw  * restrictRowAfter * restrictColAfter * restrictRowBefore *restrictColBefore;
+	return gl_FragColor += texture2D(Texture_2, vec2(x, y)).xyzw  * restrictRowAfter * restrictColAfter * restrictRowBefore *restrictColBefore;
 }
 
 // uv		    left bottom is 0 0
@@ -479,7 +482,7 @@ vec4 getChar( int c, float xpos, float ypos, float width, float height)
 	//vec2 gx = dFdx(st / 16.0);
 //	vec2 gy = dFdy(st / 16.0);
 
-	return gl_FragColor += texture2D(Texture_1, vec2(x, y)).xyzw  * restrictRowAfter * restrictColAfter * restrictRowBefore *restrictColBefore;
+	return gl_FragColor += texture2D(Texture_2, vec2(x, y)).xyzw  * restrictRowAfter * restrictColAfter * restrictRowBefore *restrictColBefore;
 }
 
 

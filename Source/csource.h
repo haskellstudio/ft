@@ -9,6 +9,6 @@ int main()
 	line_to(0.5, 0.0);
 	line_to(0.0, -0.7);
 	stroke();
-	getCharInGrid( 53, 1, 1);
-	getChar( 49, 0.7, 0.5, 0.05,  0.05);
+	getCharInGrid( 80, 1, 1);
+	getChar(80, 0.7, 0.5, 0.1,  0.1);
 }
