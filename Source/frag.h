@@ -1,4 +1,4 @@
-#version 120 
+#version 120
 
 uniform vec4 lightPosition;
 varying vec2 textureCoordOut;
@@ -17,14 +17,14 @@ uniform vec2 iResolution;
 uniform vec4 iMouse;
 
 uniform float _mx;
-uniform float _my; 
+uniform float _my;
 
 #define fragColor gl_FragColor 
 //#define color gl_FragColor  
 //#define o gl_FragColor 
 
 
-vec2 fragCoord = (_uv * iResolution); 
+vec2 fragCoord = (_uv * iResolution);
 //vec2 p = (_uv * iResolution); 
 
 
@@ -36,7 +36,7 @@ vec2 fragCoord = (_uv * iResolution);
 
 
 
-float distanceToSegment(vec2 a, vec2 b, vec2 p) 
+float distanceToSegment(vec2 a, vec2 b, vec2 p)
 {
 	vec2 pa = p - a;
 	vec2 ba = b - a;
@@ -52,7 +52,7 @@ float getcolor(vec2 uv)
 	if (uv.x < 0.75 &&  uv.x > 0.25)
 		return 1.;
 	return 0.;
-} 
+}
 
 
 
@@ -425,73 +425,110 @@ int cols = 20;
 int cPerRow = 32;
 float cPerRowf = 32.0;
 
-vec4 getChar(vec2 uv,  int c , int whichRow, int whichCol)
+vec4 getChar(vec2 uv, int c, int whichRow, int whichCol)
 {
-    
-    float restrictRowBefore = step((1.0 / float(cols)) * float (whichCol ) ,uv.x );
-    
-    float restrictColBefore = step(  uv.y , (1.0 / float(rows)) *float (rows - whichRow));
-    
-    float restrictRowAfter = step(uv.x, (1.0 / float(cols)) * float (whichCol  + 1));
-    
-    float restrictColAfter = step( (1.0 / float(rows)) *float (rows - whichRow - 1), uv.y);
-    
-    vec2 grid = vec2(rows, cols);
-    
-    vec2 st = uv*grid;
-    
-    uv = fract (st);
-    
-    float x = (1.0 / cPerRowf) *  fract ( float(c) / cPerRowf)  * cPerRowf + uv.x /cPerRowf ;
-    float y = (1.0/cPerRowf) *  (cPerRowf- float(c/cPerRow) - 1.0 ) + uv.y/cPerRowf ;
-    
-    vec2 gx = dFdx( st/16.0 );
-    vec2 gy = dFdy( st/16.0 );
-    
-    return texture2D( Texture_1, vec2(x, y)).xyzw  * restrictRowAfter * restrictColAfter * restrictRowBefore *restrictColBefore ;
+
+	float restrictRowBefore = step((1.0 / float(cols)) * float(whichCol), uv.x);
+
+	float restrictColBefore = step(uv.y, (1.0 / float(rows)) *float(rows - whichRow));
+
+	float restrictRowAfter = step(uv.x, (1.0 / float(cols)) * float(whichCol + 1));
+
+	float restrictColAfter = step((1.0 / float(rows)) *float(rows - whichRow - 1), uv.y);
+
+	vec2 grid = vec2(rows, cols);
+
+	vec2 st = uv*grid;
+
+	uv = fract(st);
+
+	float x = (1.0 / cPerRowf) *  fract(float(c) / cPerRowf)  * cPerRowf + uv.x / cPerRowf;
+	float y = (1.0 / cPerRowf) *  (cPerRowf - float(c / cPerRow) - 1.0) + uv.y / cPerRowf;
+
+	vec2 gx = dFdx(st / 16.0);
+	vec2 gy = dFdy(st / 16.0);
+
+	return texture2D(Texture_1, vec2(x, y)).xyzw  * restrictRowAfter * restrictColAfter * restrictRowBefore *restrictColBefore;
+}
+
+// uv		    left bottom is 0 0
+// draw pos     left top    is 0 0 
+
+vec4 getChar(vec2 uv, int c, float xpos, float ypos, float width, float height)
+{
+
+	float restrictRowBefore = step(xpos, uv.x);
+
+	float restrictColBefore = step(uv.y, ypos);
+
+	float restrictRowAfter = step(uv.x, xpos + width);
+
+	float restrictColAfter = step(ypos - height, uv.y);
+
+	vec2 grid = vec2(1/width, 1/height);
+
+	//vec2 st = uv*grid;
+	uv.x = uv.x - xpos;
+	uv.y = uv.y + ypos;
+	vec2 st = uv*grid;
+	uv = fract(st);
+
+	float x = (1.0 / cPerRowf) *  fract(float(c) / cPerRowf)  * cPerRowf + uv.x / cPerRowf;
+	float y = (1.0 / cPerRowf) *  (cPerRowf - float(c / cPerRow) - 1.0) + uv.y / cPerRowf;
+
+	//vec2 gx = dFdx(st / 16.0);
+//	vec2 gy = dFdy(st / 16.0);
+
+	return texture2D(Texture_1, vec2(x, y)).xyzw  * restrictRowAfter * restrictColAfter * restrictRowBefore *restrictColBefore;
 }
 
 
-void main() 
+void main()
 {
+	//vec2 uv = fragCoord.xy / iResolution.xy;
+	//if (uv.y > 0.5)
+	//	gl_FragColor = vec4(1.0, 0., 0., 1.);
+	//else
+	//	gl_FragColor = vec4(1.0, 1., 0., 1.);
+	//return;
+
+
 	init(fragCoord);
 
 	set_source_rgb(vec3(0.1333f, 0.1333f, 0.1333f));
 	clear();
-    set_source_rgba(vec4(1.f, 0.0f, 0.f, 1.f) );
-    set_line_width(0.0005);
-    set_blur(0.002);
+	set_source_rgba(vec4(1.f, 0.0f, 0.f, 1.f));
+	set_line_width(0.0005);
+	set_blur(0.002);
 
- //   move_to(.0f, 0.9f);
-    ////curve_to(0.f, 0.5f, -0.5f, 0.f);
-  //  line_to(1.f, .0f);
-    //close_path();
-  
-        //0-2  xia dao shang
-    // 2/rows  every grid width
-    float gridHeight = 2.0/ rows;
-    float gridWidth  = 2.0 / cols;
-    for(int i = 0; i < rows; i ++)         // maybe low fps!
-    {
-       // for(int j = 0; j < cols; j++)
-        {
-            move_to(-1.0, i*gridHeight-1.0);
-            line_to(1.0,  i*gridHeight-1.0);
-        }
-    }
-  
-    
-    stroke();
-    
-    gl_FragColor.rgba = vec4(_color, 1.);
+	//   move_to(.0f, 0.9f);
+	////curve_to(0.f, 0.5f, -0.5f, 0.f);
+	//  line_to(1.f, .0f);
+	//close_path();
+
+	//0-2  xia dao shang
+	// 2/rows  every grid width
+	float gridHeight = 2.0 / rows;
+	float gridWidth = 2.0 / cols;
+	for (int i = 0; i < rows; i++)         // maybe low fps!
+	{
+		// for(int j = 0; j < cols; j++)
+		{
+			move_to(-1.0, i*gridHeight - 1.0);
+			line_to(1.0, i*gridHeight - 1.0);
+		}
+	}
+
+
+	stroke();
+
+	gl_FragColor.rgba = vec4(_color, 1.);
 	//_vm();
 
 	//fragColor = vec4(_color, 1.0);
 
-//	gl_FragColor = texture2D(Texture_1, textureCoordOut);
+	//	gl_FragColor = texture2D(Texture_1, textureCoordOut);
 
-	
-	 //   vec2 uv = fragCoord.xy / iResolution.xy;
 	//    for(int i = 0; i < rows; i ++)    // low fps!!!
 	//    {
 	//        for(int j = 0; j < 1; j++)
@@ -499,58 +536,62 @@ void main()
 	//            gl_FragColor  += getChar(uv, 49 + i * 20 + j, i, j);
 	//        }
 	//    }
-	
-	
+
+	vec2 uv = fragCoord.xy / iResolution.xy;
 	// show 1 2 3 4 5 in specific grid
-    gl_FragColor  += getChar(uv, 49, 1, 1);
-    gl_FragColor  += getChar(uv, 50, 2, 2);
-    gl_FragColor  += getChar(uv, 51, 3, 3);
-    gl_FragColor  += getChar(uv, 52, 4, 4);
-    gl_FragColor  += getChar(uv, 53, 5, 5);
-    
-    
-    // show HELLO WORLD! in specific grid
-    gl_FragColor  += getChar(uv, 72, 6, 6);
-    gl_FragColor  += getChar(uv, 69, 6, 7);
-    gl_FragColor  += getChar(uv, 76, 6, 8);
-    gl_FragColor  += getChar(uv, 76, 6, 9);
-    gl_FragColor  += getChar(uv, 79, 6, 10);
-    gl_FragColor  += getChar(uv, 32, 6,11);
-    gl_FragColor  += getChar(uv, 87, 6, 12);
-    gl_FragColor  += getChar(uv, 79, 6, 13);
-    gl_FragColor  += getChar(uv, 82, 6, 14);
-    gl_FragColor  += getChar(uv, 76, 6, 15);
-    gl_FragColor  += getChar(uv, 68, 6, 16);
-    gl_FragColor  += getChar(uv, 33, 6, 17);
-    
-    
-    
-    // show HELLO WORLD! in specific grid
-    gl_FragColor  += getChar(uv, 72, 14, 3);
-    gl_FragColor  += getChar(uv, 69, 14, 4);
-    gl_FragColor  += getChar(uv, 76, 14, 5);
-    gl_FragColor  += getChar(uv, 76, 14, 6);
-    gl_FragColor  += getChar(uv, 79, 14, 7);
-    gl_FragColor  += getChar(uv, 32, 14, 8);
-    gl_FragColor  += getChar(uv, 87, 14, 9);
-    gl_FragColor  += getChar(uv, 79, 14, 10);
-    gl_FragColor  += getChar(uv, 82, 14, 11);
-    gl_FragColor  += getChar(uv, 76, 14, 12);
-    gl_FragColor  += getChar(uv, 68, 14, 13);
-    gl_FragColor  += getChar(uv, 33, 14, 14);
-    
-    // show 1 2 3 4 5 in specific grid
-    gl_FragColor  += getChar(uv, 49, 15, 15);
-    gl_FragColor  += getChar(uv, 50, 16, 16);
-    gl_FragColor  += getChar(uv, 51, 17, 17);
-    gl_FragColor  += getChar(uv, 52, 18, 18);
-    gl_FragColor  += getChar(uv, 53, 19, 19);
-    
+	gl_FragColor += getChar(uv, 49, 1, 1);
+
+
+	gl_FragColor += getChar(uv, 49, .5, .5, .05, .1/2.);
+
+	//gl_FragColor += getChar(uv, 50, 2, 2);
+	//gl_FragColor += getChar(uv, 51, 3, 3);
+	//gl_FragColor += getChar(uv, 52, 4, 4);
+	//gl_FragColor += getChar(uv, 53, 5, 5);
+
+
+	//// show HELLO WORLD! in specific grid
+	//gl_FragColor += getChar(uv, 72, 6, 6);
+	//gl_FragColor += getChar(uv, 69, 6, 7);
+	//gl_FragColor += getChar(uv, 76, 6, 8);
+	//gl_FragColor += getChar(uv, 76, 6, 9);
+	//gl_FragColor += getChar(uv, 79, 6, 10);
+	//gl_FragColor += getChar(uv, 32, 6, 11);
+	//gl_FragColor += getChar(uv, 87, 6, 12);
+	//gl_FragColor += getChar(uv, 79, 6, 13);
+	//gl_FragColor += getChar(uv, 82, 6, 14);
+	//gl_FragColor += getChar(uv, 76, 6, 15);
+	//gl_FragColor += getChar(uv, 68, 6, 16);
+	//gl_FragColor += getChar(uv, 33, 6, 17);
+
+
+
+	//// show HELLO WORLD! in specific grid
+	//gl_FragColor += getChar(uv, 72, 14, 3);
+	//gl_FragColor += getChar(uv, 69, 14, 4);
+	//gl_FragColor += getChar(uv, 76, 14, 5);
+	//gl_FragColor += getChar(uv, 76, 14, 6);
+	//gl_FragColor += getChar(uv, 79, 14, 7);
+	//gl_FragColor += getChar(uv, 32, 14, 8);
+	//gl_FragColor += getChar(uv, 87, 14, 9);
+	//gl_FragColor += getChar(uv, 79, 14, 10);
+	//gl_FragColor += getChar(uv, 82, 14, 11);
+	//gl_FragColor += getChar(uv, 76, 14, 12);
+	//gl_FragColor += getChar(uv, 68, 14, 13);
+	//gl_FragColor += getChar(uv, 33, 14, 14);
+
+	//// show 1 2 3 4 5 in specific grid
+	//gl_FragColor += getChar(uv, 49, 15, 15);
+	//gl_FragColor += getChar(uv, 50, 16, 16);
+	//gl_FragColor += getChar(uv, 51, 17, 17);
+	//gl_FragColor += getChar(uv, 52, 18, 18);
+	//gl_FragColor += getChar(uv, 53, 19, 19);
+
 	return;
-	
+
 	//gl_FragColor = mix(bgColor, fgColor, showc(vec2(0.0, 0.0)));
 	//gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
-	
+
 	//for (int i = 0; i < lineWidth; i++)
 	//{
 	//	for (int j = 0; j < lineHeight; j++)
@@ -560,7 +601,7 @@ void main()
 	//	
 	//}
 
-	
+
 
 	//vec2 uv = fragCoord.xy / iResolution.xx;
 	//float r = getcolor(uv); 
@@ -896,4 +937,3 @@ float _vm()
 	}
 	return eax;
 }
-
