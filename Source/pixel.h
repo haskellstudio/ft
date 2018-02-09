@@ -209,10 +209,29 @@ public:
 		{
 			_bInit = true;
 			_sprite.init(-1., -1., 2., 2.);
-			_dynamicTexture.applyTo(_texture, "E:/juceStudy/ft/ft/1.png");
-			_dynamicTexture.applyTo(_texture2, "E:/juceStudy/ft/ft/2.png");
-			_dynamicTexture.applyTo(_texture3, "E:/juceStudy/ft/ft/3.png");
-			_dynamicTexture.applyTo(_texture4, "E:/juceStudy/ft/ft/4.png");
+            
+            
+            
+            juce::SystemStats::OperatingSystemType ost = juce::SystemStats::getOperatingSystemType();
+            
+            if (ost & juce::SystemStats::OperatingSystemType::MacOSX)
+            {
+                _dynamicTexture.applyTo(_texture, "~/dev/ft//1.png");
+                _dynamicTexture.applyTo(_texture2, "~/dev/ft//2.png");
+                _dynamicTexture.applyTo(_texture3, "~/dev/ft/3.png");
+                _dynamicTexture.applyTo(_texture4, "~/dev/ft/4.png");
+            }
+            else if (ost & juce::SystemStats::OperatingSystemType::Windows)
+            {
+                _dynamicTexture.applyTo(_texture, "E:/juceStudy/ft/ft/1.png");
+                _dynamicTexture.applyTo(_texture2, "E:/juceStudy/ft/ft/2.png");
+                _dynamicTexture.applyTo(_texture3, "E:/juceStudy/ft/ft/3.png");
+                _dynamicTexture.applyTo(_texture4, "E:/juceStudy/ft/ft/4.png");
+                
+            }
+                
+                
+
 			_openGLContext.setSwapInterval(0);
 		}
 

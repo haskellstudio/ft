@@ -79,7 +79,7 @@ pixel::pixel ()
 
 	if (ost & juce::SystemStats::OperatingSystemType::MacOSX)
 	{
-		f = "~/frag.h";
+		f = "~/dev/ft/Source/frag.h";
 	}
 	else if (ost & juce::SystemStats::OperatingSystemType::Windows)
 	{

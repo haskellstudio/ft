@@ -76,7 +76,7 @@ code::code (juce::ValueTree& tree)
 
 	if (ost & juce::SystemStats::OperatingSystemType::MacOSX)
 	{
-		f = "~/csource.h";
+		f = "~/dev/ft/Source/csource.h";
 	}
 	else if (ost & juce::SystemStats::OperatingSystemType::Windows)
 	{
