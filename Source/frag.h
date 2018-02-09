@@ -366,15 +366,16 @@ float calc_aa_blur(float w /*w 表示现在正在检查的点离要画的直线�
                                 
                                 
                                 // a= w - x  表示a这个宽度内是需要模糊的 ， 剩下的w 表示不需要模糊的宽度 。
-                                // w -= blur.x; 执行完后 ， 如果w为负数 ， 说明 这个点是实心的， 没有被模糊。
+                                // w += blur.x; 执行完后 ， 如果w为负数 ， 说明 这个点是实心的， 没有被模糊。
                                 // 如果 w 在 0-blur.x之间， 说明这个点是在模糊范围内的 。
                                 // 如果 w 大于  blur.x，   说明这个点在模糊范围之外， 也就是说，这个点不属于当前要画的line， 也就是说，采用背景色。
-                                w -= blur.x;
+                                w += blur.x;
                                 
                                 
                                 float wa = clamp(-w*min(iResolution.x, iResolution.y)/**uniform_scale_for_aa()*/, 0.0, 1.0);       // wa 表示当前离 直线边缘的距离  够不够一个像素， 如果不够， 那么这个点的颜色， 就是 线的颜色 * wa 比如0.5， 相当于抗锯齿。
-                                float wb = clamp(-w / blur.x + blur.y, 0.0, 1.0);               // 当前离 直线边缘的距离  除以   blur的宽度  ， 如果在blur之间， 就对其 。。。。 同上
+                                float wb = clamp(-w / blur.x + blur.y, 0.0, 1.0);               // 当前离 直线边缘的距离  除以   blur的宽度  ， 如果在blur之间， 就对其 。。。。 同上  // 如果 blur.x为0， 那么就除以 blur.y ,也就是 1， 这就是为什么当blur为0时， 1的意义了。 否则， blur有值， 那么blur.y 就为0.
                                 return wa * wb;
+                    
                             }
 
 
