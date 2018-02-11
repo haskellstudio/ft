@@ -3827,7 +3827,7 @@ vec4 getChar2(int c, float xpos, float ypos, float width, float height)
 	uv.y = uv.y + ypos;
 	vec2 st = uv*grid;
 	uv = fract(st);
-
+	show33();
 	float x = (1.0 / cPerRowf) *  fract(float(c) / cPerRowf)  * cPerRowf + uv.x / cPerRowf;
 	float y = (1.0 / cPerRowf) *  (cPerRowf - float(c / cPerRow) - 1.0) + uv.y / cPerRowf;
 
@@ -3854,8 +3854,9 @@ void main()
 	set_source_rgba(1., 0.0, 0.0, 1.);
 	set_line_width(0.01);
 	set_blur(0.001);
-	getCharInGrid(50, 3, 1);
-	//getChar(50, .5, .5, .05, .1 / 2.);
+
+//	getCharInGrid(50, 3, 1);
+	getChar2(50, .5, .5, .05, .1);
 	//move_to(-1.f, -1.f);
 	//line_to(.5f, .5f);
 	//line_to(.0f, .5f);
