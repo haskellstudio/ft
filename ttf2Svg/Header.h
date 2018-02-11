@@ -73,17 +73,21 @@ namespace font2svg {
         }
         
     };
-    
-    
+    //get aspect
+	float getA(int x, int y)
+	{
+		return  float(x) / float(y);
+	}
     /* Draw the outline of the font as svg.
      There are three main components.
      1. the points
      2. the 'tags' for the points
      3. the contour indexes (that define which points belong to which contour)
      */
-    std::string do_outline(std::vector<FT_Vector> points, std::vector<char> tags, std::vector<short> contours)
+	std::string do_outline(std::vector<FT_Vector> points, std::vector<char> tags, std::vector<short> contours, FT_Glyph_Metrics gm,bool returnFun = false)
     {
         std::stringstream debug, svg;
+		std::stringstream s;
         std::cout << "<!-- do outline -->\n";
         if (points.size()==0) return "<!-- font had 0 points -->";
         if (contours.size()==0) return "<!-- font had 0 contours -->";
@@ -104,7 +108,7 @@ namespace font2svg {
         //                 destination-x, destination-y
         //         for line:   L x-coord, y-coord
         //         for move:   M x-coord, y-coord
-        
+		s << "//width: " << gm.horiAdvance << "height: " << gm.vertAdvance << std::endl;
         int contour_starti = 0;
         int contour_endi = 0;
         for ( int i = 0 ; i < contours.size() ; i++ ) {
@@ -116,6 +120,7 @@ namespace font2svg {
             debug << "number of points in this contour: " << npts << "\n";
             debug << "moving to first pt " << points[offset].x << "," << points[offset].y << "\n";
             svg << "\n M " << points[contour_starti].x << "," << points[contour_starti].y << "\n";
+			s << "move_to( " << getA(points[contour_starti].x, gm.horiAdvance) << ", " << getA(points[contour_starti].y, gm.vertAdvance) << ");\n" << std::endl;
             debug << "listing pts: [this pt index][isctrl] <next pt index><isctrl> [x,y] <nx,ny>\n";
             for ( int j = 0; j < npts; j++ ) {
                 int thisi = j%npts + offset;
@@ -154,11 +159,15 @@ namespace font2svg {
                     if (j==0) {
                         debug << "first pt in contour was ctrl pt. moving to non-ctrl pt\n";
                         svg << " M " << x << "," << y << "\n";
+
+						s << "move_to( " << getA(x, gm.horiAdvance) << ", " << getA(y, gm.vertAdvance) << ");\n" << std::endl;
                     }
                 }
                 
                 if (!this_isctl && next_isctl && !nextnext_isctl) {
                     svg << " Q " << nx << "," << ny << " " << nnx << "," << nny << "\n";
+					s << "curve_to(  " << getA(nx, gm.horiAdvance) << ",  " << getA(ny, gm.vertAdvance) << ","
+						              <<" " << getA(nnx, gm.horiAdvance) << ", " << getA(nny, gm.vertAdvance) << ");\n";
                     debug << " bezier to " << nnx << "," << nny << " ctlx, ctly: " << nx << "," << ny << "\n";
                 } else if (!this_isctl && next_isctl && nextnext_isctl) {
                     debug << " two ctl pts coming. adding point halfway between " << nexti << " and " << nextnexti << ":";
@@ -166,9 +175,14 @@ namespace font2svg {
                     nnx = (nx + nnx) / 2;
                     nny = (ny + nny) / 2;
                     svg << " Q " << nx << "," << ny << " " << nnx << "," << nny << "\n";
+
+					s << "curve_to( " << getA(nx, gm.horiAdvance) << ", " << getA(ny, gm.vertAdvance) << ","
+						<< " " << getA(nnx, gm.horiAdvance) << ",  " << getA(nny, gm.vertAdvance) << ");\n";
+
                     debug << " bezier to " << nnx << "," << nny << " ctlx, ctly: " << nx << "," << ny << "\n";
                 } else if (!this_isctl && !next_isctl) {
                     svg << " L " << nx << "," << ny << "\n";
+					s << "line_to(  " << getA(nx, gm.horiAdvance) << ", " << getA(ny, gm.vertAdvance) << ");\n" << std::endl;
                     debug << " line to " << nx << "," << ny << "\n";
                 } else if (this_isctl && !next_isctl) {
                     debug << " this is ctrl pt. skipping to " << nx << "," << ny << "\n";
@@ -179,7 +193,10 @@ namespace font2svg {
         }
         svg << "\n  '/>";
         std::cout << "\n<!--\n" << debug.str() << " \n-->\n";
-        return svg.str();
+		if (!returnFun)
+			return svg.str();
+		else
+			return s.str();
     }
     
     class glyph
@@ -211,7 +228,7 @@ namespace font2svg {
             this->file = ttf_file( std::string(filename) );
             init( unicode_str );
         }
-        
+	 
         glyph( const char * filename, const char * unicode_c_str )
         {
             this->file = ttf_file( std::string(filename) );
@@ -241,7 +258,7 @@ namespace font2svg {
             FT_Get_Glyph_Name( face, glyph_index, glyph_name, 1024 );
             debug << "\nGlyph Name: " << glyph_name;
             
-            gm = slot->metrics;
+            gm = slot->metrics;  
             
             debug << "\nGlyph Width: " << gm.width
             << " Height: " << gm.height
@@ -258,8 +275,8 @@ namespace font2svg {
             
             // Invert y coordinates (SVG = neg at top, TType = neg at bottom)
             ftpoints = ftoutline.points;
-            for ( int i = 0 ; i < ftoutline.n_points ; i++ )
-                ftpoints[i].y *= -1;
+           // for ( int i = 0 ; i < ftoutline.n_points ; i++ )
+           //     ftpoints[i].y *= -1;
             
             //test
             float  miny = 0;
@@ -278,8 +295,8 @@ namespace font2svg {
             }
             for ( int i = 0 ; i < ftoutline.n_points ; i++ )
             {
-                ftpoints[i].y += (-miny);
-                ftpoints[i].x += (-minx);
+               // ftpoints[i].y += (-miny);
+               // ftpoints[i].x += (-minx);
             }
             
             debug << "min y is" << miny << "\n";
@@ -432,11 +449,12 @@ namespace font2svg {
             return tmp.str();
         }
         
-        std::string outline()  {
+        std::string outline(bool showFun = false)  {
             std::vector<FT_Vector> pointsv(ftpoints,ftpoints+ftoutline.n_points);
             std::vector<char> tagsv(tags,tags+ftoutline.n_points);
             std::vector<short> contoursv(contours,contours+ftoutline.n_contours);
-            return do_outline(pointsv, tagsv, contoursv);
+
+			return do_outline(pointsv, tagsv, contoursv, gm, showFun);
         }
         
         std::string svgfooter()  {
