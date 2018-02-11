@@ -80,7 +80,7 @@ code::code (juce::ValueTree& tree)
 	}
 	else if (ost & juce::SystemStats::OperatingSystemType::Windows)
 	{
-		f = "D:/csource.h";
+		f = "E:/juceStudy/ft/ft/Source/csource.h";
 	}
 	else
 	{

@@ -83,7 +83,7 @@ pixel::pixel ()
 	}
 	else if (ost & juce::SystemStats::OperatingSystemType::Windows)
 	{
-		f = "D:/frag.h";
+		f = "E:/juceStudy/ft/ft/Source/frag.h";
 	}
 	else
 	{

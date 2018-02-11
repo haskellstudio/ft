@@ -509,13 +509,13 @@ float calc_aa_blur(float w) {
         //_isnan(1);
     }
    // return r;
-	return clamp(-w*AA, 0.0f, 1.0f) * wb; //* ;
-	//return wa * wb;
+   //return clamp(-w*AA, 0.0f, 1.0f) * wb; //* ;
+	return wa * wb;
 }
 
 void fill_preserve() {
     
-    //write_color(_stack.source, calc_aa_blur(_stack.shape.x  ));
+    write_color(_stack.source, calc_aa_blur(_stack.shape.x  ));
     if (_stack.has_clip) {
         write_color(_stack.source, calc_aa_blur(_stack.clip.x));
     }
@@ -856,9 +856,10 @@ vec3 bezier_solve(float a, float b, float c) {
 }
 
 // Find the signed distance from a point to a quadratic bezier curve
-float bezier(vec2 A, vec2 B, vec2 C, vec2 p)
+float bezier(vec2 A /*start point*/, vec2 B /*control point*/, vec2 C /*end point*/, vec2 p /*wait for test point*/)
 {
     B = mix(B + vec2(1e-4), B, abs(sign(B * 2.0f - A - C)));
+
     vec2 a = B - A, b = A - B * 2.0f + C, c = a * 2.0f, d = A - p;
     vec3 k = vec3(3.f*dot(a, b), 2.f*dot(a, a) + dot(d, b), dot(d, a)) / dot(b, b);
     vec3 t = clamp(bezier_solve(k.x, k.y, k.z), 0.0f, 1.0f);
@@ -954,25 +955,35 @@ void paint() {
     
     /**/
     set_source_rgba(.5, 0.0, 0.0, 1.);
-    set_line_width(0.1);
-    set_blur(0.025);
+ 
+
+
+	set_line_width(0.1);
+    set_blur(0.001);
     move_to(.0f, 0.0f);
-    
+	line_to(.4f, .4f);
+
+	curve_to(0.f, 0.5f, -0.5f, 0.f);
+
+	//stroke_preserve();
+	fill_preserve();
+
+
     //curve_to(0.f, 0.5f, -0.5f, 0.f);
-    line_to(.5f, .0f);
+   
     //close_path();
-    stroke();
+   
     //fill_preserve();
     
 
 
 
-	set_line_width(0.1);
-	set_blur(0.0001);
-	move_to(.0f, 0.0f);
-	line_to(-.5f, .0f);
-	stroke();
-    
+	//set_line_width(0.1);
+	//set_blur(0.0001);
+	//move_to(.0f, 0.0f);
+	//line_to(-.5f, .0f);
+	//stroke();
+ //   
     
     //float liushidu = 0.6283185306;  // 36 du
     //translate(-1.0f, 0.4f);
