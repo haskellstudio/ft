@@ -538,7 +538,7 @@ vec4 getCharInGrid( int c, int whichRow, int whichCol)
     //vec2 gx = dFdx(st / 16.0);
     //    vec2 gy = dFdy(st / 16.0);
     
-    return gl_FragColor += texture2D(Texture_2, vec2(x, y)).xyzw  * restrictRowAfter * restrictColAfter * restrictRowBefore *restrictColBefore;
+    return gl_FragColor += texture2D(Texture_1, vec2(x, y)).xyzw  * restrictRowAfter * restrictColAfter * restrictRowBefore *restrictColBefore;
 }
 
 // uv            left bottom is 0 0
@@ -569,7 +569,7 @@ vec4 getChar( int c, float xpos, float ypos, float width, float height)
     //vec2 gx = dFdx(st / 16.0);
     //    vec2 gy = dFdy(st / 16.0);
     
-    return gl_FragColor += texture2D(Texture_2, vec2(x, y)).xyzw  * restrictRowAfter * restrictColAfter * restrictRowBefore *restrictColBefore;
+    return gl_FragColor += texture2D(Texture_1, vec2(x, y)).xyzw  * restrictRowAfter * restrictColAfter * restrictRowBefore *restrictColBefore;
 }
 
 void show33()
