@@ -37,10 +37,10 @@ void genSvg(std::string name ) {
 #else
 		font2svg::glyph g("/Users/zhufei/dev/ttf2Svg/arial.ttf", charCode);
 #endif
-		f << "void show" << i << "()\n{\n";
+		f << "void show" << i << "(float xpos, float ypos, float width, float height)\n{\n save(ctx);\nsetScaleAndOffset(   vec2(xpos, ypos), width, height);\n";
 		f << g.outline(true);
 
-		f << "\n};\n\n\n";
+		f << "\n restore(ctx);\n}\n\n\n";
 		g.free();
 
 	}
@@ -71,9 +71,24 @@ void genSvg(std::string name, std::string charCode) {
 	file.close();
 }
 int main(int argc, const char * argv[]) {
+
+
+	std::ofstream file("test.txt");
+	for (int i = 33; i <= 127; i++)
+	{
+		file << "else if (c == " << i << ")\n" << "show" << i << "(-1., -.5, abs(sin(t))*2., abs(sin(t)) * 2.);" << std::endl;
+	}
+	return 0;
+
+	//std::ofstream file("test.txt");
+	//for (int i = 33; i <= 127; i++)
+	//{
+	//	file << "else if (c == " << i << ")\n" << "show" << i << "();" << std::endl;
+	//}
+	//return 0;
     // insert code here...
     std::cout << "Hello, World!\n";
-    genSvg("g", "33"); // g 103  A 65
+  //  genSvg("g", "33"); // g 103  A 65
 	genSvg("g");
     return 0;
 

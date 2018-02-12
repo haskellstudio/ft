@@ -16,7 +16,7 @@
 #include <sstream>
 #include <vector>
 #include <string>
-
+#include <iomanip>
 namespace font2svg {
     
     std::stringstream debug;
@@ -108,6 +108,7 @@ namespace font2svg {
         //                 destination-x, destination-y
         //         for line:   L x-coord, y-coord
         //         for move:   M x-coord, y-coord
+		s << std::fixed << std::setprecision(6);
 		s << "//width: " << gm.horiAdvance << "height: " << gm.vertAdvance << std::endl;
         int contour_starti = 0;
         int contour_endi = 0;
@@ -190,8 +191,13 @@ namespace font2svg {
             }
             contour_starti = contour_endi+1;
             svg << " Z\n";
+			//s << "close_path();\n";
+			s << "stroke(); // if you want just stroke, uncomment this line and comment the fill();\n //fill();\n";
         }
+
         svg << "\n  '/>";
+		
+
         std::cout << "\n<!--\n" << debug.str() << " \n-->\n";
 		if (!returnFun)
 			return svg.str();

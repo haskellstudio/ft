@@ -175,12 +175,27 @@ struct Context {
 
 Context _stack;
 vec3 _color = vec3(1.0);
+/*
+
+vec2 grid = vec2(1 / width, 1 / height);
+
+//vec2 st = uv*grid;
+uv.x = uv.x - xpos;
+uv.y = uv.y + ypos;
+
+setScaleAndOffset(vec2(.5), vec2(xpos, ypos),  width,  height);
+show33();
+
+uv = fract(st);
+*/
 
 
 void init(vec2 fragCoord) {
     vec2 uv = fragCoord.xy / iResolution.xy;
 	
     vec2 m = iMouse.xy / iResolution.xy;
+
+
     vec2 aspect = vec2(iResolution.x / iResolution.y, 1.0);
     
     //_color.x = _uv.x;
@@ -285,14 +300,12 @@ void add_clip(vec2 d) {
 }
 
 
-
-
 // stroke only
 void line_to(vec2 p) {
     vec4 pa = _stack.position - _stack.last_pt.xyxy;
     vec2 ba = p - _stack.last_pt;
     vec2 h = clamp(dot2(pa, ba) / dot(ba, ba), 0.0, 1.0);
-    vec2 s = sign(pa.xz*ba.y - pa.yw*ba.x);
+    vec2 s = -sign(pa.xz*ba.y - pa.yw*ba.x);
     vec2 d = length2(pa - ba.xyxy*h.xxyy);
     add_field(d);
     add_clip(d * s);
@@ -301,6 +314,10 @@ void line_to(vec2 p) {
 
 void line_to(float x, float y) { line_to(vec2(x, y)); }
 
+
+void close_path() {
+	line_to(_stack.start_pt);
+}
 
 
 ////向量a 在 向量 b上的投影。  A = sqrt(a*a)A 表示 a的長度。B 表示 b的長度。
@@ -571,7 +588,6 @@ vec4 getChar( int c, float xpos, float ypos, float width, float height)
     
     return gl_FragColor += texture2D(Texture_1, vec2(x, y)).xyzw  * restrictRowAfter * restrictColAfter * restrictRowBefore *restrictColBefore;
 }
-
 void show33()
 {
 	//width: 569height: 1922
@@ -589,6 +605,8 @@ void show33()
 
 	line_to(0.405975, 0.189386);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.323374, 0);
 
 	line_to(0.323374, 0.10666);
@@ -599,12 +617,15 @@ void show33()
 
 	line_to(0.323374, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
 
 void show34()
 {
+
 	//width: 727height: 1922
 	move_to(0.198074, 0.492716);
 
@@ -620,6 +641,8 @@ void show34()
 
 	line_to(0.198074, 0.492716);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.65337, 0.492716);
 
 	line_to(0.58597, 0.637877);
@@ -634,6 +657,8 @@ void show34()
 
 	line_to(0.65337, 0.492716);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -699,6 +724,8 @@ void show35()
 
 	line_to(0.0904302, -0.0130073);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.324846, 0.28616);
 
 	line_to(0.600527, 0.28616);
@@ -709,6 +736,8 @@ void show35()
 
 	line_to(0.324846, 0.28616);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -758,6 +787,8 @@ void show36()
 
 	line_to(0.447761, -0.109781);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.447761, 0.710198);
 
 	curve_to(0.355575, 0.701873, 0.302019, 0.666493);
@@ -766,6 +797,8 @@ void show36()
 	curve_to(0.339772, 0.470343, 0.447761, 0.451093);
 	line_to(0.447761, 0.710198);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.540825, 0.0629553);
 
 	curve_to(0.633011, 0.069719, 0.692713, 0.110302);
@@ -774,6 +807,8 @@ void show36()
 	curve_to(0.66813, 0.323621, 0.540825, 0.348075);
 	line_to(0.540825, 0.0629553);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -791,6 +826,8 @@ void show37()
 	curve_to(0.309171, 0.372529, 0.235585, 0.372529);
 	curve_to(0.162548, 0.372529, 0.113674, 0.424037);
 	curve_to(0.0653487, 0.475546, 0.0653487, 0.579605);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.237232, 0.711238);
 
 	curve_to(0.200439, 0.711238, 0.175728, 0.681061);
@@ -801,6 +838,8 @@ void show37()
 	curve_to(0.323449, 0.497399, 0.323449, 0.577523);
 	curve_to(0.323449, 0.651405, 0.298737, 0.681061);
 	curve_to(0.274025, 0.711238, 0.237232, 0.711238);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.237781, -0.0280957);
 
 	line_to(0.678199, 0.775754);
@@ -811,6 +850,8 @@ void show37()
 
 	line_to(0.237781, -0.0280957);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.585942, 0.17898);
 
 	curve_to(0.585942, 0.261186, 0.629325, 0.317898);
@@ -821,6 +862,8 @@ void show37()
 	curve_to(0.830313, -0.0280957, 0.756178, -0.0280957);
 	curve_to(0.683141, -0.0280957, 0.634267, 0.0234131);
 	curve_to(0.585942, 0.0754422, 0.585942, 0.17898);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.758375, 0.310614);
 
 	curve_to(0.721032, 0.310614, 0.696321, 0.280437);
@@ -831,6 +874,8 @@ void show37()
 	curve_to(0.844591, 0.0967742, 0.844591, 0.176899);
 	curve_to(0.844591, 0.25078, 0.819879, 0.280437);
 	curve_to(0.795168, 0.310614, 0.758375, 0.310614);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -863,6 +908,8 @@ void show38()
 	line_to(0.877013, -0.0176899);
 
 	curve_to(0.797218, 0.0187305, 0.712299, 0.0900104);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.444363, 0.487513);
 
 	curve_to(0.530015, 0.523413, 0.554905, 0.550468);
@@ -875,6 +922,8 @@ void show38()
 	curve_to(0.360176, 0.557752, 0.385798, 0.5359);
 	line_to(0.444363, 0.487513);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.629575, 0.163892);
 
 	line_to(0.387994, 0.376691);
@@ -885,6 +934,8 @@ void show38()
 	curve_to(0.310395, 0.069719, 0.405564, 0.069719);
 	curve_to(0.464861, 0.069719, 0.527818, 0.0957336);
 	curve_to(0.591508, 0.122268, 0.629575, 0.163892);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -906,6 +957,8 @@ void show39()
 
 	line_to(0.347826, 0.492716);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -927,6 +980,8 @@ void show40()
 	curve_to(0.453079, 0.0254943, 0.891496, -0.224246);
 	line_to(0.702346, -0.224246);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -948,6 +1003,8 @@ void show41()
 	curve_to(0.891496, 0.400104, 0.891496, 0.276275);
 	curve_to(0.891496, 0.135796, 0.739003, 0.00468262);
 	curve_to(0.587977, -0.126431, 0.370968, -0.224246);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -977,6 +1034,8 @@ void show42()
 
 	curve_to(0.324969, 0.569719, 0.387704, 0.593652);
 	curve_to(0.225847, 0.60666, 0.0803011, 0.622789);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1010,6 +1069,8 @@ void show43()
 
 	line_to(0.42893, 0.123309);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1033,6 +1094,8 @@ void show44()
 	curve_to(0.493849, -0.0473465, 0.499121, 0);
 	line_to(0.319859, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1050,6 +1113,8 @@ void show45()
 
 	line_to(0.0953079, 0.228928);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1067,6 +1132,8 @@ void show46()
 
 	line_to(0.326889, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1084,6 +1151,8 @@ void show47()
 
 	line_to(0, -0.0130073);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1105,6 +1174,8 @@ void show48()
 	curve_to(0.635645, -0.0130073, 0.494293, -0.0130073);
 	curve_to(0.308165, -0.0130073, 0.201932, 0.066077);
 	curve_to(0.0746269, 0.16129, 0.0746269, 0.376171);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.23705, 0.376171);
 
 	curve_to(0.23705, 0.188345, 0.310799, 0.125911);
@@ -1115,6 +1186,8 @@ void show48()
 	curve_to(0.603161, 0.688345, 0.492537, 0.688345);
 	curve_to(0.38367, 0.688345, 0.318701, 0.633715);
 	curve_to(0.23705, 0.563996, 0.23705, 0.376171);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1138,6 +1211,8 @@ void show49()
 
 	line_to(0.669886, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1173,6 +1248,8 @@ void show50()
 	curve_to(0.300263, 0.115505, 0.273924, 0.0900104);
 	line_to(0.90518, 0.0900104);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1215,6 +1292,8 @@ void show51()
 	curve_to(0.67252, -0.0135276, 0.484636, -0.0135276);
 	curve_to(0.315189, -0.0135276, 0.202809, 0.0463059);
 	curve_to(0.0913082, 0.106139, 0.0755048, 0.201353);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1246,6 +1325,8 @@ void show52()
 
 	line_to(0.581212, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.581212, 0.26847);
 
 	line_to(0.581212, 0.612383);
@@ -1254,6 +1335,8 @@ void show52()
 
 	line_to(0.581212, 0.26847);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1292,6 +1375,8 @@ void show53()
 	curve_to(0.702371, -0.0130073, 0.488147, -0.0130073);
 	curve_to(0.312555, -0.0130073, 0.201054, 0.0452653);
 	curve_to(0.0904302, 0.103538, 0.0746269, 0.199792);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1321,6 +1406,8 @@ void show54()
 	curve_to(0.325724, 0.765869, 0.529412, 0.765869);
 	curve_to(0.681299, 0.765869, 0.777875, 0.715401);
 	curve_to(0.875329, 0.664932, 0.894644, 0.575963);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.249342, 0.247138);
 
 	curve_to(0.249342, 0.198751, 0.283582, 0.154527);
@@ -1332,6 +1419,8 @@ void show54()
 	curve_to(0.613696, 0.412071, 0.505707, 0.412071);
 	curve_to(0.398595, 0.412071, 0.323968, 0.366285);
 	curve_to(0.249342, 0.32102, 0.249342, 0.247138);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1357,6 +1446,8 @@ void show55()
 	curve_to(0.595259, 0.581686, 0.71554, 0.662851);
 	line_to(0.0851624, 0.662851);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1382,6 +1473,8 @@ void show56()
 	curve_to(0.0728709, 0.120708, 0.0728709, 0.220604);
 	curve_to(0.0728709, 0.295005, 0.136084, 0.344953);
 	curve_to(0.200176, 0.395421, 0.317823, 0.413632);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.286216, 0.572321);
 
 	curve_to(0.286216, 0.51821, 0.34504, 0.483871);
@@ -1392,6 +1485,8 @@ void show56()
 	curve_to(0.585601, 0.688866, 0.496049, 0.688866);
 	curve_to(0.405619, 0.688866, 0.345917, 0.654527);
 	curve_to(0.286216, 0.620187, 0.286216, 0.572321);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.235294, 0.220083);
 
 	curve_to(0.235294, 0.180021, 0.266901, 0.14256);
@@ -1403,6 +1498,8 @@ void show56()
 	curve_to(0.607551, 0.373049, 0.493415, 0.373049);
 	curve_to(0.381914, 0.373049, 0.308165, 0.329344);
 	curve_to(0.235294, 0.28564, 0.235294, 0.220083);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1435,6 +1532,8 @@ void show57()
 	curve_to(0.602283, -0.0130073, 0.460053, -0.0130073);
 	curve_to(0.309043, -0.0130073, 0.213345, 0.0364204);
 	curve_to(0.117647, 0.0863684, 0.0983319, 0.176379);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.745391, 0.513007);
 
 	curve_to(0.745391, 0.593652, 0.67252, 0.640999);
@@ -1445,6 +1544,8 @@ void show57()
 	curve_to(0.385426, 0.341311, 0.494293, 0.341311);
 	curve_to(0.604039, 0.341311, 0.674276, 0.386576);
 	curve_to(0.745391, 0.432362, 0.745391, 0.513007);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1462,6 +1563,8 @@ void show58()
 
 	line_to(0.325132, 0.44589);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.325132, 0);
 
 	line_to(0.325132, 0.10666);
@@ -1472,6 +1575,8 @@ void show58()
 
 	line_to(0.325132, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1489,6 +1594,8 @@ void show59()
 
 	line_to(0.319859, 0.44589);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.319859, 0);
 
 	line_to(0.319859, 0.10666);
@@ -1505,6 +1612,8 @@ void show59()
 	curve_to(0.493849, -0.0473465, 0.499121, 0);
 	line_to(0.319859, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1528,6 +1637,8 @@ void show60()
 
 	line_to(0.0936455, 0.333507);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1545,6 +1656,8 @@ void show61()
 
 	line_to(0.904682, 0.448491);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.904682, 0.216962);
 
 	line_to(0.0953177, 0.216962);
@@ -1555,6 +1668,8 @@ void show61()
 
 	line_to(0.904682, 0.216962);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1578,6 +1693,8 @@ void show62()
 
 	line_to(0.905518, 0.333507);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1610,6 +1727,8 @@ void show63()
 	curve_to(0.568042, 0.244017, 0.566286, 0.187825);
 	line_to(0.414399, 0.187825);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.404741, 0);
 
 	line_to(0.404741, 0.10666);
@@ -1620,6 +1739,8 @@ void show63()
 
 	line_to(0.404741, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1682,6 +1803,8 @@ void show64()
 	curve_to(0.618086, -0.00208117, 0.597403, 0.00884495);
 	curve_to(0.577201, 0.0197711, 0.567581, 0.0400624);
 	curve_to(0.561328, 0.0530697, 0.558442, 0.0848075);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.325637, 0.225806);
 
 	curve_to(0.325637, 0.154527, 0.356902, 0.114984);
@@ -1696,6 +1819,8 @@ void show64()
 	curve_to(0.407407, 0.452653, 0.381914, 0.415193);
 	curve_to(0.356421, 0.377732, 0.341029, 0.324142);
 	curve_to(0.325637, 0.270552, 0.325637, 0.225806);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1721,6 +1846,8 @@ void show65()
 
 	line_to(-0.00219619, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.307467, 0.313215);
 
 	line_to(0.671303, 0.313215);
@@ -1731,6 +1858,8 @@ void show65()
 	curve_to(0.462665, 0.609261, 0.425329, 0.536941);
 	line_to(0.307467, 0.313215);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1757,6 +1886,8 @@ void show66()
 	curve_to(0.621523, 0, 0.519034, 0);
 	line_to(0.10981, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.25183, 0.442248);
 
 	line_to(0.483895, 0.442248);
@@ -1771,6 +1902,8 @@ void show66()
 
 	line_to(0.25183, 0.442248);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.25183, 0.0900104);
 
 	line_to(0.519034, 0.0900104);
@@ -1786,6 +1919,8 @@ void show66()
 
 	line_to(0.25183, 0.0900104);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1819,6 +1954,8 @@ void show67()
 	curve_to(0.433401, 0.0733611, 0.524003, 0.0733611);
 	curve_to(0.634212, 0.0733611, 0.710615, 0.122268);
 	curve_to(0.787018, 0.171176, 0.814064, 0.26743);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1843,6 +1980,8 @@ void show68()
 	curve_to(0.554429, 0, 0.464503, 0);
 	line_to(0.106829, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.237999, 0.0900104);
 
 	line_to(0.449628, 0.0900104);
@@ -1858,6 +1997,8 @@ void show68()
 
 	line_to(0.237999, 0.0900104);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1891,6 +2032,8 @@ void show69()
 
 	line_to(0.118594, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1920,6 +2063,8 @@ void show70()
 
 	line_to(0.134293, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1964,6 +2109,8 @@ void show71()
 
 	line_to(0.529818, 0.299168);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -1997,6 +2144,8 @@ void show72()
 
 	line_to(0.110886, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2014,6 +2163,8 @@ void show73()
 
 	line_to(0.335677, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2041,6 +2192,8 @@ void show74()
 	curve_to(0.569336, -0.0130073, 0.442383, -0.0130073);
 	curve_to(0.253906, -0.0130073, 0.15332, 0.0447451);
 	curve_to(0.0537109, 0.102497, 0.0576172, 0.216441);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2074,6 +2227,8 @@ void show75()
 
 	line_to(0.10981, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2095,6 +2250,8 @@ void show76()
 
 	line_to(0.131694, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2132,6 +2289,8 @@ void show77()
 
 	line_to(0.0890973, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2161,6 +2320,8 @@ void show78()
 
 	line_to(0.105477, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2181,6 +2342,8 @@ void show79()
 	curve_to(0.372254, -0.0130073, 0.269931, 0.0390219);
 	curve_to(0.167608, 0.091051, 0.114878, 0.181061);
 	curve_to(0.0621469, 0.271072, 0.0621469, 0.371488);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.187696, 0.369927);
 
 	curve_to(0.187696, 0.23205, 0.276836, 0.152445);
@@ -2192,6 +2355,8 @@ void show79()
 	curve_to(0.594476, 0.689386, 0.503453, 0.689386);
 	curve_to(0.374137, 0.689386, 0.280603, 0.615505);
 	curve_to(0.187696, 0.542144, 0.187696, 0.369927);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2217,6 +2382,8 @@ void show80()
 
 	line_to(0.115666, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.257687, 0.400104);
 
 	line_to(0.535139, 0.400104);
@@ -2230,6 +2397,8 @@ void show80()
 
 	line_to(0.257687, 0.400104);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2255,6 +2424,8 @@ void show81()
 	curve_to(0.935342, 0.495317, 0.935342, 0.381894);
 	curve_to(0.935342, 0.287721, 0.900816, 0.212279);
 	curve_to(0.86629, 0.137357, 0.79661, 0.0816857);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.528562, 0.210718);
 
 	curve_to(0.634024, 0.186264, 0.702448, 0.137877);
@@ -2270,6 +2441,8 @@ void show81()
 	curve_to(0.562461, 0.12435, 0.499058, 0.137357);
 	line_to(0.528562, 0.210718);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2306,6 +2479,8 @@ void show82()
 
 	line_to(0.108857, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.240027, 0.426119);
 
 	line_to(0.521974, 0.426119);
@@ -2319,6 +2494,8 @@ void show82()
 
 	line_to(0.240027, 0.426119);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2365,6 +2542,8 @@ void show83()
 	curve_to(0.379209, -0.0130073, 0.280381, 0.0171696);
 	curve_to(0.182284, 0.0473465, 0.125915, 0.1077);
 	curve_to(0.0702782, 0.168574, 0.0673499, 0.245057);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2390,6 +2569,8 @@ void show84()
 
 	line_to(0.42446, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2422,6 +2603,8 @@ void show85()
 	curve_to(0.757268, 0.17898, 0.757268, 0.322581);
 	line_to(0.757268, 0.762747);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2447,6 +2630,8 @@ void show86()
 
 	line_to(0.422401, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2488,6 +2673,8 @@ void show87()
 
 	line_to(0.214175, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2525,6 +2712,8 @@ void show88()
 
 	line_to(0.00658858, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2554,6 +2743,8 @@ void show89()
 
 	line_to(0.418009, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2586,6 +2777,8 @@ void show90()
 
 	line_to(0.0327738, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2611,6 +2804,8 @@ void show91()
 
 	line_to(0.244288, -0.211759);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2628,6 +2823,8 @@ void show92()
 
 	line_to(0.746924, -0.0130073);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2653,6 +2850,8 @@ void show93()
 
 	line_to(0.766257, -0.211759);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2676,6 +2875,8 @@ void show94()
 
 	line_to(0.248699, 0.359001);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2693,6 +2894,8 @@ void show95()
 
 	line_to(-0.0272169, -0.211759);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2710,6 +2913,8 @@ void show96()
 
 	line_to(0.681818, 0.621228);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2749,6 +2954,8 @@ void show97()
 	line_to(0.75856, 0);
 
 	curve_to(0.733977, 0.0291363, 0.726953, 0.0681582);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.713784, 0.277315);
 
 	curve_to(0.627744, 0.256504, 0.455663, 0.241935);
@@ -2762,6 +2969,8 @@ void show97()
 	curve_to(0.713784, 0.181061, 0.713784, 0.242976);
 	line_to(0.713784, 0.277315);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2789,6 +2998,8 @@ void show98()
 	curve_to(0.358209, -0.012487, 0.264267, 0.0691987);
 	line_to(0.264267, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.262511, 0.280437);
 
 	curve_to(0.262511, 0.181061, 0.308165, 0.136837);
@@ -2799,6 +3010,8 @@ void show98()
 	curve_to(0.619842, 0.488033, 0.51712, 0.488033);
 	curve_to(0.413521, 0.488033, 0.338016, 0.434443);
 	curve_to(0.262511, 0.381374, 0.262511, 0.280437);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2829,6 +3042,8 @@ void show99()
 	curve_to(0.418945, 0.0645161, 0.547852, 0.0645161);
 	curve_to(0.651367, 0.0645161, 0.720703, 0.0983351);
 	curve_to(0.790039, 0.132154, 0.808594, 0.202393);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2857,6 +3072,8 @@ void show100()
 
 	line_to(0.723442, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.223881, 0.275754);
 
 	curve_to(0.223881, 0.169615, 0.299385, 0.117066);
@@ -2867,6 +3084,8 @@ void show100()
 	curve_to(0.578578, 0.487513, 0.470588, 0.487513);
 	curve_to(0.365233, 0.487513, 0.294118, 0.436524);
 	curve_to(0.223881, 0.385536, 0.223881, 0.275754);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2893,6 +3112,8 @@ void show101()
 	curve_to(0.394205, 0.0645161, 0.510975, 0.0645161);
 	curve_to(0.597893, 0.0645161, 0.65935, 0.0915713);
 	curve_to(0.720808, 0.118626, 0.756804, 0.17794);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.237928, 0.329344);
 
 	line_to(0.75856, 0.329344);
@@ -2901,6 +3122,8 @@ void show101()
 	curve_to(0.623354, 0.488033, 0.503073, 0.488033);
 	curve_to(0.394205, 0.488033, 0.319579, 0.444849);
 	curve_to(0.24583, 0.401665, 0.237928, 0.329344);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2941,6 +3164,8 @@ void show102()
 
 	line_to(0.31283, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -2975,6 +3200,8 @@ void show103()
 	curve_to(0.598771, -0.224246, 0.458297, -0.224246);
 	curve_to(0.291484, -0.224246, 0.188762, -0.179501);
 	curve_to(0.0860404, -0.135276, 0.0895522, -0.0457856);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.220369, 0.28616);
 
 	curve_to(0.220369, 0.177419, 0.29324, 0.127471);
@@ -2985,6 +3212,8 @@ void show103()
 	curve_to(0.580334, 0.487513, 0.473222, 0.487513);
 	curve_to(0.367867, 0.487513, 0.294118, 0.436524);
 	curve_to(0.220369, 0.386056, 0.220369, 0.28616);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3019,6 +3248,8 @@ void show104()
 
 	line_to(0.118525, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3036,6 +3267,8 @@ void show105()
 
 	line_to(0.298901, 0.655047);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.298901, 0);
 
 	line_to(0.298901, 0.552549);
@@ -3046,6 +3279,8 @@ void show105()
 
 	line_to(0.298901, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3063,6 +3298,8 @@ void show106()
 
 	line_to(0.294506, 0.654006);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(-0.206593, -0.21436);
 
 	line_to(-0.131868, -0.134755);
@@ -3079,6 +3316,8 @@ void show106()
 	curve_to(0.69011, -0.132154, 0.578022, -0.172216);
 	curve_to(0.435165, -0.224246, 0.103297, -0.224246);
 	curve_to(-0.0571429, -0.224246, -0.206593, -0.21436);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3112,6 +3351,8 @@ void show107()
 
 	line_to(0.132813, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3129,6 +3370,8 @@ void show108()
 
 	line_to(0.287912, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3177,6 +3420,8 @@ void show109()
 
 	line_to(0.0791325, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3212,6 +3457,8 @@ void show110()
 
 	line_to(0.118525, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3230,6 +3477,8 @@ void show111()
 	curve_to(0.618964, -0.012487, 0.496927, -0.012487);
 	curve_to(0.301141, -0.012487, 0.179982, 0.0619147);
 	curve_to(0.0597015, 0.136316, 0.0597015, 0.276275);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.222125, 0.276275);
 
 	curve_to(0.222125, 0.170135, 0.300263, 0.117066);
@@ -3240,6 +3489,8 @@ void show111()
 	curve_to(0.613696, 0.487513, 0.496927, 0.487513);
 	curve_to(0.378402, 0.487513, 0.300263, 0.434964);
 	curve_to(0.222125, 0.382414, 0.222125, 0.276275);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3269,6 +3520,8 @@ void show112()
 
 	line_to(0.118525, -0.211759);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.261633, 0.273153);
 
 	curve_to(0.261633, 0.166493, 0.334504, 0.115505);
@@ -3279,6 +3532,8 @@ void show112()
 	curve_to(0.619842, 0.491675, 0.517998, 0.491675);
 	curve_to(0.417032, 0.491675, 0.338894, 0.435484);
 	curve_to(0.261633, 0.379813, 0.261633, 0.273153);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3306,6 +3561,8 @@ void show113()
 
 	line_to(0.712906, -0.211759);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.225637, 0.277836);
 
 	curve_to(0.225637, 0.171176, 0.301141, 0.117586);
@@ -3316,6 +3573,8 @@ void show113()
 	curve_to(0.575066, 0.491155, 0.471466, 0.491155);
 	curve_to(0.368745, 0.491155, 0.296752, 0.439126);
 	curve_to(0.225637, 0.387617, 0.225637, 0.277836);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3344,6 +3603,8 @@ void show114()
 
 	line_to(0.195015, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3388,6 +3649,8 @@ void show115()
 	curve_to(0.626953, -0.012487, 0.504883, -0.012487);
 	curve_to(0.302734, -0.012487, 0.196289, 0.0322581);
 	curve_to(0.0908203, 0.0770031, 0.0615234, 0.164932);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3429,6 +3692,8 @@ void show116()
 	curve_to(0.643234, 0.0936524, 0.680141, 0.0868887);
 	curve_to(0.718805, 0.0801249, 0.789104, 0.0801249);
 	curve_to(0.841828, 0.0801249, 0.927944, 0.0837669);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3465,6 +3730,8 @@ void show117()
 
 	line_to(0.729587, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3490,6 +3757,8 @@ void show118()
 
 	line_to(0.419922, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3534,6 +3803,8 @@ void show119()
 
 	line_to(0.2238, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3571,6 +3842,8 @@ void show120()
 
 	line_to(0.0146484, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3605,6 +3878,8 @@ void show121()
 	curve_to(0.442383, -0.181061, 0.381836, -0.202393);
 	curve_to(0.321289, -0.224246, 0.237305, -0.224246);
 	curve_to(0.186523, -0.224246, 0.124023, -0.212799);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3638,6 +3913,8 @@ void show122()
 
 	line_to(0.0390625, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3686,6 +3963,8 @@ void show123()
 	curve_to(0.195906, 0.23257, 0.0833333, 0.233611);
 	line_to(0.0833333, 0.318418);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3703,6 +3982,8 @@ void show124()
 
 	line_to(0.353383, -0.224246);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3751,6 +4032,8 @@ void show125()
 	curve_to(0.614035, 0.432362, 0.637427, 0.396462);
 	curve_to(0.660819, 0.361082, 0.730994, 0.340271);
 	curve_to(0.802632, 0.319459, 0.915205, 0.318418);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3778,6 +4061,8 @@ void show126()
 	curve_to(0.357023, 0.360562, 0.29097, 0.360562);
 	curve_to(0.237458, 0.360562, 0.189799, 0.345994);
 	curve_to(0.142977, 0.331946, 0.0727425, 0.289802);
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
@@ -3795,6 +4080,8 @@ void show127()
 
 	line_to(0.166667, 0);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 	move_to(0.1875, 0.0166493);
 
 	line_to(0.8125, 0.0166493);
@@ -3805,39 +4092,297 @@ void show127()
 
 	line_to(0.1875, 0.0166493);
 
+	stroke(); // if you want just stroke, uncomment this line and comment the fill();
+			  //fill();
 
 };
 
 
-vec4 getChar2(int c, float xpos, float ypos, float width, float height)
+
+
+//
+//
+//void showTureType(int c ,float xpos, float ypos, float width, float height)
+//{
+//
+//	vec2 uv = _stack.position.xy; 
+//	vec4 uvbak = _stack.position;
+//
+//	float restrictRowBefore = step(xpos-width, uv.x);
+//
+//	float restrictColBefore = step(uv.y, ypos+height);
+//
+//	float restrictRowAfter = step(uv.x, xpos + width);
+//
+//	float restrictColAfter = step(ypos - height, uv.y);
+//
+//	vec2 grid = vec2(1 / width, 1 / height);
+//
+//	vec3 _colorbefore = _color;
+//
+//	setScaleAndOffset(vec2(.5), vec2(xpos, ypos),  width,  height);
+//
+//	{
+//	if(c == 33)
+//		show33();
+//	else if (c == 34)
+//		show34();
+//	else if (c == 35)
+//		show35();
+//	else if (c == 36)
+//		show36();
+//	else if (c == 37)
+//		show37();
+//	else if (c == 38)
+//		show38();
+//	else if (c == 39)
+//		show39();
+//	else if (c == 40)
+//		show40();
+//	else if (c == 41)
+//		show41();
+//	else if (c == 42)
+//		show42();
+//	else if (c == 43)
+//		show43();
+//	else if (c == 44)
+//		show44();
+//	else if (c == 45)
+//		show45();
+//	else if (c == 46)
+//		show46();
+//	else if (c == 47)
+//		show47();
+//	else if (c == 48)
+//		show48();
+//	else if (c == 49)
+//		show49();
+//	else if (c == 50)
+//		show50();
+//	else if (c == 51)
+//		show51();
+//	else if (c == 52)
+//		show52();
+//	else if (c == 53)
+//		show53();
+//	else if (c == 54)
+//		show54();
+//	else if (c == 55)
+//		show55();
+//	else if (c == 56)
+//		show56();
+//	else if (c == 57)
+//		show57();
+//	else if (c == 58)
+//		show58();
+//	else if (c == 59)
+//		show59();
+//	else if (c == 60)
+//		show60();
+//	else if (c == 61)
+//		show61();
+//	else if (c == 62)
+//		show62();
+//	else if (c == 63)
+//		show63();
+//	else if (c == 64)
+//		show64();
+//	else if (c == 65)
+//		show65();
+//	else if (c == 66)
+//		show66();
+//	else if (c == 67)
+//		show67();
+//	else if (c == 68)
+//		show68();
+//	else if (c == 69)
+//		show69();
+//	else if (c == 70)
+//		show70();
+//	else if (c == 71)
+//		show71();
+//	else if (c == 72)
+//		show72();
+//	else if (c == 73)
+//		show73();
+//	else if (c == 74)
+//		show74();
+//	else if (c == 75)
+//		show75();
+//	else if (c == 76)
+//		show76();
+//	else if (c == 77)
+//		show77();
+//	else if (c == 78)
+//		show78();
+//	else if (c == 79)
+//		show79();
+//	else if (c == 80)
+//		show80();
+//	else if (c == 81)
+//		show81();
+//	else if (c == 82)
+//		show82();
+//	else if (c == 83)
+//		show83();
+//	else if (c == 84)
+//		show84();
+//	else if (c == 85)
+//		show85();
+//	else if (c == 86)
+//		show86();
+//	else if (c == 87)
+//		show87();
+//	else if (c == 88)
+//		show88();
+//	else if (c == 89)
+//		show89();
+//	else if (c == 90)
+//		show90();
+//	else if (c == 91)
+//		show91();
+//	else if (c == 92)
+//		show92();
+//	else if (c == 93)
+//		show93();
+//	else if (c == 94)
+//		show94();
+//	else if (c == 95)
+//		show95();
+//	else if (c == 96)
+//		show96();
+//	else if (c == 97)
+//		show97();
+//	else if (c == 98)
+//		show98();
+//	else if (c == 99)
+//		show99();
+//	else if (c == 100)
+//		show100();
+//	else if (c == 101)
+//		show101();
+//	else if (c == 102)
+//		show102();
+//	else if (c == 103)
+//		show103();
+//	else if (c == 104)
+//		show104();
+//	else if (c == 105)
+//		show105();
+//	else if (c == 106)
+//		show106();
+//	else if (c == 107)
+//		show107();
+//	else if (c == 108)
+//		show108();
+//	else if (c == 109)
+//		show109();
+//	else if (c == 110)
+//		show110();
+//	else if (c == 111)
+//		show111();
+//	else if (c == 112)
+//		show112();
+//	else if (c == 113)
+//		show113();
+//	else if (c == 114)
+//		show114();
+//	else if (c == 115)
+//		show115();
+//	else if (c == 116)
+//		show116();
+//	else if (c == 117)
+//		show117();
+//	else if (c == 118)
+//		show118();
+//	else if (c == 119)
+//		show119();
+//	else if (c == 120)
+//		show120();
+//	else if (c == 121)
+//		show121();
+//	else if (c == 122)
+//		show122();
+//	else if (c == 123)
+//		show123();
+//	else if (c == 124)
+//		show124();
+//	else if (c == 125)
+//		show125();
+//	else if (c == 126)
+//		show126();
+//	else if (c == 127)
+//		show127();
+//		}
+//	
+//	float res =  restrictRowBefore * restrictRowAfter  * restrictColAfter * restrictColBefore;
+//
+//	 //_color.rgb = mix(vec3(0.), _color.rgb, res);
+//	 //	_color.rgb = _color;
+//	 _color.rgb =  mix(_colorbefore, _color.rgb, res);
+//	 _stack.position = uvbak;
+//}
+
+void setScaleAndOffset(vec2 scale, vec2 offset, float width, float height)
 {
+
+	vec2 aspect = vec2(iResolution.x / iResolution.y, 1.0);
+
+
 	vec2 uv = fragCoord.xy / iResolution.xy;
-	float restrictRowBefore = step(xpos, uv.x);
+	uv = uv - offset;
+	uv = uv* vec2(1. / width, 1. / height);
 
-	float restrictColBefore = step(uv.y, ypos);
 
-	float restrictRowAfter = step(uv.x, xpos + width);
+	vec2 m = iMouse.xy / iResolution.xy;
+	m = m - offset;
+	m = m * vec2(1. / width, 1. / height);
 
-	float restrictColAfter = step(ypos - height, uv.y);
+
+	vec2 position = (uv*2.0 - 1.0)*aspect;
+	vec2 query_position = (m*2.0 - 1.0)*aspect;
+	_stack.position = vec4(position, query_position);
+}
+void showTureType33( float xpos, float ypos, float width, float height)
+{
+
+	vec2 uv = _stack.position.xy;
+	vec4 uvbak = _stack.position;
+
+	
 
 	vec2 grid = vec2(1 / width, 1 / height);
 
-	//vec2 st = uv*grid;
-	uv.x = uv.x - xpos;
-	uv.y = uv.y + ypos;
-	vec2 st = uv*grid;
-	uv = fract(st);
+	vec3 _colorbefore = _color;
+
+	setScaleAndOffset(vec2(.5), vec2(xpos, ypos), width, height);
+
 	show33();
-	float x = (1.0 / cPerRowf) *  fract(float(c) / cPerRowf)  * cPerRowf + uv.x / cPerRowf;
-	float y = (1.0 / cPerRowf) *  (cPerRowf - float(c / cPerRow) - 1.0) + uv.y / cPerRowf;
-
-	//vec2 gx = dFdx(st / 16.0);
-	//    vec2 gy = dFdy(st / 16.0);
-
-	return gl_FragColor += texture2D(Texture_2, vec2(x, y)).xyzw  * restrictRowAfter * restrictColAfter * restrictRowBefore *restrictColBefore;
+	
+	//_color.rgb = mix(_colorbefore, _color.rgb, res);
+	_stack.position = uvbak;
 }
 
 
+void showTureType44(float xpos, float ypos, float width, float height)
+{
+
+	vec2 uv = _stack.position.xy;
+	vec4 uvbak = _stack.position;
+
+
+
+	vec2 grid = vec2(1 / width, 1 / height);
+
+	vec3 _colorbefore = _color;
+
+	setScaleAndOffset(vec2(.5), vec2(xpos, ypos), width, height);
+
+	show48();
+
+	//_color.rgb = mix(_colorbefore, _color.rgb, res);
+	_stack.position = uvbak;
+}
 void main()
 {
     //vec2 uv = fragCoord.xy / iResolution.xy;
@@ -3852,18 +4397,55 @@ void main()
     init(fragCoord);
 
 	set_source_rgba(1., 0.0, 0.0, 1.);
+
 	set_line_width(0.01);
 	set_blur(0.001);
+	showTureType33( .4, .5, .2, .2);
+	//showTureType44( .5, .5, .2, .2);
+	//show34();
+	//show35();
+	//show36();
+	//show37();
+	//showTureType(
+	//	33, // which char to show 
+	//	-1., // x pos for char to show 
+	//	.8,   // y pos for char to show
+	//	.2,   // the char width
+	//	.2);  // the char height
+
+
+
+	//showTureType(34, -.8, .8, .2, .2);  
+	//showTureType(35, -.6, .8, .2, .2);
+	//showTureType(36, -.4, .8, .2, .2);
+	//showTureType(37, -.2, .8, .2, .2);
+	//showTureType(38, -.0, .8, .2, .2);
+	//showTureType(39, .2, .8, .2, .2);
+	//showTureType(40, .4, .8, .2, .2);
+	//showTureType(41, .6, .8, .2, .2);
+
+
+	gl_FragColor += vec4(_color, 1.0);
+	return;
+
+
+
+	
+
+
+	//
+	//show33();
+
 
 //	getCharInGrid(50, 3, 1);
-	getChar2(50, .5, .5, .05, .1);
+//	
 	//move_to(-1.f, -1.f);
-	//line_to(.5f, .5f);
+	//line_to(.0f, .0f);
 	//line_to(.0f, .5f);
 	//curve_to(0.f, 0.5f, -0.5f, 0.f);
 
-	//stroke();
-	stroke_preserve();
+
+//	stroke_preserve();
 	//fill_preserve();
 	
 	
